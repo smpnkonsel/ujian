@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ujian Online — KW Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/ujian.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+<div class="app">
+ <header>
+  <div class="hrow"><span class="brand">KW Learning · SMPN 20 Konawe Selatan</span>
+   <div class="hr"><span class="title" id="ttl">Ujian Online</span>
+    <div class="timer hidden" id="tmr" role="timer"><span>Sisa waktu</span><b id="tv">0:00:00</b></div>
+    <button type="button" class="qs hidden" id="qs">Daftar soal</button>
+    <button type="button" class="fin hidden" id="fin">Keluar</button></div></div>
+  <p class="sub" id="sub">Masukkan token dari guru untuk memulai ujian.</p>
+  <div class="strip"></div>
+ </header>
+ <div class="body">
+  <aside id="side" class="hidden">
+   <div class="sc">
+    <div class="who"><b id="wn"></b><span id="wk"></span></div>
+    <h3>Progres</h3><div class="pt"><div class="pf" id="pf"></div></div><div class="pl" id="pl"></div>
+    <h3>Navigasi soal</h3><div class="ng" id="ng"></div>
+    <div class="lg">
+     <div class="li"><span class="dot" style="background:var(--navy)"></span> Sudah dijawab</div>
+     <div class="li"><span class="dot" style="background:var(--tint);border:1.5px solid var(--navy)"></span> Belum dijawab</div>
+     <div class="li"><span class="dot" style="background:var(--gold)"></span> Ditandai ragu-ragu</div>
+    </div>
+   </div>
+   <div class="sf"><button class="bs" id="bs">Kumpulkan jawaban</button></div>
+  </aside>
+  <main id="panel" aria-live="polite"></main>
+ </div>
+</div>
+<div id="scrim"></div>
+
+<div class="mo hidden" id="mo" role="dialog" aria-modal="true"><div class="mb"><h3>Kumpulkan jawaban?</h3><p id="mm"></p><div class="ma"><button class="bg" id="no">Kembali</button><button class="bp" id="yes">Ya, kumpulkan</button></div></div></div>
+
+<div class="mo hidden" id="intro" role="dialog" aria-modal="true" aria-labelledby="it"><div class="mb big">
+ <h3 id="it">Petunjuk Mengerjakan Soal</h3>
+ <ol>
+  <li>Ujian terdiri dari <b id="jq">0</b> soal pilihan ganda.</li>
+  <li>Waktu mengerjakan <b id="dm">0</b> menit. Waktu <b>langsung berjalan</b> setelah kamu menekan tombol OK dan tidak dapat dihentikan.</li>
+  <li>Pilih satu jawaban yang paling tepat. Jawaban boleh diubah selama waktu masih ada.</li>
+  <li>Soal yang masih ragu bisa ditandai dengan tombol <b>Tandai ragu-ragu</b>, lalu dicek lagi lewat navigasi soal.</li>
+  <li>Di komputer, tekan huruf <b>A–E</b> untuk memilih jawaban dan tombol panah kiri/kanan untuk pindah soal.</li>
+  <li>Tekan <b>Kumpulkan jawaban</b> bila sudah selesai. Jika waktu habis, jawaban dikumpulkan otomatis.</li>
+  <li id="i6"></li>
+ </ol>
+ <div class="ma"><button class="bp" id="okb">OK, mulai mengerjakan</button></div>
+</div></div>
+
+<div class="mo hidden" id="hasil" role="dialog" aria-modal="true" aria-labelledby="hh"><div class="mb res" id="hs"></div></div>
+
+<script type="module" src="js/ujian.js"></script>
+</body>
+</html>
