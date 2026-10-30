@@ -4,79 +4,308 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Admin Ujian — KW Learning</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="css/admin.css">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
+
 <body>
+
 <aside id="sb">
- <div class="brand"><h1>KW Learning</h1><small>Admin ujian · SMPN 20 Konawe Selatan</small></div>
+ <div class="brand">
+  <h1>KW Learning</h1>
+  <small>Admin ujian · SMPN 20 Konawe Selatan</small>
+ </div>
+
  <nav>
-  <a href="#dasbor" data-p="dasbor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dasbor</a>
-  <a href="#token" data-p="token"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3m-4 4 3 3m-6-1 2 2"/></svg>Pembuat token</a>
-  <a href="#nilai" data-p="nilai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3"/></svg>Unduh nilai</a>
+  <a href="#dasbor" data-p="dasbor">Dasbor</a>
+  <a href="#token" data-p="token">Pembuat token</a>
+  <a href="#nilai" data-p="nilai">Unduh nilai</a>
  </nav>
- <div class="sbf"><span class="dot" id="dot"></span><span id="cs">Memeriksa koneksi…</span></div>
+
+ <div class="sbf">
+  <span class="dot" id="dot"></span>
+  <span id="cs">Memeriksa koneksi…</span>
+ </div>
 </aside>
+
 <div id="scrim"></div>
 
 <div id="mn">
- <div class="top"><button id="burger" aria-label="Buka menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><h2 id="ttl">Dasbor</h2></div>
+
+ <div class="top">
+  <button id="burger" aria-label="Buka menu">☰</button>
+  <h2 id="ttl">Dasbor</h2>
+ </div>
+
  <div class="wrap">
-  <div id="cfgwarn" class="msg warn hidden"><b>Konfigurasi Firebase belum terbaca.</b> Pastikan <code>js/firebaseConfig.js</code> berisi konfigurasi proyek Anda dan halaman dibuka lewat server (bukan klik ganda). Daftar soal tetap bisa dilihat, tetapi token dan nilai belum bisa dimuat.</div>
+
+  <div id="cfgwarn" class="msg warn hidden">
+   <b>Konfigurasi Firebase belum terbaca.</b>
+   Pastikan js/firebaseConfig.js sudah benar.
+  </div>
 
   <!-- DASBOR -->
   <section class="pg" id="p-dasbor">
+
    <div class="stats">
     <div class="st"><b id="s1">0</b><span>Token aktif</span></div>
     <div class="st"><b id="s2">0</b><span>Total token</span></div>
     <div class="st"><b id="s3">0</b><span>Peserta mengumpulkan</span></div>
     <div class="st"><b id="s4">–</b><span>Rata-rata nilai</span></div>
    </div>
+
    <div class="two">
-    <div class="card"><h3>Sebaran nilai</h3><div id="dist"></div></div>
-    <div class="card"><h3>Token aktif</h3><div id="dtok"></div></div>
+    <div class="card">
+     <h3>Sebaran nilai</h3>
+     <div id="dist"></div>
+    </div>
+
+    <div class="card">
+     <h3>Token aktif</h3>
+     <div id="dtok"></div>
+    </div>
    </div>
-   <div class="card"><h3>Pengumpulan terbaru</h3><div class="tw" style="border:0"><table><thead><tr><th>Nama</th><th>Ujian</th><th>Nilai</th><th>Waktu</th></tr></thead><tbody id="dlast"></tbody></table></div></div>
-   <div class="card"><h3>Aksi cepat</h3><div class="acts"><a class="btn p" href="#token" style="text-decoration:none">Buat token baru</a><a class="btn" href="#nilai" style="text-decoration:none">Unduh nilai</a></div></div>
+
+   <div class="card">
+    <h3>Pengumpulan terbaru</h3>
+    <div class="tw" style="border:0">
+     <table>
+      <thead>
+       <tr>
+        <th>Nama</th>
+        <th>Ujian</th>
+        <th>Nilai</th>
+        <th>Waktu</th>
+       </tr>
+      </thead>
+      <tbody id="dlast"></tbody>
+     </table>
+    </div>
+   </div>
+
+   <div class="card">
+    <h3>Aksi cepat</h3>
+    <div class="acts">
+     <a class="btn p" href="#token">Buat token baru</a>
+     <a class="btn" href="#nilai">Unduh nilai</a>
+    </div>
+   </div>
+
   </section>
 
-  <!-- TOKEN -->
+  <!-- TOKEN DAN PAKET -->
   <section class="pg" id="p-token">
-   <h3 style="margin:0 0 10px;color:var(--navy)">Paket soal (folder soal2)</h3>
+
+   <div class="card" style="margin-bottom:18px">
+
+    <h3 style="margin-top:0">Tambah paket soal</h3>
+
+    <p style="font-size:13px;color:var(--muted)">
+     Tambahkan dokumen DOCX dari komputer, GitHub, atau Google Drive.
+    </p>
+
+    <div class="field">
+     <label for="psumber">Sumber file</label>
+     <select id="psumber">
+      <option value="lokal">Komputer / Folder lokal</option>
+      <option value="github">GitHub</option>
+      <option value="drive">Google Drive</option>
+     </select>
+    </div>
+
+    <div class="field">
+     <label for="pnama">Nama paket ujian</label>
+     <input id="pnama" type="text"
+      placeholder="Contoh: Matematika Kelas 8 — PAS Semester 1">
+    </div>
+
+    <!-- LOKAL -->
+    <div id="plokal" class="source-panel">
+     <div class="field">
+      <label for="pfile">Lokasi file DOCX</label>
+      <input id="pfile" type="text"
+       placeholder="soal2/SOAL MATEMATIKA KELAS 8.docx">
+     </div>
+     <small>Masukkan alamat file yang sudah tersedia di hosting.</small>
+    </div>
+
+    <!-- GITHUB -->
+    <div id="pgithub" class="source-panel hidden">
+     <div class="field">
+      <label for="purl">Link GitHub</label>
+      <input id="purl" type="url"
+       placeholder="https://raw.githubusercontent.com/...">
+     </div>
+     <small>Gunakan link Raw GitHub atau link file GitHub.</small>
+    </div>
+
+    <!-- GOOGLE DRIVE -->
+    <div id="pdrive" class="source-panel hidden">
+     <div class="field">
+      <label for="pid">Link atau ID Google Drive</label>
+      <input id="pid" type="text"
+       placeholder="https://drive.google.com/file/d/ID/view">
+     </div>
+     <small>Pastikan akses file diatur menjadi siapa saja yang memiliki link.</small>
+    </div>
+
+    <!-- Kolom waktu ujian dihapus: waktu diisi saat Buat token -->
+
+    <div id="perr" class="msg err hidden"></div>
+
+    <div class="acts">
+     <button class="btn p" type="button" id="psimpan">
+      + Simpan paket soal
+     </button>
+    </div>
+
+   </div>
+
+   <h3 style="margin:0 0 10px;color:var(--navy)">
+    Daftar paket soal
+   </h3>
+
    <div id="pakets"></div>
-   <h3 style="margin:22px 0 10px;color:var(--navy)">Daftar token</h3>
-   <div class="tools"><input id="ftk" type="search" placeholder="Cari token atau nama ujian…"></div>
-   <div class="tw"><table><thead><tr><th>Token</th><th>Ujian</th><th>Waktu</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead><tbody id="tb"><tr><td colspan="6" class="empty">Memuat…</td></tr></tbody></table></div>
+
+   <h3 style="margin:22px 0 10px;color:var(--navy)">
+    Daftar token
+   </h3>
+
+   <div class="tools">
+    <input id="ftk" type="search"
+     placeholder="Cari token atau nama ujian…">
+   </div>
+
+   <div class="tw">
+    <table>
+     <thead>
+      <tr>
+       <th>Token</th>
+       <th>Ujian</th>
+       <th>Waktu</th>
+       <th>Status</th>
+       <th>Dibuat</th>
+       <th>Aksi</th>
+      </tr>
+     </thead>
+     <tbody id="tb">
+      <tr><td colspan="6" class="empty">Memuat…</td></tr>
+     </tbody>
+    </table>
+   </div>
+
   </section>
 
   <!-- NILAI -->
   <section class="pg" id="p-nilai">
+
    <div class="tools">
-    <select id="fu"><option value="">Semua ujian</option></select>
-    <select id="fk"><option value="">Semua kelas</option></select>
-    <input id="fq" type="search" placeholder="Cari nama peserta…">
+    <select id="fu">
+     <option value="">Semua ujian</option>
+    </select>
+
+    <select id="fk">
+     <option value="">Semua kelas</option>
+    </select>
+
+    <input id="fq" type="search"
+     placeholder="Cari nama peserta…">
    </div>
+
    <div class="stats" style="margin-bottom:12px">
     <div class="st"><b id="n1">0</b><span>Peserta</span></div>
     <div class="st"><b id="n2">–</b><span>Rata-rata</span></div>
     <div class="st"><b id="n3">–</b><span>Tertinggi</span></div>
     <div class="st"><b id="n4">–</b><span>Terendah</span></div>
    </div>
-   <div class="acts" style="margin-bottom:12px"><button class="btn p" id="dl">Unduh CSV (Excel)</button></div>
-   <div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Ujian</th><th>Token</th><th>Benar</th><th>Salah</th><th>Nilai</th><th>Waktu</th></tr></thead><tbody id="nb"><tr><td colspan="9" class="empty">Memuat…</td></tr></tbody></table></div>
+
+   <div class="acts" style="margin-bottom:12px">
+    <button class="btn p" id="dl">Unduh CSV (Excel)</button>
+   </div>
+
+   <div class="tw">
+    <table>
+     <thead>
+      <tr>
+       <th>No</th>
+       <th>Nama</th>
+       <th>Kelas</th>
+       <th>Ujian</th>
+       <th>Token</th>
+       <th>Benar</th>
+       <th>Salah</th>
+       <th>Nilai</th>
+       <th>Waktu</th>
+      </tr>
+     </thead>
+     <tbody id="nb">
+      <tr><td colspan="9" class="empty">Memuat…</td></tr>
+     </tbody>
+    </table>
+   </div>
+
   </section>
+
  </div>
 </div>
 
-<div class="mo hidden" id="mo"><div class="mb"><h3>Buat token ujian</h3><p id="mnm"></p>
-<label for="mw">Waktu mengerjakan (menit)</label><input id="mw" type="number" min="1" max="600">
-<label for="mt">Kode token</label><input id="mt" maxlength="12" autocapitalize="characters" style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace;letter-spacing:2px">
-<label for="mk">Kunci jawaban (opsional)</label><input id="mk" placeholder="mis. CBCDAB… (satu huruf per soal, - bila kosong)" style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace">
-<div id="merr" class="msg err hidden" style="margin-top:12px"></div>
-<div class="ma"><button class="btn" id="mc">Batal</button><button class="btn p" id="ms">Simpan token</button></div></div></div>
+<!-- MODAL TOKEN -->
+<div class="mo hidden" id="mo">
+ <div class="mb">
+  <h3>Buat token ujian</h3>
+  <p id="mnm"></p>
+
+  <label for="mw">Waktu mengerjakan (menit)</label>
+  <input id="mw" type="number" min="1" max="600" value="90">
+
+  <label for="mt">Kode token</label>
+  <input id="mt" maxlength="12"
+   autocapitalize="characters"
+   style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace;letter-spacing:2px">
+
+  <p id="mkinfo" style="font-size:13px;color:var(--muted);margin:10px 0 0"></p>
+
+  <div id="mkwrap">
+   <label for="mk">Kunci jawaban (opsional)</label>
+   <input id="mk"
+    placeholder="mis. CBCDAB…"
+    style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace">
+  </div>
+
+  <div id="merr" class="msg err hidden"></div>
+
+  <div class="ma">
+   <button class="btn" id="mc">Batal</button>
+   <button class="btn p" id="ms">Simpan token</button>
+  </div>
+ </div>
+</div>
+
 <div id="toast" role="status"></div>
 
 <script type="module" src="js/main.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const select = document.getElementById('psumber');
+
+ function tampilSumber() {
+  document.querySelectorAll('.source-panel').forEach(el => {
+   el.classList.add('hidden');
+  });
+
+  const panel = document.getElementById('p' + select.value);
+  if (panel) panel.classList.remove('hidden');
+ }
+
+ select.addEventListener('change', tampilSumber);
+ tampilSumber();
+});
+</script>
+
 </body>
 </html>

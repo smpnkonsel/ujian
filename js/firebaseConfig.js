@@ -1,5 +1,8 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+
+// js/firebaseConfig.js
+
+// For Firebase JS SDK v7.20.0 and later
+export const firebaseConfig = {
   apiKey: "AIzaSyBHuax2uJzSvbioflvwt9mZhxipOxufVnc",
   authDomain: "cbt-6a20d.firebaseapp.com",
   projectId: "cbt-6a20d",
