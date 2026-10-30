@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pembuat token — KW Learning</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/sidebar.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+
+<body>
+
+<!-- Sidebar dipanggil dari partials/sidebar.html oleh js/sidebar.js -->
+<div id="sidebar-slot" data-mode="halaman" data-aktif="token"></div>
+
+<div id="mn">
+
+ <div class="top">
+  <h2 id="ttl">Pembuat token</h2>
+ </div>
+
+ <div class="wrap">
+
+  <div id="cfgwarn" class="msg warn hidden">
+   <b>Ada masalah pada halaman ini.</b>
+  </div>
+
+  <!-- TOKEN DAN PAKET -->
+  <section class="pg on" id="p-token">
+
+   <div class="card" style="margin-bottom:18px">
+
+    <h3 style="margin-top:0">Tambah paket soal</h3>
+
+    <p style="font-size:13px;color:var(--muted)">
+     Tambahkan dokumen DOCX dari komputer, GitHub, atau Google Drive.
+     Tulis soal memakai templat Word agar formatnya seragam, lengkap dengan
+     baris <b>Kunci: X</b> di bawah tiap soal.
+    </p>
+
+    <div class="field">
+     <label for="psumber">Sumber file</label>
+     <select id="psumber">
+      <option value="lokal">Komputer / Folder lokal</option>
+      <option value="github">GitHub</option>
+      <option value="drive">Google Drive</option>
+     </select>
+    </div>
+
+    <div class="field">
+     <label for="pnama">Nama paket ujian</label>
+     <input id="pnama" type="text"
+      placeholder="Contoh: Matematika Kelas 8 — PAS Semester 1">
+    </div>
+
+    <!-- LOKAL -->
+    <div id="plokal" class="source-panel">
+     <div class="field">
+      <label for="pfile">Lokasi file DOCX</label>
+      <input id="pfile" type="text"
+       placeholder="soal2/SOAL MATEMATIKA KELAS 8.docx">
+     </div>
+     <small>Masukkan alamat file yang sudah tersedia di hosting.</small>
+    </div>
+
+    <!-- GITHUB -->
+    <div id="pgithub" class="source-panel hidden">
+     <div class="field">
+      <label for="purl">Link GitHub</label>
+      <input id="purl" type="url"
+       placeholder="https://raw.githubusercontent.com/...">
+     </div>
+     <small>Gunakan link Raw GitHub atau link file GitHub.</small>
+    </div>
+
+    <!-- GOOGLE DRIVE -->
+    <div id="pdrive" class="source-panel hidden">
+     <div class="field">
+      <label for="pid">Link atau ID Google Drive</label>
+      <input id="pid" type="text"
+       placeholder="https://drive.google.com/file/d/ID/view">
+     </div>
+     <small>Pastikan akses file diatur menjadi siapa saja yang memiliki link.</small>
+    </div>
+
+    <div id="perr" class="msg err hidden"></div>
+
+    <div class="acts">
+     <button class="btn p" type="button" id="psimpan">
+      + Simpan paket soal
+     </button>
+     <a class="btn" href="templat/TEMPLAT SOAL KW LEARNING.docx" download>
+      Unduh templat soal (Word)
+     </a>
+    </div>
+
+   </div>
+
+   <h3 style="margin:0 0 10px;color:var(--navy)">
+    Daftar paket soal
+   </h3>
+
+   <div id="pakets"></div>
+
+   <h3 style="margin:22px 0 10px;color:var(--navy)">
+    Daftar token
+   </h3>
+
+   <div class="tools">
+    <input id="ftk" type="search"
+     placeholder="Cari token atau nama ujian…">
+   </div>
+
+   <div class="tw">
+    <table>
+     <thead>
+      <tr>
+       <th>Token</th>
+       <th>Ujian</th>
+       <th>Waktu</th>
+       <th>Status</th>
+       <th>Dibuat</th>
+       <th>Aksi</th>
+      </tr>
+     </thead>
+     <tbody id="tb">
+      <tr><td colspan="6" class="empty">Memuat…</td></tr>
+     </tbody>
+    </table>
+   </div>
+
+  </section>
+
+ </div>
+</div>
+
+<!-- MODAL TOKEN -->
+<div class="mo hidden" id="mo">
+ <div class="mb">
+  <h3>Buat token ujian</h3>
+  <p id="mnm"></p>
+
+  <label for="mw">Waktu mengerjakan (menit)</label>
+  <input id="mw" type="number" min="1" max="600" value="90">
+
+  <label for="mt">Kode token</label>
+  <input id="mt" maxlength="12"
+   autocapitalize="characters"
+   style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace;letter-spacing:2px">
+
+  <!-- Kunci jawaban dibaca otomatis dari dokumen Word -->
+  <p id="mkinfo" class="kinfo"></p>
+
+  <div id="merr" class="msg err hidden" style="margin-top:12px"></div>
+
+  <div class="ma">
+   <button class="btn" id="mc">Batal</button>
+   <button class="btn p" id="ms">Simpan token</button>
+  </div>
+ </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const select = document.getElementById('psumber');
+
+ function tampilSumber() {
+  document.querySelectorAll('.source-panel').forEach(el => {
+   el.classList.add('hidden');
+  });
+
+  const panel = document.getElementById('p' + select.value);
+  if (panel) panel.classList.remove('hidden');
+ }
+
+ select.addEventListener('change', tampilSumber);
+ tampilSumber();
+});
+</script>
+
+<script type="module">
+ // Galat ditampilkan di halaman supaya penyebabnya terlihat.
+ function tampilGalat(judul, error) {
+  console.error(judul, error);
+
+  const w = document.getElementById('cfgwarn');
+  if (!w) return;
+
+  w.classList.remove('hidden');
+
+  const d = document.createElement('div');
+  d.textContent = judul + ': ' + (error && error.message ? error.message : error);
+  w.appendChild(d);
+ }
+
+ // 1. Sidebar lebih dulu.
+ try {
+  const { muatSidebar } = await import('./js/sidebar.js');
+  await muatSidebar();
+ } catch (error) {
+  tampilGalat('Sidebar gagal dimuat', error);
+ }
+
+ // 2. Halaman token dan paket soal.
+ try {
+  const { PAKET } = await import('./js/config.js');
+  const { $, S } = await import('./js/util.js');
+  const { drawPakets } = await import('./js/soal.js');
+  const { initToken, openModal, drawTok } = await import('./js/token.js');
+  const { initPaket } = await import('./js/paket.js');
+  const { sambungFirebase } = await import('./js/halaman.js');
+
+  S.PAKET = [...(PAKET || [])];
+  S.TOK = [];
+  S.HAS = [];
+  S.ok = false;
+
+  const gambarPaket = () => drawPakets(openModal);
+
+  initToken();
+  initPaket();
+
+  // Paket bawaan tampil sebelum Firestore selesai dimuat.
+  gambarPaket();
+
+  await sambungFirebase({
+   paket: true,
+   token: true,
+   onPaket: gambarPaket,
+   onToken: drawTok,
+   onGagal: pesan => {
+    const tb = $('tb');
+    if (tb) tb.innerHTML =
+     '<tr><td colspan="6" class="empty"></td></tr>';
+    if (tb) tb.querySelector('.empty').textContent = pesan;
+   }
+  });
+
+ } catch (error) {
+  tampilGalat('Halaman token gagal dimulai', error);
+ }
+</script>
+
+</body>
+</html>

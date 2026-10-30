@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unduh nilai — KW Learning</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/sidebar.css">
+
+</head>
+
+<body>
+
+<!-- Sidebar dipanggil dari partials/sidebar.html oleh js/sidebar.js -->
+<div id="sidebar-slot" data-mode="halaman" data-aktif="nilai"></div>
+
+<div id="mn">
+
+ <div class="top">
+  <h2 id="ttl">Unduh nilai</h2>
+ </div>
+
+ <div class="wrap">
+
+  <div id="cfgwarn" class="msg warn hidden">
+   <b>Ada masalah pada halaman ini.</b>
+  </div>
+
+  <!-- NILAI -->
+  <section class="pg on" id="p-nilai">
+
+   <div class="tools">
+    <select id="fu">
+     <option value="">Semua ujian</option>
+    </select>
+
+    <select id="fk">
+     <option value="">Semua kelas</option>
+    </select>
+
+    <input id="fq" type="search"
+     placeholder="Cari nama peserta…">
+   </div>
+
+   <div class="stats" style="margin-bottom:12px">
+    <div class="st"><b id="n1">0</b><span>Peserta</span></div>
+    <div class="st"><b id="n2">–</b><span>Rata-rata</span></div>
+    <div class="st"><b id="n3">–</b><span>Tertinggi</span></div>
+    <div class="st"><b id="n4">–</b><span>Terendah</span></div>
+   </div>
+
+   <div class="acts" style="margin-bottom:12px">
+    <button class="btn p" id="dl">Unduh CSV (Excel)</button>
+   </div>
+
+   <div class="tw">
+    <table>
+     <thead>
+      <tr>
+       <th>No</th>
+       <th>Nama</th>
+       <th>Kelas</th>
+       <th>Ujian</th>
+       <th>Token</th>
+       <th>Benar</th>
+       <th>Salah</th>
+       <th>Nilai</th>
+       <th>Waktu</th>
+      </tr>
+     </thead>
+     <tbody id="nb">
+      <tr><td colspan="9" class="empty">Memuat…</td></tr>
+     </tbody>
+    </table>
+   </div>
+
+  </section>
+
+ </div>
+</div>
+
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+ // Galat ditampilkan di halaman supaya penyebabnya terlihat.
+ function tampilGalat(judul, error) {
+  console.error(judul, error);
+
+  const w = document.getElementById('cfgwarn');
+  if (!w) return;
+
+  w.classList.remove('hidden');
+
+  const d = document.createElement('div');
+  d.textContent = judul + ': ' + (error && error.message ? error.message : error);
+  w.appendChild(d);
+ }
+
+ // 1. Sidebar lebih dulu.
+ try {
+  const { muatSidebar } = await import('./js/sidebar.js');
+  await muatSidebar();
+ } catch (error) {
+  tampilGalat('Sidebar gagal dimuat', error);
+ }
+
+ // 2. Halaman nilai.
+ try {
+  const { $, S } = await import('./js/util.js');
+  const { initNilai, drawNilai, norm } = await import('./js/nilai.js');
+  const { sambungFirebase } = await import('./js/halaman.js');
+
+  S.PAKET = [];
+  S.TOK = [];
+  S.HAS = [];
+  S.ok = false;
+
+  initNilai();
+
+  await sambungFirebase({
+   hasil: true,
+   norm,
+   onHasil: drawNilai,
+   onGagal: pesan => {
+    const nb = $('nb');
+    if (nb) nb.innerHTML =
+     '<tr><td colspan="9" class="empty"></td></tr>';
+    if (nb) nb.querySelector('.empty').textContent = pesan;
+   }
+  });
+
+ } catch (error) {
+  tampilGalat('Halaman nilai gagal dimulai', error);
+ }
+</script>
+
+</body>
+</html>

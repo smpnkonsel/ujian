@@ -2,6 +2,7 @@
    SOAL.JS
    Pembaca soal DOCX + daftar paket soal
    Mendukung sumber lokal, GitHub, dan Google Drive
+   Lihat soal: tiap soal diikuti kunci jawabannya.
 ========================================================= */
 
 import { PAKET } from './config.js';
@@ -10,168 +11,11 @@ import { ambilDokumen } from './storage.js';
 import { parseSoalBaru } from './parser.js?v=4';
 
 /* =========================================================
-   REGEX PEMBACA SOAL
-========================================================= */
-
-// Pilihan jawaban A-E.
-const RE_OPT =
-  /^((?:<[^>]+>|\s|&nbsp;)*)(?:\*\*)?\(?([A-Ea-e])[.)]\s*/;
-
-// Nomor soal.
-const RE_NUM =
-  /^((?:<[^>]+>|\s|&nbsp;)*)(?:\*\*)?\d+[.)]\s*/;
-
-// Kunci jawaban.
-const RE_KEY =
-  /^(?:kunci(?:\s+jawaban)?|jawaban)\s*[:=]/i;
-
-// Informasi yang tidak dimasukkan sebagai soal.
-const RE_SKIP =
-  /^(pembahasan|level|tingkat|topik|skor|bobot)\s*[:=]/i;
-
-/* =========================================================
-   MEMECAH PILIHAN JAWABAN
-========================================================= */
-
-function optSegs(html) {
-  const result = [];
-
-  for (const segment of html.split(/\t+/)) {
-    if (
-      !segment.replace(/<[^>]+>/g, '').trim() &&
-      !/<img/i.test(segment)
-    ) {
-      continue;
-    }
-
-    const match = segment.match(RE_OPT);
-
-    if (match) {
-      result.push({
-        l: match[2].toUpperCase(),
-        h: segment.replace(RE_OPT, '$1').trim()
-      });
-    } else if (result.length) {
-      result[result.length - 1].h += ' ' + segment.trim();
-    }
-  }
-
-  return result;
-}
-
-/* =========================================================
-   PARSER SOAL DOCX
-   Format yang didukung:
-   1. Pertanyaan
-   A. Pilihan
-   B. Pilihan
-   C. Pilihan
-   D. Pilihan
-========================================================= */
-
-export function parseSoal(html) {
-  const doc = new DOMParser().parseFromString(
-    html,
-    'text/html'
-  );
-
-  const blocks = [
-    ...doc.body.querySelectorAll('p, li')
-  ]
-    .map(element => ({
-      h: element.innerHTML.trim(),
-      t: element.textContent.trim()
-    }))
-    .filter(block =>
-      block.t || /<img/i.test(block.h)
-    );
-
-  const output = [];
-  let current = null;
-
-  for (const block of blocks) {
-
-    // Lewati kunci dan informasi tambahan.
-    if (
-      RE_KEY.test(block.t) ||
-      RE_SKIP.test(block.t)
-    ) {
-      continue;
-    }
-
-    // Baris kosong yang berisi gambar atau HTML.
-    if (current && !block.t) {
-      if (current.o.length) {
-        current.o[current.o.length - 1].h +=
-          ' ' + block.h;
-      } else {
-        current.q += '<br>' + block.h;
-      }
-
-      continue;
-    }
-
-    // Baris pilihan jawaban.
-    if (current && RE_OPT.test(block.h)) {
-      optSegs(block.h).forEach(option => {
-        current.o.push(option);
-      });
-
-      continue;
-    }
-
-    // Baris nomor soal baru.
-    if (RE_NUM.test(block.h)) {
-      current = {
-        q: block.h.replace(RE_NUM, '$1'),
-        o: []
-      };
-
-      output.push(current);
-      continue;
-    }
-
-    // Belum ada soal atau soal sebelumnya sudah selesai.
-    if (!current || current.o.length >= 2) {
-      current = {
-        q: block.h,
-        o: []
-      };
-
-      output.push(current);
-      continue;
-    }
-
-    // Lanjutan pertanyaan atau pilihan jawaban.
-    if (current.o.length === 0) {
-      current.q += '<br>' + block.h;
-    } else {
-      current.o[current.o.length - 1].h +=
-        ' ' + block.h;
-    }
-  }
-
-  return output
-    .filter(question => question.o.length >= 2)
-    .map(question => {
-      question.o.sort((a, b) =>
-        a.l.localeCompare(b.l)
-      );
-
-      return question;
-    });
-}
-
-/* =========================================================
    DAFTAR PAKET AKTIF
-   Mengutamakan S.PAKET dari main.js.
-   Jika belum tersedia, gunakan PAKET bawaan.
 ========================================================= */
 
 function daftarPaket() {
-  return Array.isArray(S.PAKET)
-    ? S.PAKET
-    : PAKET;
+  return Array.isArray(S.PAKET) ? S.PAKET : PAKET;
 }
 
 /* =========================================================
@@ -191,8 +35,43 @@ function labelSumber(paket) {
 }
 
 /* =========================================================
-   PRATINJAU SOAL
+   PRATINJAU SOAL + KUNCI JAWABAN
 ========================================================= */
+
+function htmlSoal(qs) {
+  const berkunci = qs.filter(q => q.key).length;
+  const lengkap = berkunci === qs.length;
+
+  const ringkas = `
+    <div class="prev-sum">
+      <span class="chip"><b>${qs.length}</b> soal terbaca</span>
+      <span class="chip ${lengkap ? 'ok' : 'warn'}">
+        ${lengkap
+          ? 'Semua soal punya kunci jawaban'
+          : `Kunci jawaban ${berkunci} dari ${qs.length} soal`}
+      </span>
+    </div>
+  `;
+
+  const daftar = qs.map((q, n) => `
+    <div class="q">
+      <span class="qn">${n + 1}</span>
+      <div>${q.q}</div>
+
+      <ol>
+        ${q.o.map(o => `
+          <li class="${o.l === q.key ? 'ok' : ''}">${o.l}. ${o.h}</li>
+        `).join('')}
+      </ol>
+
+      ${q.key
+        ? `<div class="kunci">Kunci jawaban <b class="huruf">${esc(q.key)}</b></div>`
+        : `<div class="kunci kosong">Kunci jawaban belum ada di dokumen untuk soal ini.</div>`}
+    </div>
+  `).join('');
+
+  return ringkas + daftar;
+}
 
 async function preview(i) {
   const box = $('pv' + i);
@@ -208,7 +87,6 @@ async function preview(i) {
   box.textContent = 'Memuat soal...';
 
   try {
-
     const paket = daftarPaket()[i];
 
     if (!paket) {
@@ -224,10 +102,8 @@ async function preview(i) {
       );
     }
 
-    // Ambil dokumen sesuai sumber penyimpanan.
     const buffer = await ambilDokumen(paket);
 
-    // Baca DOCX menggunakan Mammoth.
     if (typeof mammoth === 'undefined') {
       throw new Error(
         'Library Mammoth belum dimuat. Periksa pemuatan mammoth.browser.min.js.'
@@ -246,24 +122,9 @@ async function preview(i) {
       );
     }
 
-    box.innerHTML =
-      `<p style="margin:0 0 6px;color:var(--soft);font-size:13.5px">
-        <b>${qs.length}</b> soal pilihan ganda terbaca.
-      </p>` +
-
-      qs.map((q, n) => `
-        <div class="q">
-          <b>${n + 1}.</b> ${q.q}
-          <ol>
-            ${q.o.map(o => `
-              <li>${o.l}. ${o.h}</li>
-            `).join('')}
-          </ol>
-        </div>
-      `).join('');
+    box.innerHTML = htmlSoal(qs);
 
   } catch (error) {
-
     console.error('Gagal membaca paket:', error);
 
     box.innerHTML = `
@@ -277,7 +138,6 @@ async function preview(i) {
 /* =========================================================
    MENGGAMBAR DAFTAR PAKET
    onBuat(i) dipanggil saat tombol Buat Token diklik.
-   Durasi tidak ditampilkan: waktu diisi saat Buat token.
 ========================================================= */
 
 export function drawPakets(onBuat) {
@@ -313,10 +173,7 @@ export function drawPakets(onBuat) {
 
         <div class="acts">
 
-          <button
-            class="btn"
-            type="button"
-            data-v="${i}">
+          <button class="btn" type="button" data-v="${i}">
             Lihat soal
           </button>
 
@@ -332,29 +189,29 @@ export function drawPakets(onBuat) {
 
       </div>
 
-      <div
-        class="prev hidden"
-        id="pv${i}">
-      </div>
+      <div class="prev hidden" id="pv${i}"></div>
 
     </div>
   `).join('');
 
-  // Tombol pratinjau.
   container.querySelectorAll('[data-v]').forEach(button => {
-    button.onclick = () => {
-      preview(Number(button.dataset.v));
-    };
+    button.onclick = () => preview(Number(button.dataset.v));
   });
 
-  // Tombol pembuatan token.
   container.querySelectorAll('[data-t]').forEach(button => {
     button.onclick = () => {
-      const index = Number(button.dataset.t);
-
       if (typeof onBuat === 'function') {
-        onBuat(index);
+        onBuat(Number(button.dataset.t));
       }
     };
   });
 }
+
+/* =========================================================
+   KOMPATIBILITAS
+   Nama lama parseSoal tetap tersedia agar file lain yang
+   masih mengimpornya tidak error. Isinya memakai parser baru.
+========================================================= */
+
+export const parseSoal = html =>
+  parseSoalBaru(html).map(q => ({ q: q.q, o: q.o }));

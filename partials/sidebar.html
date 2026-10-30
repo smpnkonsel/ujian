@@ -1,0 +1,36 @@
+<!-- =====================================================
+     SIDEBAR.HTML — bagian (partial) sidebar KW Learning
+     Dipanggil oleh js/sidebar.js (folder partials/) ke elemen
+     <div id="sidebar-slot"></div> di halaman mana pun.
+     Gaya: css/sidebar.css
+     Menu: data-p = id bagian (dipakai nav.js), data-url = file halaman
+     (dipakai bila slot memakai data-mode="halaman")
+====================================================== -->
+<aside id="sb" aria-label="Menu utama">
+ <div class="brand">
+  <h1>KW Learning</h1>
+  <small>Admin ujian · SMPN 20 Konawe Selatan</small>
+ </div>
+
+ <nav>
+  <a href="#dasbor" data-p="dasbor" data-url="admin.html">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+   <span>Dasbor</span>
+  </a>
+  <a href="#token" data-p="token" data-url="token.html">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2"/></svg>
+   <span>Pembuat token</span>
+  </a>
+  <a href="#nilai" data-p="nilai" data-url="nilai.html">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+   <span>Unduh nilai</span>
+  </a>
+ </nav>
+
+ <div class="sbf">
+  <span class="dot" id="dot"></span>
+  <span id="cs">Memeriksa koneksi…</span>
+ </div>
+</aside>
+
+<div id="scrim"></div>

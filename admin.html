@@ -8,31 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/sidebar.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 
 <body>
 
-<aside id="sb">
- <div class="brand">
-  <h1>KW Learning</h1>
-  <small>Admin ujian · SMPN 20 Konawe Selatan</small>
- </div>
-
- <nav>
-  <a href="#dasbor" data-p="dasbor">Dasbor</a>
-  <a href="#token" data-p="token">Pembuat token</a>
-  <a href="#nilai" data-p="nilai">Unduh nilai</a>
- </nav>
-
- <div class="sbf">
-  <span class="dot" id="dot"></span>
-  <span id="cs">Memeriksa koneksi…</span>
- </div>
-</aside>
-
-<div id="scrim"></div>
+<!-- Sidebar dipanggil dari sidebar.html oleh js/sidebar.js -->
+<div id="sidebar-slot" data-home="admin.html"></div>
 
 <div id="mn">
 
@@ -44,8 +28,7 @@
  <div class="wrap">
 
   <div id="cfgwarn" class="msg warn hidden">
-   <b>Konfigurasi Firebase belum terbaca.</b>
-   Pastikan js/firebaseConfig.js sudah benar.
+   <b>Ada masalah pada halaman ini.</b>
   </div>
 
   <!-- DASBOR -->
@@ -72,7 +55,7 @@
 
    <div class="card">
     <h3>Pengumpulan terbaru</h3>
-    <div class="tw" style="border:0">
+    <div class="tw" style="border:0;box-shadow:none">
      <table>
       <thead>
        <tr>
@@ -106,6 +89,8 @@
 
     <p style="font-size:13px;color:var(--muted)">
      Tambahkan dokumen DOCX dari komputer, GitHub, atau Google Drive.
+     Tulis soal memakai templat Word agar formatnya seragam, lengkap dengan
+     baris <b>Kunci: X</b> di bawah tiap soal.
     </p>
 
     <div class="field">
@@ -153,14 +138,15 @@
      <small>Pastikan akses file diatur menjadi siapa saja yang memiliki link.</small>
     </div>
 
-    <!-- Kolom waktu ujian dihapus: waktu diisi saat Buat token -->
-
     <div id="perr" class="msg err hidden"></div>
 
     <div class="acts">
      <button class="btn p" type="button" id="psimpan">
       + Simpan paket soal
      </button>
+     <a class="btn" href="templat/TEMPLAT SOAL KW LEARNING.docx" download>
+      Unduh templat soal (Word)
+     </a>
     </div>
 
    </div>
@@ -267,16 +253,10 @@
    autocapitalize="characters"
    style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace;letter-spacing:2px">
 
-  <p id="mkinfo" style="font-size:13px;color:var(--muted);margin:10px 0 0"></p>
+  <!-- Kunci jawaban dibaca otomatis dari dokumen Word -->
+  <p id="mkinfo" class="kinfo"></p>
 
-  <div id="mkwrap">
-   <label for="mk">Kunci jawaban (opsional)</label>
-   <input id="mk"
-    placeholder="mis. CBCDAB…"
-    style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace">
-  </div>
-
-  <div id="merr" class="msg err hidden"></div>
+  <div id="merr" class="msg err hidden" style="margin-top:12px"></div>
 
   <div class="ma">
    <button class="btn" id="mc">Batal</button>
@@ -287,7 +267,36 @@
 
 <div id="toast" role="status"></div>
 
-<script type="module" src="js/main.js"></script>
+<script type="module">
+ // Galat ditampilkan di halaman supaya penyebabnya terlihat.
+ function tampilGalat(judul, error) {
+  console.error(judul, error);
+
+  const w = document.getElementById('cfgwarn');
+  if (!w) return;
+
+  w.classList.remove('hidden');
+
+  const d = document.createElement('div');
+  d.textContent = judul + ': ' + (error && error.message ? error.message : error);
+  w.appendChild(d);
+ }
+
+ // 1. Sidebar lebih dulu, karena main.js menyalakan menu dan status koneksi.
+ try {
+  const { muatSidebar } = await import('./js/sidebar.js');
+  await muatSidebar();
+ } catch (error) {
+  tampilGalat('Sidebar gagal dimuat', error);
+ }
+
+ // 2. Aplikasi utama (Firebase, paket, token, nilai).
+ try {
+  await import('./js/main.js');
+ } catch (error) {
+  tampilGalat('Aplikasi gagal dimulai', error);
+ }
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

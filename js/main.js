@@ -1,25 +1,22 @@
 /* =========================================================
-   MAIN.JS — INISIALISASI ADMIN KW LEARNING
+   MAIN.JS — INISIALISASI ADMIN KW LEARNING (admin.html)
 
    Fitur:
-   - Memuat konfigurasi Firebase
-   - Memuat paket bawaan
-   - Memuat paket tambahan dari Firestore (realtime)
-   - Menghindari paket duplikat
-   - Memantau token secara realtime
-   - Memantau hasil ujian secara realtime
-   - Memperbarui dashboard, daftar paket, dan nilai
+   - Menyambung Firebase lewat halaman.js (satu kode untuk
+     semua halaman)
+   - Memantau paket, token, dan hasil ujian secara realtime
+   - Memperbarui dasbor, daftar paket, token, dan nilai
+
+   Perbaikan:
+   - Tiap komponen dijalankan terpisah. Bila satu gagal atau
+     elemennya tidak ada di halaman, yang lain tetap jalan dan
+     data tetap dibaca.
+   - Bagian yang elemennya tidak ada (misalnya token atau nilai
+     sudah dipindah ke halaman sendiri) dilewati otomatis.
+   - Galat ditampilkan di kotak kuning, tidak diam-diam kosong.
 ========================================================= */
 
-import {
-  FB,
-  KOLEKSI_HASIL,
-  KOLEKSI_TOKEN,
-  KOLEKSI_PAKET,
-  PAKET,
-  bacaConfig
-} from './config.js';
-
+import { PAKET } from './config.js';
 import { $, esc, S } from './util.js';
 import { initNav } from './nav.js';
 import { drawPakets } from './soal.js';
@@ -27,6 +24,7 @@ import { initToken, openModal, drawTok } from './token.js';
 import { initPaket } from './paket.js';
 import { initNilai, drawNilai, norm } from './nilai.js';
 import { drawDash } from './dasbor.js';
+import { sambungFirebase } from './halaman.js';
 
 /* =========================================================
    STATUS AWAL
@@ -56,217 +54,65 @@ function peringatan(teks) {
   w.classList.remove('hidden');
 
   const pesan = document.createElement('div');
-
   pesan.className = 'cfg-error';
   pesan.textContent = teks;
-
   w.appendChild(pesan);
 }
 
 /* =========================================================
-   STATUS KONEKSI FIREBASE
+   MENJALANKAN SATU KOMPONEN SECARA AMAN
+   Galat satu komponen tidak menghentikan yang lain.
 ========================================================= */
 
-function setStatus(terhubung, teks) {
-  const dot = $('dot');
-  const cs = $('cs');
+function aman(nama, fn) {
+  try {
+    return fn();
 
-  if (dot) {
-    dot.classList.toggle('on', !!terhubung);
-  }
-
-  if (cs) {
-    cs.textContent = teks;
+  } catch (error) {
+    console.error(nama + ' gagal:', error);
+    peringatan(nama + ' gagal: ' + (error.message || error));
   }
 }
 
 /* =========================================================
-   GAMBAR ULANG DAFTAR PAKET
+   GAMBAR ULANG (hanya bila elemennya ada di halaman)
 ========================================================= */
 
-function refreshPakets() {
-  drawPakets(openModal);
-}
+const refreshPakets = () =>
+  $('pakets') && aman('Daftar paket', () => drawPakets(openModal));
+
+const refreshTok = () =>
+  $('tb') && aman('Daftar token', drawTok);
+
+const refreshNilai = () =>
+  $('nb') && aman('Daftar nilai', drawNilai);
+
+const refreshDash = () =>
+  $('s1') && aman('Dasbor', drawDash);
 
 /* =========================================================
-   GABUNGKAN PAKET BAWAAN DAN FIRESTORE
+   PESAN GAGAL PADA TABEL
 ========================================================= */
 
-function gabungkanPaket(paketBawaan, paketFirestore) {
-  const hasil = new Map();
+function isiTabel(id, kolom, pesan) {
+  const tbody = $(id);
 
-  // Masukkan paket bawaan terlebih dahulu.
-  (paketBawaan || []).forEach(paket => {
-    if (!paket || !paket.id) return;
+  if (!tbody) return;
 
-    hasil.set(String(paket.id), {
-      ...paket
-    });
-  });
-
-  // Paket Firestore dengan ID sama akan memperbarui
-  // data paket bawaan tersebut.
-  (paketFirestore || []).forEach(paket => {
-    if (!paket || !paket.id) return;
-
-    hasil.set(String(paket.id), {
-      ...paket,
-      id: String(paket.id)
-    });
-  });
-
-  return [...hasil.values()];
+  tbody.innerHTML =
+    `<tr><td colspan="${kolom}" class="empty">${esc(pesan)}</td></tr>`;
 }
 
-/* =========================================================
-   KONVERSI FIELD WAKTU KE MILIDETIK
-   (mendukung Timestamp Firestore, angka, dan kosong)
-========================================================= */
+function saatGagal(pesan, jenis) {
+  if (jenis === 'token' || jenis === 'semua') {
+    isiTabel('tb', 6, pesan);
+  }
 
-function waktuDok(v) {
-  if (!v) return 0;
-  if (typeof v === 'number') return v;
-  if (typeof v.toMillis === 'function') return v.toMillis();
-  return 0;
-}
+  if (jenis === 'hasil' || jenis === 'semua') {
+    isiTabel('nb', 9, pesan);
+  }
 
-/* =========================================================
-   MEMUAT PAKET TAMBAHAN DARI FIRESTORE
-
-   Catatan: tanpa orderBy('dibuat'), karena query dengan
-   orderBy hanya mengembalikan dokumen yang punya field
-   "dibuat". Pengurutan dilakukan di sisi klien.
-========================================================= */
-
-function initPaketFirestore(F, db) {
-  const ref = F.collection(db, KOLEKSI_PAKET);
-
-  F.onSnapshot(
-    ref,
-
-    snapshot => {
-      const paketFirestore = snapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        .sort((a, b) => waktuDok(b.dibuat) - waktuDok(a.dibuat));
-
-      S.PAKET = gabungkanPaket(
-        PAKET,
-        paketFirestore
-      );
-
-      refreshPakets();
-      drawDash();
-    },
-
-    error => {
-      console.error(
-        'Gagal memuat paket soal:',
-        error
-      );
-
-      peringatan(
-        'Gagal memuat paket tambahan: ' +
-        (error.message || error.code || 'Kesalahan Firestore')
-      );
-
-      // Paket bawaan tetap dapat digunakan.
-      S.PAKET = [...(PAKET || [])];
-
-      refreshPakets();
-      drawDash();
-    }
-  );
-}
-
-/* =========================================================
-   MEMUAT TOKEN REALTIME
-========================================================= */
-
-function initTokenFirestore(F, db) {
-  F.onSnapshot(
-    F.query(
-      F.collection(db, KOLEKSI_TOKEN),
-      F.orderBy('dibuat', 'desc')
-    ),
-
-    snapshot => {
-      S.TOK = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      drawTok();
-      drawDash();
-    },
-
-    error => {
-      console.error(
-        'Gagal memuat token:',
-        error
-      );
-
-      const tb = $('tb');
-
-      if (tb) {
-        tb.innerHTML = `
-          <tr>
-            <td colspan="6" class="empty">
-              Gagal memuat token:
-              ${esc(error.message || error.code || 'Kesalahan Firestore')}
-            </td>
-          </tr>
-        `;
-      }
-    }
-  );
-}
-
-/* =========================================================
-   MEMUAT HASIL UJIAN REALTIME
-========================================================= */
-
-function initHasilFirestore(F, db) {
-  F.onSnapshot(
-    F.collection(db, KOLEKSI_HASIL),
-
-    snapshot => {
-      S.HAS = snapshot.docs
-        .map(norm)
-        .sort((a, b) => {
-          return (b.waktu || 0) - (a.waktu || 0);
-        });
-
-      drawNilai();
-      drawDash();
-    },
-
-    error => {
-      console.error(
-        'Gagal memuat hasil ujian:',
-        error
-      );
-
-      const nb = $('nb');
-
-      if (nb) {
-        nb.innerHTML = `
-          <tr>
-            <td colspan="9" class="empty">
-              Gagal memuat nilai dari koleksi
-              "${esc(KOLEKSI_HASIL)}".
-              <br>
-              ${esc(error.message || error.code || 'Kesalahan Firestore')}
-              <br>
-              Periksa aturan keamanan Firestore.
-            </td>
-          </tr>
-        `;
-      }
-    }
-  );
+  refreshDash();
 }
 
 /* =========================================================
@@ -274,15 +120,23 @@ function initHasilFirestore(F, db) {
 ========================================================= */
 
 function initKomponen() {
-  initNav();
-  initToken();
-  initPaket();
-  initNilai();
+  aman('Navigasi', initNav);
+
+  if ($('mo') && $('ms') && $('mc')) {
+    aman('Pembuat token', initToken);
+  }
+
+  if ($('psimpan')) {
+    aman('Form paket soal', initPaket);
+  }
+
+  if ($('nb')) {
+    aman('Halaman nilai', initNilai);
+  }
 
   // Tampilkan paket bawaan sebelum Firestore selesai dimuat.
   refreshPakets();
-
-  drawDash();
+  refreshDash();
 }
 
 /* =========================================================
@@ -290,139 +144,41 @@ function initKomponen() {
 ========================================================= */
 
 async function mulaiAdmin() {
-
-  // Inisialisasi tampilan terlebih dahulu.
   initKomponen();
 
-  // Baca konfigurasi Firebase.
-  let hasilConfig;
+  const tersambung = await sambungFirebase({
+    paket: true,
+    token: true,
+    hasil: true,
+    norm,
 
-  try {
-    hasilConfig = await bacaConfig();
+    onPaket: () => {
+      refreshPakets();
+      refreshDash();
+    },
 
-  } catch (error) {
-    console.error(
-      'Gagal membaca konfigurasi:',
-      error
-    );
+    onToken: () => {
+      refreshTok();
+      refreshDash();
+    },
 
-    setStatus(
-      false,
-      'Konfigurasi Firebase gagal dibaca'
-    );
+    onHasil: () => {
+      refreshNilai();
+      refreshDash();
+    },
 
-    peringatan(error.message);
+    onGagal: saatGagal
+  });
 
-    return;
-  }
-
-  const {
-    cfg,
-    err
-  } = hasilConfig;
-
-  S.cfg = cfg;
-
-  S.ok =
-    !!cfg?.apiKey &&
-    !/^ISI/.test(cfg.apiKey);
-
-  // Periksa konfigurasi.
-  if (!S.ok) {
-    setStatus(
-      false,
-      'Firebase belum terhubung'
-    );
-
-    peringatan(
-      'Penyebab: ' +
-      (err || 'apiKey Firebase kosong atau belum diisi.')
-    );
-
-    const tb = $('tb');
-
-    if (tb) {
-      tb.innerHTML = `
-        <tr>
-          <td colspan="6" class="empty">
-            Belum terhubung ke Firebase.
-          </td>
-        </tr>
-      `;
-    }
-
-    drawDash();
-
-    return;
-  }
-
-  /* =====================================================
-     MEMUAT FIREBASE SDK
-  ===================================================== */
-
-  try {
-    const [
-      appModule,
-      firestoreModule
-    ] = await Promise.all([
-      import(FB + 'firebase-app.js'),
-      import(FB + 'firebase-firestore.js')
-    ]);
-
-    const F = S.F = firestoreModule;
-
-    // Inisialisasi aplikasi Firebase.
-    const app = appModule.initializeApp(cfg);
-
-    const db = S.db = F.getFirestore(app);
-
-    /* ===================================================
-       STATUS KONEKSI
-    =================================================== */
-
-    setStatus(
-      true,
-      'Terhubung: ' + (cfg.projectId || 'Firebase')
-    );
-
-    /* ===================================================
-       PANTAU DATA FIRESTORE
-    =================================================== */
-
-    initPaketFirestore(F, db);
-
-    initTokenFirestore(F, db);
-
-    initHasilFirestore(F, db);
-
-    console.log(
-      'KW Learning Admin berhasil diinisialisasi.'
-    );
-
-  } catch (error) {
-    console.error(
-      'Inisialisasi Firebase gagal:',
-      error
-    );
-
-    S.ok = false;
-
-    setStatus(
-      false,
-      'Koneksi Firebase gagal'
-    );
-
-    peringatan(
-      error.message ||
-      'Tidak dapat menghubungkan Firebase.'
-    );
-
-    drawDash();
+  if (tersambung) {
+    console.log('KW Learning Admin berhasil diinisialisasi.');
+  } else {
+    refreshPakets();
+    refreshDash();
   }
 }
 
-/* =========================================================
-   JALANKAN APLIKASI
-========================================================= */
-
-mulaiAdmin();
+mulaiAdmin().catch(error => {
+  console.error('Admin gagal dimulai:', error);
+  peringatan('Admin gagal dimulai: ' + (error.message || error));
+});
