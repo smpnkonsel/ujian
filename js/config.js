@@ -1,4 +1,3 @@
-
 /* =========================================================
    CONFIG.JS — PENGATURAN APLIKASI KW LEARNING
 ========================================================= */
@@ -7,37 +6,17 @@
    NAMA KOLEKSI FIRESTORE
 ========================================================= */
 
-export const KOLEKSI_HASIL = 'hasil';
 export const KOLEKSI_TOKEN = 'tokens';
 export const KOLEKSI_PAKET = 'paket_soal';
+export const KOLEKSI_HASIL = 'hasil';
 
 /* =========================================================
-   PAKET SOAL BAWAAN
+   PAKET BAWAAN (opsional)
+   Paket dari Firestore ditambahkan otomatis oleh halaman admin.
+   Isi contoh: { id, nama, kelas, sumber: 'drive', file: 'ID_FILE' }
 ========================================================= */
 
-export const PAKET = [
-  {
-    id: 'info8',
-    nama: 'Informatika Kelas 8 — PAS Semester 1',
-    sumber: 'lokal',
-    file: 'soal2/SOAL PAS INFO KLS 8 S1.docx',
-    menit: 90
-  },
-  {
-    id: 'ipa7',
-    nama: 'IPA Kelas 7 — PAS Semester 1',
-    sumber: 'lokal',
-    file: 'soal2/SOAL PAS ipa  KLS 7 S1.docx',
-    menit: 90
-  },
-  {
-    id: 'pjok8',
-    nama: 'PJOK Kelas 8',
-    sumber: 'lokal',
-    file: 'soal2/PJOK KELAS 8.docx',
-    menit: 90
-  }
-];
+export const PAKET = [];
 
 /* =========================================================
    FIREBASE SDK
@@ -49,18 +28,21 @@ export const FB =
 /* =========================================================
    MEMBACA KONFIGURASI FIREBASE
    Lokasi: js/firebaseConfig.js
+   Naikkan angka VERSI_CONFIG bila isi firebaseConfig.js diubah.
 ========================================================= */
+
+const VERSI_CONFIG = 1;
 
 export async function bacaConfig() {
   try {
     const module = await import(
-      './firebaseConfig.js?v=' + Date.now()
+      './firebaseConfig.js?v=' + VERSI_CONFIG
     );
 
     // Mendukung:
     // export const firebaseConfig = {...}
     // export default {...}
-    // export const firebaseConfig = {...}
+    // export const config = {...}
     const cfg =
       module.firebaseConfig ||
       module.default ||

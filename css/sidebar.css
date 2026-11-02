@@ -1,10 +1,25 @@
 /* =====================================================
    SIDEBAR.CSS — Sidebar admin KW Learning
-   Dipakai bersama sidebar.html + js/sidebar.js.
-   Variabel warna (--gold, --sw, dst.) berasal dari admin.css.
+   Desain disamakan dengan halaman utama (index.html):
+   latar terang berpendar emas/navy, kartu putih membulat,
+   logo sekolah dalam lencana bulat, huruf Fraunces. Menu aktif
+   memakai kartu navy dengan kotak ikon emas (seperti "Masuk Ujian").
+   Ikut mode terang/gelap perangkat.
+   Dipakai bersama js/sidebar-awal.js.
+   Logo: templat/logo.jpeg (alamat dihitung dari folder css/).
 ===================================================== */
 
 #sb {
+  --sb-paper: #EDF1F6;
+  --sb-panel: #fff;
+  --sb-ink:   #18212C;
+  --sb-soft:  #566273;
+  --sb-navy:  #0F3D63;
+  --sb-gold:  #D79A2C;
+  --sb-gold-hi: #E8B04F;
+  --sb-line:  #DCE2E9;
+  --sb-tint:  #EAF0F6;
+
   position: fixed;
   inset: 0 auto 0 0;
   width: var(--sw, 260px);
@@ -12,105 +27,198 @@
   height: 100dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background:
-    radial-gradient(500px 300px at 0% 0%, rgba(233,196,106,.16), transparent 60%),
-    linear-gradient(175deg, #0F3D63 0%, #0A2B48 55%, #06192C 100%);
-  color: #fff;
   display: flex;
   flex-direction: column;
   padding:
-    calc(22px + env(safe-area-inset-top, 0px))
+    calc(24px + env(safe-area-inset-top, 0px))
     16px
     calc(16px + env(safe-area-inset-bottom, 0px))
     calc(16px + env(safe-area-inset-left, 0px));
   z-index: 40;
+  color: var(--sb-ink);
+  font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(215,154,44,.20), transparent 42%),
+    radial-gradient(circle at 96% 98%, rgba(15,61,99,.20), transparent 46%),
+    var(--sb-paper);
+  border-right: 1px solid var(--sb-line);
+  box-shadow: 8px 0 30px -14px rgba(15,61,99,.28);
   transition: transform .25s ease, box-shadow .25s ease;
-  box-shadow: 8px 0 30px -12px rgba(5,20,38,.5);
 }
 
-#sb::after {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, var(--gold-hi, #E9C46A), transparent);
-  opacity: .55;
-  pointer-events: none;
+@media (prefers-color-scheme: dark) {
+  #sb {
+    --sb-paper: #0B1118;
+    --sb-panel: #141D28;
+    --sb-ink:   #E8EDF3;
+    --sb-soft:  #9AA8B9;
+    --sb-navy:  #8EC1F0;
+    --sb-line:  #263445;
+    --sb-tint:  #1B2836;
+    box-shadow: 8px 0 30px -14px rgba(0,0,0,.6);
+  }
 }
 
-.brand {
-  padding: 0 8px 18px;
-  border-bottom: 1px solid rgba(233,196,106,.28);
+/* ---------- Merek + logo (tengah, seperti halaman utama) ---------- */
+
+#sb .brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding: 2px 6px 20px;
   margin-bottom: 18px;
+  border-bottom: 1px solid var(--sb-line);
+  color: inherit;
+  text-decoration: none;
+  border-radius: 14px;
 }
 
-.brand h1 {
-  font-size: 23px;
+#sb .brand:focus-visible {
+  outline: 3px solid var(--sb-gold);
+  outline-offset: 3px;
+}
+
+/* Logo sekolah dalam lencana bulat bercincin emas */
+#sb .logo {
+  width: 66px;
+  height: 66px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  padding: 6px;                       /* jarak logo dari cincin emas */
+  border-radius: 50%;
+  border: 3px solid var(--sb-gold);
+  background: #fff url(../templat/logo.jpeg) center / contain no-repeat;
+  background-origin: content-box;
+  background-clip: padding-box;
+  box-shadow: 0 10px 24px rgba(15,61,99,.32);
+}
+
+#sb .bt { min-width: 0; }
+
+#sb .brand h1 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 26px;
   font-weight: 600;
-  background: var(--gold-grad, linear-gradient(135deg,#F0CF7A,#C9962F,#A8761A));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  letter-spacing: .04em;
+  line-height: 1.1;
+  letter-spacing: -.015em;
+  color: var(--sb-navy);
 }
 
-.brand small {
-  color: #AFC0D3;
-  font-size: 12px;
+#sb .brand small {
   display: block;
-  margin-top: 4px;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+  margin-top: 5px;
+  color: var(--sb-soft);
+  font-size: 12.5px;
+  line-height: 1.4;
 }
+
+/* ---------- Menu: kartu putih seperti halaman utama ---------- */
 
 #sb nav a {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  min-height: 44px;
-  border-radius: 10px;
-  color: #C9D6E5;
+  min-height: 56px;
+  margin-bottom: 10px;
+  padding: 9px 38px 9px 10px;
+  border-radius: 16px;
+  color: var(--sb-ink);
   text-decoration: none;
   font-weight: 600;
-  margin-bottom: 4px;
-  border: 1px solid transparent;
-  transition: background .2s, color .2s, transform .2s;
+  font-size: 15px;
+  background: var(--sb-panel);
+  border: 1px solid var(--sb-line);
+  box-shadow: 0 1px 2px rgba(15,61,99,.06), 0 8px 20px rgba(15,61,99,.07);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
 }
 
-#sb nav a svg { width: 19px; height: 19px; flex: none; }
+/* Panah kecil di kanan, seperti kartu di halaman utama */
+#sb nav a::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid var(--sb-soft);
+  border-right: 2px solid var(--sb-soft);
+  transform: translateY(-50%) rotate(45deg);
+  border-radius: 1px;
+}
+
+#sb nav a .ico {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--sb-tint);
+}
+
+#sb nav a svg {
+  width: 21px;
+  height: 21px;
+  flex: none;
+  fill: none;
+  stroke: var(--sb-navy);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#sb nav a .lb { min-width: 0; line-height: 1.25; }
 
 #sb nav a:hover {
-  background: rgba(255,255,255,.07);
-  color: #fff;
-  transform: translateX(2px);
+  transform: translateY(-2px);
+  border-color: var(--sb-gold);
 }
 
-#sb nav a.on {
-  background: var(--gold-grad, linear-gradient(135deg,#F0CF7A,#C9962F,#A8761A));
-  color: #2A1D06;
-  box-shadow: 0 8px 20px -8px rgba(201,150,47,.7);
+#sb nav a:focus-visible {
+  outline: 3px solid var(--sb-gold);
+  outline-offset: 3px;
 }
+
+/* Menu aktif: kartu navy + kotak ikon emas ("Masuk Ujian") */
+#sb nav a.on {
+  color: #fff;
+  background: linear-gradient(135deg, #0F3D63, #0A2B48);
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(15,61,99,.35);
+}
+
+#sb nav a.on .ico { background: var(--sb-gold); }
+#sb nav a.on svg  { stroke: #2A1D06; }
+#sb nav a.on::after { border-color: var(--sb-gold-hi); }
+
+/* ---------- Status koneksi ---------- */
 
 .sbf {
   margin-top: auto;
-  font-size: 12.5px;
-  color: #AFC0D3;
   padding: 14px 8px 0;
-  border-top: 1px solid rgba(233,196,106,.28);
+  border-top: 1px solid var(--sb-line);
+  font-size: 12.5px;
+  color: var(--sb-soft, #566273);
 }
+
+#sb .sbf { color: var(--sb-soft); }
 
 .dot {
   display: inline-block;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #888;
+  background: #9AA5B1;
   margin-right: 7px;
 }
 
 .dot.on {
-  background: #5BD58C;
-  box-shadow: 0 0 0 4px rgba(91,213,140,.2);
+  background: #2FB36B;
+  box-shadow: 0 0 0 4px rgba(47,179,107,.2);
 }
 
 /* =====================================================
@@ -140,8 +248,8 @@
   z-index: 30;
   width: 44px; height: 44px;
   border-radius: 12px;
-  border: 1px solid var(--line, #E4DFD3);
-  background: var(--card, #fff);
+  border: 1px solid var(--line, #DCE2E9);
+  background: var(--card, var(--panel, #fff));
   color: var(--navy, #0F3D63);
   font-size: 19px;
   box-shadow: 0 8px 20px -10px rgba(15,35,60,.5);
@@ -182,10 +290,29 @@
 
 /* Layar sangat sempit */
 @media (max-width: 360px) {
-  .brand h1 { font-size: 20px; }
-  #sb nav a { padding: 11px 12px; }
+  #sb .brand h1 { font-size: 23px; }
+  #sb nav a { font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #sb, #scrim { transition: none !important; }
+  #sb, #scrim, #sb nav a { transition: none !important; }
+  #sb nav a:hover { transform: none; }
 }
+
+/* =====================================================
+   TRANSISI ANTAR HALAMAN
+   Sidebar dianggap satu elemen yang sama di semua halaman,
+   jadi tidak ikut memudar saat pindah halaman (Chrome, Edge,
+   Safari 18.2+). Browser lain tetap jalan normal tanpa efek ini.
+===================================================== */
+
+@view-transition { navigation: auto; }
+
+#sb { view-transition-name: sidebar; }
+
+::view-transition-group(sidebar),
+::view-transition-old(sidebar),
+::view-transition-new(sidebar) { animation: none; }
+
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: .12s; }
