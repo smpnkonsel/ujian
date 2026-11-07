@@ -1,0 +1,242 @@
+/* =====================================================
+   SIDEBAR.CSS — Sidebar KW Learning (admin dan guru)
+   Desain neumorphism, sama dengan neumorph.css.
+   Dipakai bersama js/sidebar-awal.js.
+   Logo: ../templat/logo.jpeg (alamat dihitung dari folder css/).
+===================================================== */
+
+#sb {
+  --sb-bg:    #E9ECF5;
+  --sb-dark:  rgba(163, 177, 198, .65);
+  --sb-light: #FFFFFF;
+  --sb-text:  #3A4153;
+  --sb-muted: #6B7388;
+  --sb-accent:#2B86E8;
+  --sb-warn:  #D9534F;
+  --sb-garis: rgba(138, 146, 166, .25);
+
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sw, 260px);
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  padding:
+    calc(22px + env(safe-area-inset-top, 0px))
+    16px
+    calc(16px + env(safe-area-inset-bottom, 0px))
+    calc(16px + env(safe-area-inset-left, 0px));
+  z-index: 40;
+  color: var(--sb-text);
+  font-family: 'Poppins', 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--sb-bg);
+  box-shadow: 8px 0 18px -10px var(--sb-dark);
+  transition: transform .25s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  #sb {
+    --sb-bg:    #222836;
+    --sb-dark:  rgba(8, 11, 18, .7);
+    --sb-light: rgba(255, 255, 255, .055);
+    --sb-text:  #E6E9F2;
+    --sb-muted: #9AA4BA;
+    --sb-accent:#5EA8F5;
+    --sb-warn:  #F08A86;
+    --sb-garis: rgba(143, 153, 176, .22);
+  }
+}
+
+/* ---------- Merek + logo ---------- */
+
+#sb .brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2px 6px 18px;
+  margin-bottom: 16px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 18px;
+}
+
+#sb .brand:focus-visible { outline: 2px solid var(--sb-accent); outline-offset: 3px; }
+
+#sb .logo {
+  width: 78px;
+  height: 78px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  padding: 9px;
+  border-radius: 50%;
+  background: var(--sb-bg) url(../templat/logo.jpeg) center / contain no-repeat;
+  background-origin: content-box;
+  background-clip: content-box;
+  box-shadow: 6px 6px 12px var(--sb-dark), -6px -6px 12px var(--sb-light);
+}
+
+#sb .bt { min-width: 0; }
+
+#sb .brand h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--sb-text);
+}
+
+#sb .brand small {
+  display: block;
+  margin-top: 4px;
+  color: var(--sb-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ---------- Menu ---------- */
+
+#sb nav { display: flex; flex-direction: column; gap: 6px; flex: 1; padding: 4px 4px 10px; }
+
+#sb .grp {
+  margin: 14px 0 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--sb-muted);
+}
+
+#sb nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  color: var(--sb-text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: box-shadow .15s, color .15s;
+}
+
+#sb nav a:hover { box-shadow: 4px 4px 9px var(--sb-dark), -4px -4px 9px var(--sb-light); }
+
+#sb nav a:focus-visible { outline: 2px solid var(--sb-accent); outline-offset: 2px; }
+
+#sb nav a.on {
+  color: var(--sb-accent);
+  font-weight: 600;
+  box-shadow: inset 4px 4px 9px var(--sb-dark), inset -4px -4px 9px var(--sb-light);
+}
+
+#sb .ico {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--sb-bg);
+  box-shadow: 3px 3px 6px var(--sb-dark), -3px -3px 6px var(--sb-light);
+}
+
+#sb nav a.on .ico { box-shadow: none; }
+
+#sb .ico svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#sb .lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#sb nav a.keluar { margin-top: 14px; color: var(--sb-warn); }
+
+/* ---------- Status koneksi ---------- */
+
+.sbf {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 8px 0;
+  margin-top: 6px;
+  border-top: 1px solid var(--sb-garis);
+  font-size: 12px;
+}
+
+#sb .sbf { color: var(--sb-muted); }
+
+.dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--sb-muted, #8A92A6);
+  opacity: .7;
+}
+
+.dot.on { background: #2FA36B; box-shadow: 0 0 8px #2FA36B; opacity: 1; }
+
+/* ---------- Tirai (layar kecil) ---------- */
+
+#scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(10, 16, 28, .5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+/* Tombol menu cadangan: muncul hanya bila halaman tidak punya #burger. */
+.sb-toggle {
+  display: none;
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  z-index: 30;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 14px;
+  background: #E9ECF5;
+  color: #3A4153;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 5px 5px 11px rgba(163, 177, 198, .65), -5px -5px 11px #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sb-toggle {
+    background: #222836;
+    color: #E6E9F2;
+    box-shadow: 5px 5px 11px rgba(8, 11, 18, .7), -5px -5px 11px rgba(255, 255, 255, .055);
+  }
+}
+
+@media (max-width: 820px) {
+  #sb {
+    transform: translateX(-105%);
+    width: min(82vw, 300px);
+    box-shadow: none;
+  }
+  body.open #sb { transform: none; box-shadow: 14px 0 30px -12px rgba(0, 0, 0, .45); }
+  body.open #scrim { opacity: 1; pointer-events: auto; }
+  body.open { overflow: hidden; }
+  .sb-toggle { display: grid; place-items: center; }
+  body:has(.sb-toggle) #mn { padding-top: 62px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #sb, #scrim, #sb nav a { transition: none !important; }
+}

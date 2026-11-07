@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruang Ujian – KW Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+.kw-halaman{
+  --bg:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted);
+  --hi:var(--nm-light); --lo:var(--nm-dark);
+  --biru:var(--nm-accent); --hijau:var(--nm-ok); --kuning:var(--nm-kuning); --abu:var(--nm-muted);
+  --out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+  --in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
+}
+.kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
+body{background:#e4e9f2}
+.kw-halaman{font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+.kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
+.kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:3px;border-radius:14px}
+.kw-halaman .wrap{width:min(1100px,100% - 2rem);margin-inline:auto}
+.kw-halaman > header{padding:2rem 0 1rem}
+.kw-halaman h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2}
+.kw-halaman > header p{color:var(--muted);margin-top:.3rem}
+.kw-halaman .jam{margin-top:.8rem;font-size:.85rem;color:var(--muted)}
+.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.2rem;margin:1.2rem 0 1.6rem}
+.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:20px;padding:1rem 1.2rem}
+.kw-halaman .ringkas b{display:block;font-size:1.9rem;line-height:1.1}
+.kw-halaman .ringkas span{font-size:.82rem;color:var(--muted)}
+.kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:1.6rem}
+.kw-halaman .cari{flex:1;min-width:200px;border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem}
+.kw-halaman .filter{display:flex;gap:.6rem;flex-wrap:wrap}
+.kw-halaman .filter button{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.6rem 1rem;font-size:.88rem;font-weight:500;cursor:pointer}
+.kw-halaman .filter button[aria-pressed="true"]{box-shadow:var(--in);color:var(--biru);font-weight:600}
+.kw-halaman .daftar{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.6rem;padding-bottom:2rem}
+.kw-halaman .ruang{background:var(--bg);box-shadow:var(--out);border-radius:24px;padding:1.4rem;display:flex;flex-direction:column;gap:.9rem}
+.kw-halaman .ruang header{padding:0;display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem}
+.kw-halaman .ruang h2{font-size:1.15rem}
+.kw-halaman .ruang .mapel{font-size:.85rem;color:var(--muted)}
+.kw-halaman .badge{flex:none;font-size:.76rem;font-weight:600;padding:.3rem .8rem;border-radius:999px;box-shadow:var(--in);display:inline-flex;align-items:center;gap:.4rem}
+.kw-halaman .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.kw-halaman .s-jalan{color:var(--hijau)}
+.kw-halaman .s-jalan::before{animation:kedip 1.6s infinite}
+.kw-halaman .s-belum{color:var(--kuning)}
+.kw-halaman .s-selesai{color:var(--abu)}
+@keyframes kedip{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.kw-halaman .s-jalan::before{animation:none}}
+.kw-halaman dl{display:grid;grid-template-columns:auto 1fr;gap:.25rem .9rem;font-size:.86rem}
+.kw-halaman dt{color:var(--muted)}
+.kw-halaman dd{font-weight:500}
+.kw-halaman .pbar{height:12px;border-radius:99px;background:var(--bg);box-shadow:var(--in);overflow:hidden}
+.kw-halaman .pbar i{display:block;height:100%;border-radius:99px;background:var(--biru)}
+.kw-halaman .hadir{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between}
+.kw-halaman .buka{margin-top:auto;text-align:center;text-decoration:none;color:var(--biru);font-weight:600;border-radius:16px;padding:.7rem;box-shadow:var(--out);background:var(--bg)}
+.kw-halaman .buka:hover{box-shadow:var(--in)}
+.kw-halaman .kosong{grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem}
+.kw-halaman .muat{border:0;background:var(--bg);box-shadow:var(--out);border-radius:12px;padding:.3rem .8rem;margin-left:.6rem;font-size:.8rem;font-weight:600;color:var(--biru);cursor:pointer}
+.kw-halaman .info{margin-top:.8rem;font-size:.88rem;color:var(--muted)}
+.kw-halaman > footer{margin-top:auto;padding:1.2rem;text-align:center;font-size:.8rem;color:var(--muted)}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+    <div id="sidebar-slot" data-mode="halaman" data-aktif="ruang"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Ruang Ujian</h2>
+</div>
+
+<div class="kw-halaman">
+<header class="wrap">
+  <h1>Ruang Ujian</h1>
+  <p>Daftar ruang dan status pelaksanaan</p>
+  <div class="jam"><span id="jam"></span><button class="muat" id="muat" type="button">Muat ulang</button></div>
+  <p class="info" id="info" role="status" hidden></p>
+</header>
+
+<main class="wrap">
+  <section class="ringkas" aria-label="Ringkasan">
+    <div><b id="n-total">0</b><span>Total ruang</span></div>
+    <div><b id="n-jalan" style="color:var(--hijau)">0</b><span>Sedang berlangsung</span></div>
+    <div><b id="n-belum" style="color:var(--kuning)">0</b><span>Belum dimulai</span></div>
+    <div><b id="n-selesai" style="color:var(--abu)">0</b><span>Selesai</span></div>
+  </section>
+
+  <section class="alat">
+    <input class="cari" id="cari" type="search" placeholder="Cari ruang, mata pelajaran, atau pengawas" aria-label="Cari ruang">
+    <div class="filter" id="filter" role="group" aria-label="Filter status">
+      <button data-f="semua" aria-pressed="true">Semua</button>
+      <button data-f="jalan" aria-pressed="false">Berlangsung</button>
+      <button data-f="belum" aria-pressed="false">Belum dimulai</button>
+      <button data-f="selesai" aria-pressed="false">Selesai</button>
+    </div>
+  </section>
+
+  <section class="daftar" id="daftar" aria-live="polite"></section>
+</main>
+
+<footer>KW Learning &middot; Ujian Online SMP Negeri 20 Konawe Selatan</footer>
+
+</div>
+
+<script type="module">
+const LOKASI_FIREBASE = '../assets/js/firebase-pusat.js';
+
+/* Jadwal (BANK_SOAL/jadwal): tingkat, mapel, kelas, ruang, pengawas, mulaiAt/selesaiAt (Timestamp)
+   atau tgl + mulai/selesai berupa jam "07:30" (sama seperti yang dibaca ujian.js).
+   Sesi (CBT VII/VIII/IX): jadwalId, ruang  -> dihitung sebagai peserta hadir.
+   Siswa (SISWA_GURU/siswa): dipakai menghitung jumlah peserta tiap ruang. */
+const HARI_INI_SAJA = true;
+
+const tgl = v => { const d = v && v.toDate ? v.toDate() : v ? new Date(v) : null; return d && !isNaN(d) ? d : null; };
+const normKelas = s => String(s ?? '').toUpperCase().replace(/[\s\-_.]/g, '');
+const daftarKelas = v => Array.isArray(v) ? v.map(normKelas).filter(Boolean) : String(v ?? '').split(/[,;]/).map(normKelas).filter(Boolean);
+function tingkatDari(x){
+  const v = String(x.tingkat ?? x.kelas ?? '').toUpperCase().trim();
+  const m = v.match(/^(VIII|VII|IX|7|8|9)/);
+  return m ? ({'7':'VII','8':'VIII','9':'IX'}[m[1]] || m[1]) : '';
+}
+const mulaiHari = new Date(new Date().setHours(0,0,0,0));
+let RUANG = [], ROSTER = null;
+
+async function muat(){
+  const info = document.getElementById('info');
+  try{
+    const {F, dbBankSoal, dbSiswaGuru, dbTingkat, TINGKAT, KOLEKSI} = await import(LOKASI_FIREBASE);
+
+    /* Daftar siswa dibaca sekali saja (hemat pembacaan Firestore). */
+    if(ROSTER === null){
+      try{ ROSTER = (await F.getDocs(F.collection(dbSiswaGuru, KOLEKSI.siswa))).docs.map(d => d.data()); }
+      catch(e){ ROSTER = []; }
+    }
+
+    const awal = F.Timestamp.fromDate(mulaiHari);
+    const [jadwal, ...sesi] = await Promise.all([
+      F.getDocs(F.collection(dbBankSoal, KOLEKSI.jadwal)),
+      ...TINGKAT.map(t => F.getDocs(F.query(F.collection(dbTingkat(t), KOLEKSI.sesi), F.where('mulai', '>=', awal))))
+    ]);
+
+    const hadir = {};
+    sesi.forEach((snap,i) => snap.forEach(d => {
+      const x = d.data(), k = x.jadwalId || (TINGKAT[i] + '|' + (x.ruang || ''));
+      hadir[k] = (hadir[k] || 0) + 1;
+    }));
+
+    RUANG = jadwal.docs.map(d => {
+      const x = d.data(), tk = String(x.tingkat ?? '').toUpperCase().trim();
+      const gab = jam => (x.tgl && jam) ? tgl(x.tgl + 'T' + jam) : tgl(jam);
+      const kls = daftarKelas(x.kelas);
+      const total = ROSTER.filter(r => tingkatDari(r) === tk &&
+        (!kls.length || kls.some(k => k === normKelas(r.kelas) || k === normKelas(tk)))).length;
+      const ada = (hadir[d.id] || 0) || (hadir[tk + '|' + (x.ruang || '')] || 0);
+      return {
+        id:d.id, tingkat:tk, nama:x.ruang ? (/^ruang/i.test(x.ruang) ? String(x.ruang) : 'Ruang ' + x.ruang) : 'Ruang belum diisi',
+        mapel:x.mapel || '-',
+        kelas:(tk || '-') + (x.kelas ? ' · ' + (Array.isArray(x.kelas) ? x.kelas.join(', ') : x.kelas) : ''),
+        pengawas:x.pengawas || '-', total:Math.max(total, Number(x.total) || 0, ada), hadir:ada,
+        mulai:tgl(x.mulaiAt) || gab(x.mulai), selesai:tgl(x.selesaiAt) || gab(x.selesai)
+      };
+    }).filter(r => r.mulai && r.selesai && (!HARI_INI_SAJA || r.selesai >= mulaiHari && r.mulai < mulaiHari.getTime() + 864e5))
+      .sort((a,b) => a.mulai - b.mulai || a.nama.localeCompare(b.nama, 'id', {numeric:true}));
+
+    info.hidden = RUANG.length > 0;
+    if(!RUANG.length) info.textContent = 'Belum ada jadwal ujian' + (HARI_INI_SAJA ? ' untuk hari ini' : '') + ' di Firebase Bank Soal dan Jadwal.';
+  }catch(e){
+    RUANG = [];
+    info.hidden = false;
+    info.textContent = 'Gagal memuat data dari Firebase: ' + e.message;
+  }
+  render();
+}
+
+const LABEL = {jalan:'Berlangsung', belum:'Belum dimulai', selesai:'Selesai'};
+const status = r => { const n=Date.now(); return n<r.mulai ? 'belum' : n<=r.selesai ? 'jalan' : 'selesai'; };
+const jam = d => d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace('.',':');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let filter = 'semua', kata = '';
+
+function render(){
+  const hit = {jalan:0, belum:0, selesai:0};
+  RUANG.forEach(r => hit[status(r)]++);
+  document.getElementById('n-total').textContent = RUANG.length;
+  ['jalan','belum','selesai'].forEach(k => document.getElementById('n-'+k).textContent = hit[k]);
+  document.getElementById('jam').textContent = 'Diperbarui ' + jam(new Date()) + ' WITA';
+
+  const q = kata.trim().toLowerCase();
+  const tampil = RUANG.filter(r => (filter==='semua' || status(r)===filter) &&
+    (!q || [r.nama,r.mapel,r.pengawas,'kelas '+r.kelas].join(' ').toLowerCase().includes(q)));
+
+  document.getElementById('daftar').innerHTML = tampil.length ? tampil.map(r => {
+    const s = status(r);
+    const persen = s==='belum' ? 0 : s==='selesai' ? 100 :
+      Math.round((Date.now()-r.mulai)/(r.selesai-r.mulai)*100);
+    return `<article class="ruang">
+      <header>
+        <div><h2>${esc(r.nama)}</h2><div class="mapel">${esc(r.mapel)} &middot; Kelas ${esc(r.kelas)}</div></div>
+        <span class="badge s-${s}">${LABEL[s]}</span>
+      </header>
+      <dl>
+        <dt>Waktu</dt><dd>${jam(r.mulai)} – ${jam(r.selesai)}</dd>
+        <dt>Pengawas</dt><dd>${esc(r.pengawas)}</dd>
+      </dl>
+      <div>
+        <div class="pbar" role="progressbar" aria-valuenow="${persen}" aria-valuemin="0" aria-valuemax="100" aria-label="Kemajuan waktu ujian"><i style="width:${persen}%"></i></div>
+        <div class="hadir"><span>Hadir ${r.hadir} dari ${r.total} peserta</span><span>${persen}% waktu</span></div>
+      </div>
+      <a class="buka" href="monitoring.html?tingkat=${encodeURIComponent(r.tingkat)}&jadwal=${encodeURIComponent(r.id)}">${s==='jalan'?'Pantau ruang':s==='belum'?'Lihat ruang':'Lihat hasil'}</a>
+    </article>`;
+  }).join('') : '<p class="kosong">Tidak ada ruang yang cocok dengan pencarian atau filter ini.</p>';
+}
+
+document.getElementById('filter').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll('#filter button').forEach(x => x.setAttribute('aria-pressed', x===b));
+  render();
+});
+document.getElementById('cari').addEventListener('input', e => { kata = e.target.value; render(); });
+document.getElementById('muat').addEventListener('click', muat);
+setInterval(render, 30000);   /* hitung ulang status tanpa membaca Firestore */
+setInterval(muat, 120000);    /* baca ulang data tiap 2 menit */
+render();
+muat();
+</script>
+</div>
+</body>
+</html>

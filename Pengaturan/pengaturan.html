@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pengaturan Aplikasi · KW Learning</title>
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+  :root{
+    --bg:var(--nm-bg); --kartu:var(--nm-bg); --garis:var(--nm-garis); --teks:var(--nm-text); --redup:var(--nm-muted);
+    --utama:var(--nm-accent); --utama2:var(--nm-accent); --emas:var(--nm-accent); --bahaya:var(--nm-warn); --ok:var(--nm-ok);
+    --lebar-sb:0px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--teks);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main.konten{margin-left:var(--lebar-sb);padding:28px 32px 100px;min-height:100vh;max-width:calc(980px + var(--lebar-sb))}
+  @media (max-width:900px){main.konten{margin-left:0;padding:20px 16px 100px}}
+  .judul h2{margin:0;font-size:1.6rem;letter-spacing:-.01em}
+  .judul p{margin:4px 0 22px;color:var(--redup);font-size:.92rem}
+  .kartu{background:var(--kartu);border:1px solid var(--garis);border-radius:16px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden}
+  .kartu::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--emas)}
+  .kartu h3{margin:0 0 4px;font-size:1.05rem}
+  .kartu .sub{margin:0 0 16px;color:var(--redup);font-size:.85rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px}
+  .penuh{grid-column:1/-1}
+  label.f{display:block;font-size:.78rem;color:var(--redup);margin:10px 0 4px}
+  input[type=text],input[type=number],input[type=email],input[type=tel],select,textarea{width:100%;border:1px solid var(--garis);border-radius:10px;padding:10px 12px;font:inherit;font-size:.92rem;background:#fff;color:var(--teks)}
+  textarea{resize:vertical;min-height:70px}
+  input:focus,select:focus,textarea:focus{outline:2px solid rgba(64,86,201,.3);border-color:var(--utama2)}
+  .logo{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .pratinjau{width:96px;height:96px;border-radius:16px;border:1px dashed var(--garis);background:#fafbfe center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:var(--redup);font-size:.72rem;text-align:center}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font:600 .88rem inherit;font-family:inherit;cursor:pointer;transition:.15s}
+  .btn.utama{background:linear-gradient(135deg,var(--utama),var(--utama2));color:#fff;box-shadow:0 4px 14px rgba(43,58,140,.25)}
+  .btn.polos{background:#eef0f7;color:var(--teks)}
+  .btn.bahaya{background:#fbe5e2;color:var(--bahaya)}
+  .btn.kecil{padding:7px 12px;font-size:.8rem}
+  .bantu{font-size:.76rem;color:var(--redup);margin-top:6px}
+  .sakelar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--garis)}
+  .sakelar:last-child{border-bottom:0}
+  .sakelar b{display:block;font-size:.92rem;font-weight:600}
+  .sakelar span{font-size:.8rem;color:var(--redup)}
+  .sw{position:relative;flex:none;width:44px;height:24px}
+  .sw input{opacity:0;width:100%;height:100%;position:absolute;margin:0;cursor:pointer;z-index:2}
+  .sw i{position:absolute;inset:0;background:#cfd4e4;border-radius:99px;transition:.2s}
+  .sw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .sw input:checked+i{background:var(--utama2)}
+  .sw input:checked+i::after{transform:translateX(20px)}
+  .pbar{position:fixed;left:var(--sw,260px);right:0;bottom:0;background:var(--nm-bg);backdrop-filter:blur(8px);border-top:1px solid var(--garis);padding:12px 32px;display:flex;justify-content:flex-end;gap:10px;z-index:50}
+  @media (max-width:900px){.pbar{left:0;padding:12px 16px}}
+  .toast{position:fixed;bottom:76px;right:22px;background:var(--teks);color:#fff;padding:11px 16px;border-radius:10px;font-size:.88rem;opacity:0;transform:translateY(8px);transition:.25s;z-index:1100;pointer-events:none}
+  .toast.tampil{opacity:1;transform:none}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+
+<div id="sidebar-slot" data-mode="halaman" data-aktif="pengaturan"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Pengaturan Aplikasi</h2>
+</div>
+
+
+<main class="konten">
+  <div class="judul">
+    <h2>Pengaturan Aplikasi</h2>
+    <p>Atur identitas aplikasi, data sekolah, dan perilaku ujian secara umum.</p>
+  </div>
+
+  <section class="kartu">
+    <h3>Identitas aplikasi</h3>
+    <p class="sub">Nama dan logo yang tampil di aplikasi.</p>
+    <div class="grid">
+      <div>
+        <label class="f" for="namaApp">Nama aplikasi</label>
+        <input type="text" id="namaApp" data-k="namaApp" maxlength="40">
+      </div>
+      <div>
+        <label class="f" for="slogan">Slogan</label>
+        <input type="text" id="slogan" data-k="slogan" maxlength="80" placeholder="contoh: Ujian digital yang jujur">
+      </div>
+      <div class="penuh">
+        <label class="f">Logo</label>
+        <div class="logo">
+          <div class="pratinjau" id="logoPrev">Belum ada logo</div>
+          <div>
+            <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden>
+            <button class="btn polos kecil" id="logoPilih" type="button">Pilih gambar</button>
+            <button class="btn bahaya kecil" id="logoHapus" type="button">Hapus</button>
+            <div class="bantu">PNG, JPG, atau WebP. Otomatis diperkecil menjadi maksimal 256 px.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kartu">
+    <h3>Identitas sekolah</h3>
+    <p class="sub">Dipakai pada kop laporan dan cetak nilai.</p>
+    <div class="grid">
+      <div class="penuh"><label class="f" for="sekolah">Nama sekolah</label>
+        <input type="text" id="sekolah" data-k="sekolah"></div>
+      <div><label class="f" for="npsn">NPSN</label>
+        <input type="text" id="npsn" data-k="npsn" inputmode="numeric" maxlength="8"></div>
+      <div><label class="f" for="kota">Kabupaten / Kota</label>
+        <input type="text" id="kota" data-k="kota"></div>
+      <div class="penuh"><label class="f" for="alamat">Alamat</label>
+        <textarea id="alamat" data-k="alamat"></textarea></div>
+      <div><label class="f" for="telp">Telepon</label>
+        <input type="tel" id="telp" data-k="telp"></div>
+      <div><label class="f" for="surel">Email</label>
+        <input type="email" id="surel" data-k="surel"></div>
+      <div><label class="f" for="kepsek">Kepala sekolah</label>
+        <input type="text" id="kepsek" data-k="kepsek"></div>
+      <div><label class="f" for="nipKepsek">NIP kepala sekolah</label>
+        <input type="text" id="nipKepsek" data-k="nipKepsek" inputmode="numeric"></div>
+    </div>
+  </section>
+
+  <section class="kartu">
+    <h3>Pengaturan umum</h3>
+    <p class="sub">Nilai bawaan untuk ujian baru.</p>
+    <div class="grid">
+      <div><label class="f" for="tahun">Tahun ajaran</label>
+        <input type="text" id="tahun" data-k="tahun" placeholder="2026/2027"></div>
+      <div><label class="f" for="semester">Semester</label>
+        <select id="semester" data-k="semester"><option>Ganjil</option><option>Genap</option></select></div>
+      <div><label class="f" for="zona">Zona waktu</label>
+        <select id="zona" data-k="zona">
+          <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+          <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+          <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+        </select></div>
+      <div><label class="f" for="durasi">Durasi ujian bawaan (menit)</label>
+        <input type="number" id="durasi" data-k="durasi" min="5" max="300"></div>
+      <div><label class="f" for="kkm">KKM</label>
+        <input type="number" id="kkm" data-k="kkm" min="0" max="100"></div>
+      <div><label class="f" for="batasKeluar">Batas keluar layar (kali)</label>
+        <input type="number" id="batasKeluar" data-k="batasKeluar" min="0" max="20">
+        <div class="bantu">0 berarti tidak dibatasi.</div></div>
+    </div>
+    <div style="margin-top:8px">
+      <div class="sakelar"><div><b>Acak urutan soal</b><span>Setiap siswa mendapat urutan soal berbeda.</span></div>
+        <label class="sw"><input type="checkbox" data-k="acakSoal"><i></i></label></div>
+      <div class="sakelar"><div><b>Acak urutan pilihan jawaban</b><span>Pilihan A–E diacak untuk tiap siswa.</span></div>
+        <label class="sw"><input type="checkbox" data-k="acakOpsi"><i></i></label></div>
+      <div class="sakelar"><div><b>Tampilkan nilai ke siswa setelah selesai</b><span>Jika mati, siswa hanya melihat pesan selesai.</span></div>
+        <label class="sw"><input type="checkbox" data-k="tampilNilai"><i></i></label></div>
+      <div class="sakelar"><div><b>Wajib layar penuh</b><span>Ujian berjalan dalam mode layar penuh.</span></div>
+        <label class="sw"><input type="checkbox" data-k="layarPenuh"><i></i></label></div>
+    </div>
+  </section>
+</main>
+
+<div class="pbar">
+  <button class="btn bahaya" id="btnReset" type="button">Kembalikan bawaan</button>
+  <button class="btn utama" id="btnSimpan" type="button">Simpan pengaturan</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KUNCI = 'kw_pengaturan_app';
+  var BAWAAN = {
+    namaApp: 'KW Learning', slogan: '', logo: '',
+    sekolah: 'SMPN 20 Konawe Selatan', npsn: '', kota: '', alamat: '', telp: '', surel: '',
+    kepsek: '', nipKepsek: '',
+    tahun: '', semester: 'Ganjil', zona: 'Asia/Makassar',
+    durasi: 60, kkm: 75, batasKeluar: 3,
+    acakSoal: true, acakOpsi: false, tampilNilai: false, layarPenuh: true
+  };
+
+  function $(id) { return document.getElementById(id); }
+  var ttm;
+  function toast(t) {
+    var el = $('toast'); el.textContent = t; el.classList.add('tampil');
+    clearTimeout(ttm); ttm = setTimeout(function () { el.classList.remove('tampil'); }, 2200);
+  }
+
+  function muat() {
+    var s = {};
+    try { s = JSON.parse(localStorage.getItem(KUNCI) || '{}') || {}; } catch (e) {}
+    return Object.assign({}, BAWAAN, s);
+  }
+
+  var nilai = muat();
+  var logoData = nilai.logo || '';
+
+  function tampilLogo() {
+    var p = $('logoPrev');
+    if (logoData) { p.style.backgroundImage = 'url("' + logoData + '")'; p.textContent = ''; }
+    else { p.style.backgroundImage = ''; p.textContent = 'Belum ada logo'; }
+  }
+
+  function isiForm(o) {
+    document.querySelectorAll('[data-k]').forEach(function (el) {
+      var v = o[el.dataset.k];
+      if (el.type === 'checkbox') el.checked = !!v; else el.value = v == null ? '' : v;
+    });
+    logoData = o.logo || '';
+    tampilLogo();
+  }
+
+  function bacaForm() {
+    var o = { logo: logoData };
+    document.querySelectorAll('[data-k]').forEach(function (el) {
+      var k = el.dataset.k;
+      if (el.type === 'checkbox') o[k] = el.checked;
+      else if (el.type === 'number') o[k] = el.value === '' ? BAWAAN[k] : Number(el.value);
+      else o[k] = el.value.trim();
+    });
+    return o;
+  }
+
+  /* Logo: perkecil lewat canvas agar muat di penyimpanan browser. */
+  $('logoPilih').addEventListener('click', function () { $('logoFile').click(); });
+  $('logoFile').addEventListener('change', function () {
+    var f = this.files[0]; this.value = '';
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { toast('Ukuran gambar maksimal 5 MB'); return; }
+    var url = URL.createObjectURL(f), img = new Image();
+    img.onload = function () {
+      var m = 256, r = Math.min(1, m / Math.max(img.width, img.height));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      logoData = c.toDataURL(f.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9);
+      URL.revokeObjectURL(url); tampilLogo();
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); toast('Gambar tidak dapat dibaca'); };
+    img.src = url;
+  });
+  $('logoHapus').addEventListener('click', function () { logoData = ''; tampilLogo(); });
+
+  $('btnSimpan').addEventListener('click', function () {
+    var o = bacaForm();
+    if (!o.namaApp) { toast('Nama aplikasi wajib diisi'); return; }
+    if (o.durasi < 5) { toast('Durasi minimal 5 menit'); return; }
+    if (o.kkm < 0 || o.kkm > 100) { toast('KKM harus 0–100'); return; }
+    try { localStorage.setItem(KUNCI, JSON.stringify(o)); }
+    catch (e) { toast('Gagal menyimpan (penyimpanan penuh?)'); return; }
+    document.title = 'Pengaturan Aplikasi · ' + o.namaApp;
+    toast('Pengaturan disimpan');
+  });
+
+  $('btnReset').addEventListener('click', function () {
+    if (!window.confirm('Kembalikan semua pengaturan ke nilai bawaan? Logo juga dihapus.')) return;
+    try { localStorage.removeItem(KUNCI); } catch (e) {}
+    isiForm(BAWAAN);
+    toast('Pengaturan dikembalikan');
+  });
+
+  isiForm(nilai);
+})();
+</script>
+</div>
+</body>
+</html>

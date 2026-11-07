@@ -1,89 +1,361 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Dasbor — KW Learning</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Poppins:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/jpeg" href="templat/logo.jpeg">
-<link rel="apple-touch-icon" href="templat/logo.jpeg">
-<link rel="stylesheet" href="css/dasbor.css">
-<link rel="stylesheet" href="css/sidebar.css">
-
+<title>Dasbor · KW Learning</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="assets/js/guard.js" data-peran="admin"></script>
+<link rel="icon" type="image/jpeg" href="assets/templat/logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/css/neumorph.css">
+<link rel="stylesheet" href="assets/css/sidebar.css">
+<style>
+  .fbs { display: flex; gap: 18px; flex-wrap: wrap; color: var(--nm-muted); margin: 0 0 22px; font-size: 13px; }
+  .tb-flt { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tb-flt .btn[aria-pressed="true"] {
+    color: var(--nm-accent);
+    box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light);
+  }
+  .alat select { max-width: 240px; }
+  .st small { display: block; margin-top: 4px; color: var(--nm-muted); font-size: 12px; }
+  .pb { height: 14px; padding: 3px; border-radius: 99px; margin-top: 10px;
+        box-shadow: inset 2px 2px 5px var(--nm-dark), inset -2px -2px 5px var(--nm-light); }
+  .pb i { display: block; height: 100%; border-radius: 99px; transition: width .4s;
+          background: linear-gradient(90deg, var(--nm-accent2), var(--nm-accent)); }
+  .card h3 small { font-weight: 400; color: var(--nm-muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trk i.ada { min-width: 4px; }
+  #dkls { max-height: 300px; overflow-y: auto; padding-right: 4px; }
+  .tw { border: 0; box-shadow: none; background: transparent; }
+  .st b + small { margin-top: 2px; }
+  #n-VII, #n-VIII, #n-IX, #n-tot, #n-akt, #n-sdh, #n-blm { display: block; }
+</style>
 </head>
-
 <body>
-
-<!-- Sidebar dipasang seketika oleh js/sidebar-awal.js -->
-<div id="sidebar-slot" data-mode="halaman" data-aktif="dasbor"></div>
-<script src="js/sidebar-awal.js"></script>
+<div id="sidebar-slot" data-mode="halaman" data-peran="admin" data-aktif="dasbor"></div>
+<script src="assets/js/sidebar-awal.js"></script>
 
 <div id="mn">
-
- <div class="top">
-  <button id="burger" aria-label="Buka menu">☰</button>
-  <h2 id="ttl">Dasbor</h2>
- </div>
-
- <div class="wrap">
-
-  <div id="cfgwarn" class="msg warn hidden">
-   <b>Ada masalah pada halaman ini.</b>
+  <div class="top">
+    <button id="burger" type="button" aria-label="Buka menu">☰</button>
+    <h2>Dasbor Admin Pusat</h2>
   </div>
 
-  <!-- ALAT: muat ulang data -->
-  <div class="alat">
+  <div class="wrap">
+    <div id="cfgwarn" class="msg warn hidden" role="alert"></div>
 
-   <span id="upd" class="upd">Memuat data…</span>
+    <div class="alat">
+      <div class="tb-flt" id="flt" role="group" aria-label="Filter tingkat">
+        <button type="button" class="btn" data-t="semua" aria-pressed="true">Semua</button>
+        <button type="button" class="btn" data-t="VII" aria-pressed="false">VII</button>
+        <button type="button" class="btn" data-t="VIII" aria-pressed="false">VIII</button>
+        <button type="button" class="btn" data-t="IX" aria-pressed="false">IX</button>
+      </div>
+      <select id="uj" aria-label="Ujian"></select>
+      <button id="muat" type="button" class="btn p">Muat ulang</button>
+      <span class="upd" id="upd">Memuat data…</span>
+    </div>
 
-   <button class="btn" id="muat" type="button">Muat ulang data</button>
+    <p class="fbs" aria-label="Status Firebase">
+      <span class="lamp" id="fb-VII">Kelas VII</span>
+      <span class="lamp" id="fb-VIII">Kelas VIII</span>
+      <span class="lamp" id="fb-IX">Kelas IX</span>
+      <span class="lamp" id="fb-SISWA_GURU">Siswa &amp; Guru</span>
+      <span class="lamp" id="fb-BANK_SOAL">Bank Soal</span>
+    </p>
+
+    <section class="stats" aria-label="Jumlah siswa">
+      <div class="st"><b id="n-VII">–</b><span>Siswa kelas VII</span></div>
+      <div class="st"><b id="n-VIII">–</b><span>Siswa kelas VIII</span></div>
+      <div class="st"><b id="n-IX">–</b><span>Siswa kelas IX</span></div>
+      <div class="st"><b id="n-tot">–</b><span>Total siswa</span><small id="s-tot"></small></div>
+    </section>
+
+    <section class="stats" aria-label="Status ujian">
+      <div class="st"><b id="n-akt">0</b><span>Ujian berlangsung</span><small id="d-akt"></small></div>
+      <div class="st"><b id="n-sdh">0</b><span>Sudah mengerjakan</span><small id="p-sdh"></small>
+        <div class="pb"><i id="b-sdh" style="width:0"></i></div></div>
+      <div class="st"><b id="n-blm">–</b><span>Belum mengerjakan</span><small id="p-blm"></small></div>
+    </section>
+
+    <section class="two">
+      <div class="card"><h3>Sebaran nilai <small id="ujn1"></small></h3><div id="dist"></div></div>
+      <div class="card"><h3>Rata-rata per kelas <small id="ujn2"></small></h3><div id="dkls"></div></div>
+    </section>
+
+    <section class="two">
+      <div class="card"><h3>Token aktif</h3><div id="dtok"></div></div>
+      <div class="card"><h3>Pengumpulan terbaru</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Nama</th><th>Kelas</th><th>Paket</th><th>Nilai</th><th>Waktu</th></tr></thead>
+          <tbody id="dlast"></tbody>
+        </table></div>
+      </div>
+    </section>
   </div>
-
-  <!-- ANGKA RINGKAS -->
-  <div class="stats">
-   <div class="st"><b id="s2">0</b><span>Total token</span></div>
-   <div class="st"><b id="s3">0</b><span>Peserta mengumpulkan</span></div>
-  </div>
-
-  <div class="two">
-   <div class="card">
-    <h3>Sebaran nilai</h3>
-    <div id="dist"></div>
-   </div>
-
-   <div class="card">
-    <h3>Token aktif</h3>
-    <div id="dtok"></div>
-   </div>
-  </div>
-
-  <div class="card">
-   <h3>Rata-rata per kelas</h3>
-   <div id="dkls"></div>
-  </div>
-
-  <div class="card">
-   <h3>Pengumpulan terbaru</h3>
-   <div class="tw" style="border:0;box-shadow:none">
-    <table>
-     <thead>
-      <tr>
-       <th>Nama</th>
-       <th>Ujian</th>
-       <th>Nilai</th>
-       <th>Waktu</th>
-      </tr>
-     </thead>
-     <tbody id="dlast"></tbody>
-    </table>
-   </div>
-  </div>
-
- </div>
 </div>
 
-<script type="module" src="js/dasbor.js?v=6"></script>
+<div id="toast" role="status"></div>
 
+<script type="module">
+/* =========================================================
+   DASBOR ADMIN PUSAT
+   Sumber data (sesuai firebase-pusat.js):
+   - Kelas VII/VIII/IX : tokens, hasil, sesi, pengaturan/jumlahSiswa
+   - Siswa & Guru      : siswa (jumlah siswa per tingkat dari label kelas)
+   - Bank Soal         : paket (hanya untuk lampu status)
+   Login dan peran dijaga oleh assets/js/guard.js.
+========================================================= */
+import { $, esc, fmtT, fmtN, toast, norm } from './assets/js/util.js';
+import { muatSidebar } from './assets/js/sidebar.js';
+import {
+  F, TINGKAT, KOLEKSI, FIREBASE_PUSAT, dbTingkat, dbSiswaGuru, dbBankSoal, tingkatDariKelas
+} from './assets/js/firebase-pusat.js';
+
+const BATAS_HASIL = 500, BATAS_TOKEN = 100, MAKS_TOKEN = 30;
+const AMBANG_AKTIF = 3 * 60 * 1000;   // detak lebih lama dari ini = terputus
+const SEGAR_SESI = 60 * 1000;
+/* [dari, sampai) — nilai desimal seperti 59,5 tetap masuk kelompok */
+const KELOMPOK = [['0–59', 0, 60], ['60–69', 60, 70], ['70–79', 70, 80], ['80–89', 80, 90], ['90–100', 90, Infinity]];
+
+const D = {};
+TINGKAT.forEach(t => { D[t] = { ok: null, TOK: [], HAS: [], SES: [], jumlah: null, sumber: '' }; });
+const LAIN = { SISWA_GURU: null, BANK_SOAL: null };
+let SISWA = null;   // seluruh dokumen siswa (null = gagal dibaca)
+
+let filter = 'semua', ujian = '', terakhir = null, sibuk = false;
+
+/* ---------- Penolong ---------- */
+function peringatan(teks) {
+  const w = $('cfgwarn');
+  if (!w) return console.warn(teks);
+  w.classList.remove('hidden');
+  const p = document.createElement('div');
+  p.textContent = teks;
+  w.appendChild(p);
+}
+const aman = (nama, fn) => { try { return fn(); } catch (e) { console.error(nama, e); peringatan(nama + ' gagal: ' + (e.message || e)); } };
+const ms = v => !v ? 0 : typeof v === 'number' ? v : typeof v.toMillis === 'function' ? v.toMillis() : 0;
+const rata = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+const urutAlfa = (a, b) => a.localeCompare(b, 'id', { numeric: true });
+const kosong = t => `<div class="empty">${t}</div>`;
+const jam = d => d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+const adaNilai = h => h.nilai !== null && h.nilai !== undefined && h.nilai !== '' && Number.isFinite(Number(h.nilai));
+const tampilT = () => filter === 'semua' ? TINGKAT : [filter];
+const gabung = k => tampilT().flatMap(t => D[t][k]);
+const kunciSiswa = h => h.tingkat + '|' + String(h.nis || h.nama || '').trim().toLowerCase().replace(/\s+/g, ' ') + '|' + String(h.kelas || '');
+const batang = pct => `<i class="${pct > 0 ? 'ada' : ''}" style="width:${Math.max(0, Math.min(100, pct))}%"></i>`;
+
+/* ---------- Pemuatan ---------- */
+/* Urut dulu; bila gagal atau kosong (dokumen tanpa field urut ikut terbuang), ambil tanpa urutan. */
+async function ambil(db, nama, urut, batas) {
+  try {
+    const s = await F.getDocs(F.query(F.collection(db, nama), F.orderBy(urut, 'desc'), F.limit(batas)));
+    if (!s.empty) return s;
+  } catch (e) { console.warn(nama + ': urutan ' + urut + ' gagal, pakai tanpa urutan.', e); }
+  return F.getDocs(F.query(F.collection(db, nama), F.limit(batas)));
+}
+
+async function muatSesi(t) {
+  try {
+    const s = await F.getDocs(F.query(F.collection(dbTingkat(t), KOLEKSI.sesi), F.where('status', '==', 'mengerjakan'), F.limit(300)));
+    D[t].SES = s.docs.map(x => ({ id: x.id, ...x.data(), tingkat: t }));
+  } catch (e) { console.warn('Sesi ' + t + ':', e); D[t].SES = []; }
+}
+
+async function muatTingkat(t) {
+  const d = D[t], db = dbTingkat(t);
+  const [rt, rh, rj] = await Promise.allSettled([
+    ambil(db, KOLEKSI.token, 'dibuat', BATAS_TOKEN),
+    ambil(db, KOLEKSI.hasil, 'waktu', BATAS_HASIL),
+    F.getDoc(F.doc(db, KOLEKSI.pengaturan, 'jumlahSiswa'))
+  ]);
+  d.ok = rt.status === 'fulfilled' && rh.status === 'fulfilled';
+  d.TOK = rt.status === 'fulfilled' ? rt.value.docs.map(x => ({ id: x.id, ...x.data(), tingkat: t })) : [];
+  d.HAS = rh.status === 'fulfilled' ? rh.value.docs.map(x => ({ ...norm({ id: x.id, data: () => x.data() }), nis: x.data().nis, tingkat: t })) : [];
+  [rt, rh].forEach((r, i) => {
+    if (r.status === 'rejected') peringatan('Firebase kelas ' + t + ' gagal memuat ' + (i ? 'hasil' : 'token') + ': ' + (r.reason?.message || r.reason));
+  });
+  d.pengaturan = rj.status === 'fulfilled' && rj.value.exists() && Number.isFinite(Number(rj.value.data().jumlah))
+    ? Number(rj.value.data().jumlah) : null;
+  await muatSesi(t);
+}
+
+async function muatMaster() {
+  /* Siswa tersimpan di Firebase Siswa & Guru, bukan di Firebase tingkat */
+  const [rs, rp] = await Promise.allSettled([
+    F.getDocs(F.query(F.collection(dbSiswaGuru, KOLEKSI.siswa), F.limit(5000))),
+    F.getDocs(F.query(F.collection(dbBankSoal, KOLEKSI.paket), F.limit(1)))
+  ]);
+  LAIN.SISWA_GURU = rs.status === 'fulfilled';
+  LAIN.BANK_SOAL = rp.status === 'fulfilled';
+  SISWA = rs.status === 'fulfilled' ? rs.value.docs.map(x => x.data()) : null;
+  if (rs.status === 'rejected') peringatan('Firebase Siswa & Guru gagal dibaca: ' + (rs.reason?.message || rs.reason));
+  if (rp.status === 'rejected') peringatan('Firebase Bank Soal gagal dibaca: ' + (rp.reason?.message || rp.reason));
+}
+
+function hitungJumlah() {
+  TINGKAT.forEach(t => {
+    const d = D[t];
+    d.jumlah = null; d.sumber = '';
+    const dariSiswa = SISWA ? SISWA.filter(s => tingkatDariKelas(s.kelas) === t).length : 0;
+    if (dariSiswa > 0) { d.jumlah = dariSiswa; d.sumber = 'siswa'; }
+    else if (d.pengaturan !== null) { d.jumlah = d.pengaturan; d.sumber = 'pengaturan'; }
+    else if (d.HAS.length) { d.jumlah = new Set(d.HAS.map(kunciSiswa)).size; d.sumber = 'hasil'; }
+  });
+}
+
+async function muatSemua() {
+  const w = $('cfgwarn');
+  if (w) { w.innerHTML = ''; w.classList.add('hidden'); }
+  await Promise.all([...TINGKAT.map(muatTingkat), muatMaster()]);
+  hitungJumlah();
+  terakhir = new Date();
+  gambar();
+}
+
+/* ---------- Gambar ---------- */
+function isiPilihanUjian() {
+  const semua = TINGKAT.flatMap(t => D[t].HAS).sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
+  const nama = [...new Set(semua.map(h => h.paket).filter(Boolean))];
+  if (!nama.includes(ujian)) ujian = nama[0] || '';
+  $('uj').innerHTML = nama.length
+    ? nama.map(n => `<option value="${esc(n)}" ${n === ujian ? 'selected' : ''}>${esc(n)}</option>`).join('')
+    : '<option value="">Belum ada ujian</option>';
+  $('ujn1').textContent = $('ujn2').textContent = ujian;
+}
+
+function gambarStatistik() {
+  const T = tampilT();
+  TINGKAT.forEach(t => { $('n-' + t).textContent = D[t].jumlah ?? '–'; });
+
+  const lengkap = T.every(t => D[t].jumlah !== null);
+  const total = lengkap ? T.reduce((a, t) => a + D[t].jumlah, 0) : null;
+  $('n-tot').textContent = total ?? '–';
+  $('s-tot').textContent = !lengkap ? 'Data siswa belum tersedia'
+    : T.some(t => D[t].sumber === 'hasil') ? 'Sebagian dihitung dari siswa yang pernah mengumpulkan' : '';
+
+  const kini = Date.now();
+  const aktif = t => D[t].SES.filter(s => kini - ms(s.aktifTerakhir) < AMBANG_AKTIF).length;
+  $('n-akt').textContent = T.reduce((a, t) => a + aktif(t), 0);
+  $('d-akt').textContent = TINGKAT.map(t => t + ': ' + aktif(t)).join(', ');
+
+  const sudah = ujian ? new Set(gabung('HAS').filter(h => h.paket === ujian).map(kunciSiswa)).size : 0;
+  const pct = n => total ? Math.round(n / total * 100) + '%' : '';
+  $('n-sdh').textContent = sudah;
+  $('p-sdh').textContent = pct(sudah);
+  $('b-sdh').style.width = total ? Math.min(100, sudah / total * 100) + '%' : '0';
+
+  const belum = total === null ? null : Math.max(0, total - sudah);
+  $('n-blm').textContent = belum ?? '–';
+  $('p-blm').textContent = belum === null ? '' : pct(belum);
+}
+
+function gambarDaftar() {
+  const HAS = gabung('HAS').sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
+  const TOK = gabung('TOK').filter(x => x.aktif);
+  /* Sebaran dan rata-rata mengikuti ujian yang dipilih */
+  const ber = HAS.filter(h => h.paket === ujian && adaNilai(h));
+  const ns = ber.map(h => Number(h.nilai));
+
+  const cnt = KELOMPOK.map(([, a, b]) => ns.filter(n => n >= a && n < b).length);
+  const mx = Math.max(1, ...cnt);
+  $('dist').innerHTML = ns.length
+    ? KELOMPOK.map((b, i) => `<div class="bar"><span>${b[0]}</span><div class="trk">${batang(cnt[i] / mx * 100)}</div><em>${cnt[i]}</em></div>`).join('')
+    : kosong('Belum ada nilai masuk untuk ujian ini.');
+
+  $('dtok').innerHTML = TOK.length
+    ? `<div class="tkwrap">${TOK.slice(0, MAKS_TOKEN).map(x => `<button type="button" class="tkc" data-c="${esc(x.id)}" title="Kelas ${esc(x.tingkat)}. Klik untuk menyalin">${esc(x.id)}</button>`).join('')}${TOK.length > MAKS_TOKEN ? `<span class="more">+${TOK.length - MAKS_TOKEN} lagi</span>` : ''}</div>`
+    : kosong('Tidak ada token aktif.');
+
+  const perKelas = new Map();
+  ber.forEach(h => {
+    if (!h.kelas) return;
+    if (!perKelas.has(h.kelas)) perKelas.set(h.kelas, []);
+    perKelas.get(h.kelas).push(Number(h.nilai));
+  });
+  const kelas = [...perKelas.entries()].sort((a, b) => urutAlfa(a[0], b[0]));
+  $('dkls').innerHTML = kelas.length
+    ? kelas.map(([k, v]) => { const r = rata(v); return `<div class="bar"><span title="${esc(k)}">${esc(k)}</span><div class="trk">${batang(r)}</div><em>${fmtN(r)}</em></div>`; }).join('')
+    : kosong('Belum ada nilai per kelas.');
+
+  $('dlast').innerHTML = HAS.length
+    ? HAS.slice(0, 5).map(h => `<tr><td>${esc(h.nama)}</td><td>${esc(h.kelas || h.tingkat)}</td><td>${esc(h.paket)}</td><td><b>${fmtN(h.nilai)}</b></td><td>${fmtT(h.waktu)}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">Belum ada pengumpulan.</td></tr>';
+}
+
+function gambarStatusFirebase() {
+  let ok = 0;
+  const status = { VII: D.VII.ok, VIII: D.VIII.ok, IX: D.IX.ok, ...LAIN };
+  Object.keys(FIREBASE_PUSAT).forEach(k => {
+    const el = $('fb-' + k), v = status[k];
+    if (v) ok++;
+    if (el) { el.classList.toggle('ok', v === true); el.classList.toggle('gagal', v === false); }
+  });
+  const dot = $('dot'), cs = $('cs');
+  if (dot) dot.classList.toggle('on', ok > 0);
+  if (cs) cs.textContent = 'Terhubung: ' + ok + ' dari 5 Firebase';
+  $('upd').textContent = terakhir ? 'Data dimuat pukul ' + jam(terakhir) : 'Memuat data…';
+}
+
+function gambar() {
+  aman('Status Firebase', gambarStatusFirebase);
+  aman('Pilihan ujian', isiPilihanUjian);
+  aman('Statistik', gambarStatistik);
+  aman('Daftar', gambarDaftar);
+}
+
+/* ---------- Alat ---------- */
+function initAlat() {
+  $('flt').addEventListener('click', e => {
+    const b = e.target.closest('[data-t]');
+    if (!b) return;
+    filter = b.dataset.t;
+    $('flt').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    gambar();
+  });
+
+  $('uj').onchange = e => { ujian = e.target.value; gambar(); };
+
+  $('muat').onclick = async () => {
+    const tombol = $('muat');
+    if (sibuk) return;
+    sibuk = true;
+    tombol.disabled = true;
+    try { await muatSemua(); toast('Data dimuat ulang.'); }
+    catch (e) { peringatan('Muat ulang gagal: ' + (e.message || e)); }
+    finally { sibuk = false; setTimeout(() => { tombol.disabled = false; }, 10000); }
+  };
+
+  $('dtok').addEventListener('click', async e => {
+    const b = e.target.closest('[data-c]');
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.c); toast('Token ' + b.dataset.c + ' disalin'); }
+    catch (_) { prompt('Salin token:', b.dataset.c); }
+  });
+}
+
+/* ---------- Mulai ---------- */
+try {
+  try { await muatSidebar(); } catch (e) { peringatan('Sidebar gagal dimuat: ' + (e.message || e)); }
+  aman('Alat dasbor', initAlat);
+  gambar();
+
+  sibuk = true;
+  try { await muatSemua(); } finally { sibuk = false; }
+
+  /* Hanya kartu "berlangsung" disegarkan otomatis, tanpa listener realtime. */
+  setInterval(async () => {
+    if (document.hidden || sibuk) return;
+    await Promise.all(TINGKAT.map(muatSesi));
+    gambar();
+  }, SEGAR_SESI);
+} catch (error) {
+  console.error('Dasbor gagal dimulai:', error);
+  peringatan('Dasbor gagal dimulai: ' + (error.message || error));
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aktivitas Siswa – KW Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+.kw-halaman{
+  --bg:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --hi:var(--nm-light); --lo:var(--nm-dark);
+  --biru:var(--nm-accent); --hijau:var(--nm-ok); --kuning:var(--nm-kuning); --merah:var(--nm-warn); --abu:var(--nm-muted);
+  --out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+  --in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
+}
+.kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
+body{background:#e4e9f2}
+.kw-halaman{font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+.kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
+.kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:3px;border-radius:14px}
+.kw-halaman .wrap{width:min(1100px,100% - 2rem);margin-inline:auto}
+.kw-halaman > header{padding:2rem 0 1rem}
+.kw-halaman h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2}
+.kw-halaman > header p{color:var(--muted);margin-top:.3rem}
+.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.2rem;margin:1.2rem 0 1.6rem}
+.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:20px;padding:1rem 1.2rem}
+.kw-halaman .ringkas b{display:block;font-size:1.9rem;line-height:1.1}
+.kw-halaman .ringkas span{font-size:.82rem;color:var(--muted)}
+.kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:1.4rem}
+.kw-halaman .cari,.kw-halaman select{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem}
+.kw-halaman .cari{flex:1;min-width:200px}
+.kw-halaman select{cursor:pointer}
+.kw-halaman .filter{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.6rem}
+.kw-halaman .filter button{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.55rem 1rem;font-size:.86rem;font-weight:500;cursor:pointer}
+.kw-halaman .filter button[aria-pressed="true"]{box-shadow:var(--in);color:var(--biru);font-weight:600}
+.kw-halaman .panel{background:var(--bg);box-shadow:var(--out);border-radius:24px;padding:.6rem 1.2rem 1.2rem;overflow:hidden}
+.kw-halaman table{width:100%;border-collapse:collapse;font-size:.88rem}
+.kw-halaman th{text-align:left;font-weight:600;color:var(--muted);font-size:.8rem;padding:.9rem .6rem}
+.kw-halaman td{padding:.8rem .6rem;border-top:1px solid rgba(94,106,134,.18);vertical-align:top}
+.kw-halaman td.waktu{white-space:nowrap;font-variant-numeric:tabular-nums}
+.kw-halaman td.waktu small{display:block;color:var(--muted);font-size:.75rem}
+.kw-halaman td.siswa b{display:block;font-weight:600}
+.kw-halaman td.siswa small{color:var(--muted);font-size:.78rem}
+.kw-halaman .badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;font-weight:600;padding:.28rem .75rem;border-radius:999px;box-shadow:var(--in);white-space:nowrap}
+.kw-halaman .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.kw-halaman .t-masuk{color:var(--biru)}
+.kw-halaman .t-jawab{color:var(--abu)}
+.kw-halaman .t-selesai{color:var(--hijau)}
+.kw-halaman .t-warn{color:var(--kuning)}
+.kw-halaman .t-putus{color:var(--merah)}
+.kw-halaman .kosong{text-align:center;color:var(--muted);padding:2rem 1rem}
+.kw-halaman .lagi{display:block;margin:1.2rem auto 0;border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.7rem 1.6rem;font-weight:600;color:var(--biru);cursor:pointer}
+.kw-halaman .lagi:active{box-shadow:var(--in)}
+.kw-halaman .info{margin-top:.8rem;font-size:.88rem;color:var(--muted)}
+.kw-halaman #cfgwarn{margin-top:.8rem;font-size:.85rem;color:var(--kuning)}
+.kw-halaman #cfgwarn.hidden{display:none}
+.kw-halaman > footer{margin-top:auto;padding:1.4rem;text-align:center;font-size:.8rem;color:var(--muted)}
+@media (max-width:700px){.kw-halaman thead{position:absolute;left:-9999px}
+.kw-halaman table,.kw-halaman tbody,.kw-halaman tr,.kw-halaman td{display:block;width:100%}
+.kw-halaman tr{padding:.8rem 0;border-top:1px solid rgba(94,106,134,.18)}
+.kw-halaman td{border:0;padding:.2rem 0;display:flex;justify-content:space-between;gap:1rem}
+.kw-halaman td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;flex:none}
+.kw-halaman td.waktu small{display:inline;margin-left:.4rem}}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+    <div id="sidebar-slot" data-mode="halaman" data-aktif="aktivitas"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Aktivitas Siswa</h2>
+</div>
+
+<div class="kw-halaman">
+<header class="wrap">
+  <h1>Aktivitas Siswa</h1>
+  <p>Riwayat aktivitas peserta</p>
+  <p class="info" id="info" role="status" hidden></p>
+  <div id="cfgwarn" class="hidden" hidden role="alert"></div>
+</header>
+
+<main class="wrap">
+  <section class="ringkas" aria-label="Ringkasan">
+    <div><b id="n-total">0</b><span>Total aktivitas</span></div>
+    <div><b id="n-peserta">0</b><span>Peserta tercatat</span></div>
+    <div><b id="n-warn" style="color:var(--kuning)">0</b><span>Peringatan</span></div>
+    <div><b id="n-selesai" style="color:var(--hijau)">0</b><span>Selesai ujian</span></div>
+  </section>
+
+  <section class="alat">
+    <input class="cari" id="cari" type="search" placeholder="Cari nama, kelas, atau NIS peserta" aria-label="Cari peserta">
+    <select id="ruang" aria-label="Filter ruang"><option value="">Semua ruang</option></select>
+  </section>
+
+  <div class="filter" id="filter" role="group" aria-label="Filter jenis aktivitas">
+    <button data-f="semua" aria-pressed="true">Semua</button>
+    <button data-f="peringatan" aria-pressed="false">Peringatan</button>
+    <button data-f="masuk" aria-pressed="false">Masuk</button>
+    <button data-f="jawab" aria-pressed="false">Menjawab</button>
+    <button data-f="selesai" aria-pressed="false">Selesai</button>
+  </div>
+
+  <section class="panel">
+    <table>
+      <thead><tr><th>Waktu</th><th>Peserta</th><th>Ruang</th><th>Aktivitas</th><th>Keterangan</th></tr></thead>
+      <tbody id="isi"></tbody>
+    </table>
+    <p class="kosong" id="kosong" hidden>Belum ada aktivitas yang cocok dengan pencarian atau filter ini.</p>
+    <button class="lagi" id="lagi" hidden>Tampilkan lebih banyak</button>
+  </section>
+</main>
+
+<footer>KW Learning &middot; Ujian Online SMP Negeri 20 Konawe Selatan</footer>
+
+</div>
+
+<script type="module">
+/* Cara ambil data: lewat data.js (ambilTingkat, 3 Firebase tingkat VII/VIII/IX) */
+import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
+
+/* Jenis aktivitas: grup dipakai untuk filter, kelas untuk warna */
+const JENIS = {
+  masuk:   {label:'Masuk dengan token',   grup:'masuk',      kls:'t-masuk'},
+  mulai:   {label:'Mulai ujian',          grup:'masuk',      kls:'t-masuk'},
+  jawab:   {label:'Menjawab soal',        grup:'jawab',      kls:'t-jawab'},
+  tab:     {label:'Meninggalkan halaman', grup:'peringatan', kls:'t-warn'},
+  putus:   {label:'Koneksi terputus',     grup:'peringatan', kls:'t-putus'},
+  selesai: {label:'Mengumpulkan ujian',   grup:'selesai',    kls:'t-selesai'}
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const jam = d => d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\./g,':');
+const lalu = d => { const m = Math.round((Date.now()-d)/60000); return m<1 ? 'baru saja' : m<60 ? m+' menit lalu' : Math.floor(m/60)+' jam lalu'; };
+const tgl = v => { const d = v && v.toDate ? v.toDate() : v ? new Date(v) : null; return d && !isNaN(d) ? d : null; };
+
+let DATA = [];
+let filter='semua', kata='', ruang='', batas=15;
+
+/* ujian.js belum menulis koleksi log, jadi peristiwa disusun dari dokumen sesi:
+   mulai ujian, kemajuan terakhir, pindah tab, dan selesai. */
+function peristiwa(s){
+  const dasar = {nis:s.nis || '', nama:s.nama || s.nis || '(tanpa nama)', kelas:s.kelas || s.tingkat || '', ruang:s.ruang || '-'};
+  const selesai = ['selesai','waktu-habis'].includes(String(s.status));
+  const out = [];
+  if(tgl(s.mulai)) out.push({...dasar, waktu:tgl(s.mulai), jenis:'mulai', ket:'Durasi ' + (s.menit || '-') + ' menit'});
+  if(Number(s.pelanggaran) > 0 && tgl(s.pelanggaranTerakhir))
+    out.push({...dasar, waktu:tgl(s.pelanggaranTerakhir), jenis:'tab', ket:'Pindah tab atau jendela, total ' + s.pelanggaran + ' kali'});
+  if(selesai && tgl(s.selesai))
+    out.push({...dasar, waktu:tgl(s.selesai), jenis:'selesai', ket:s.status === 'waktu-habis' ? 'Waktu habis, jawaban dikumpulkan otomatis' : 'Jawaban dikumpulkan'});
+  else if(!selesai && tgl(s.aktifTerakhir))
+    out.push({...dasar, waktu:tgl(s.aktifTerakhir), jenis:'jawab', ket:'Terjawab ' + (s.terjawab || 0) + ' dari ' + (s.jumlahSoal || '-') + ' soal, sedang di soal ' + (s.soalKe || 1)});
+  return out;
+}
+
+function bentuk(rows){
+  return rows.flatMap(peristiwa).sort((a,b) => b.waktu - a.waktu).slice(0,1500);
+}
+
+function isiRuang(){
+  const sekarang = $('ruang').value;
+  const daftar = [...new Set(DATA.map(d => d.ruang))].sort(urutAlfa);
+  $('ruang').innerHTML = '<option value="">Semua ruang</option>' + daftar.map(r => '<option>' + esc(r) + '</option>').join('');
+  $('ruang').value = daftar.includes(sekarang) ? sekarang : '';
+  ruang = $('ruang').value;
+}
+
+function render(){
+  $('n-total').textContent = DATA.length;
+  $('n-peserta').textContent = new Set(DATA.map(d=>d.nis||d.nama)).size;
+  $('n-warn').textContent = DATA.filter(d=>JENIS[d.jenis].grup==='peringatan').length;
+  $('n-selesai').textContent = DATA.filter(d=>d.jenis==='selesai').length;
+
+  const q = kata.trim().toLowerCase();
+  const hasil = DATA.filter(d =>
+    (filter==='semua' || JENIS[d.jenis].grup===filter) &&
+    (!ruang || d.ruang===ruang) &&
+    (!q || (d.nama+' '+d.kelas+' '+d.nis).toLowerCase().includes(q)));
+
+  $('isi').innerHTML = hasil.slice(0,batas).map(d => {
+    const j = JENIS[d.jenis];
+    return `<tr>
+      <td class="waktu" data-l="Waktu">${jam(d.waktu)}<small>${lalu(d.waktu)}</small></td>
+      <td class="siswa" data-l="Peserta"><span><b>${esc(d.nama)}</b><small>Kelas ${esc(d.kelas)}</small></span></td>
+      <td data-l="Ruang">${esc(d.ruang)}</td>
+      <td data-l="Aktivitas"><span class="badge ${j.kls}">${j.label}</span></td>
+      <td data-l="Keterangan">${esc(d.ket)}</td></tr>`;
+  }).join('');
+  $('kosong').hidden = hasil.length>0;
+  $('lagi').hidden = hasil.length<=batas;
+}
+
+async function muat(){
+  const info = $('info');
+  try{
+    const {rows} = await ambilTingkat('sesi', {batas:300});
+    DATA = bentuk(rows);
+    info.hidden = DATA.length > 0;
+    if(!DATA.length) info.textContent = 'Belum ada sesi ujian yang tercatat.';
+  }catch(e){
+    console.error(e);
+    DATA = [];
+    info.hidden = false;
+    info.textContent = 'Gagal memuat data dari Firebase: ' + (e.message || e);
+  }
+  isiRuang(); render();
+}
+
+$('filter').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  filter = b.dataset.f; batas = 15;
+  document.querySelectorAll('#filter button').forEach(x => x.setAttribute('aria-pressed', x===b));
+  render();
+});
+$('cari').addEventListener('input', e => { kata = e.target.value; batas = 15; render(); });
+$('ruang').addEventListener('change', e => { ruang = e.target.value; batas = 15; render(); });
+$('lagi').addEventListener('click', () => { batas += 15; render(); });
+render();
+muat();
+setInterval(() => { if(!document.hidden) muat(); }, 60000);
+</script>
+</div>
+</body>
+</html>

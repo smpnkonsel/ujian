@@ -8,14 +8,14 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Ujian Online — KW Learning</title>
 
-<link rel="icon" type="image/jpeg" href="templat/logo.jpeg">
-<link rel="apple-touch-icon" href="templat/logo.jpeg">
+<link rel="icon" type="image/jpeg" href="assets/templat/logo.jpeg">
+<link rel="apple-touch-icon" href="assets/templat/logo.jpeg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/ujian.css?v=10">
+<link rel="stylesheet" href="assets/css/ujian.css?v=10">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
@@ -28,7 +28,7 @@
  <header>
   <div class="hrow">
    <div class="brand">
-    <span class="mark"><img src="templat/logo.jpeg" alt="Logo KW Learning"></span>
+    <span class="mark"><img src="assets/templat/logo.jpeg" alt="Logo KW Learning"></span>
     <span class="bt"><b>KW Learning</b><small>SMPN 20 Konawe Selatan</small></span>
    </div>
 
@@ -45,7 +45,7 @@
    </div>
   </div>
 
-  <p class="sub" id="sub">Masukkan token dari guru untuk memulai ujian.</p>
+  <p class="sub" id="sub">Masukkan NIS dan token dari guru untuk memulai ujian.</p>
   <div class="strip"></div>
  </header>
 
@@ -77,15 +77,15 @@
 
 <div id="scrim"></div>
 
-<!-- MODAL 1: verifikasi token (nama lengkap + 4 angka) -->
+<!-- MODAL 1: verifikasi (NIS + token 4 angka) -->
 <div class="mo hidden" id="gm" role="dialog" aria-modal="true" aria-labelledby="gh">
  <form class="mb gk" id="gf" novalidate autocomplete="off">
-  <div class="logo pic"><img src="templat/logo.jpeg" alt="Logo KW Learning"></div>
+  <div class="logo pic"><img src="assets/templat/logo.jpeg" alt="Logo KW Learning"></div>
   <h2 id="gh">Verifikasi Token</h2>
-  <p class="gsub">Isi nama lengkap dan 4 angka token dari guru.</p>
+  <p class="gsub">Isi NIS dan 4 angka token dari guru.</p>
 
-  <label for="gn">Nama lengkap</label>
-  <input id="gn" type="text" maxlength="60" placeholder="Nama lengkap" autocomplete="off" autocapitalize="words">
+  <label for="gn">NIS</label>
+  <input id="gn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="20" placeholder="Nomor Induk Siswa" autocomplete="off">
 
   <label for="t1">Token ujian</label>
   <div class="tkrow" id="tkrow">
@@ -121,6 +121,8 @@
   <div class="info">
    <div class="info-row"><span>Mata Pelajaran</span><strong id="im">-</strong></div>
    <div class="info-row"><span>Kelas</span><strong id="ik">-</strong></div>
+   <div class="info-row"><span>Ruang</span><strong id="ir">-</strong></div>
+   <div class="info-row"><span>Pengawas</span><strong id="ip">-</strong></div>
   </div>
 
   <h3 id="it">Petunjuk Mengerjakan Soal</h3>
@@ -150,6 +152,6 @@ setTimeout(function () {
 }, 8000);
 </script>
 
-<script type="module" src="js/ujian.js?v=13"></script>
+<script type="module" src="assets/js/ujian.js?v=14"></script>
 </body>
 </html>

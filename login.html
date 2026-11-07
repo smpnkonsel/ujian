@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk · KW Learning</title>
+<link rel="stylesheet" href="assets/css/neumorph.css">
+<link rel="icon" type="image/jpeg" href="assets/templat/logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dasar: var(--nm-bg);
+    --terang: var(--nm-light);
+    --gelap: var(--nm-dark);
+    --teks: var(--nm-text);
+    --lembut: var(--nm-muted);
+    --aksen: var(--nm-accent);
+    --bahaya: var(--nm-warn);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px 20px;
+    background: var(--dasar);
+    color: var(--teks);
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+
+  /* Kartu utama */
+  .kartu {
+    width: 100%;
+    max-width: 420px;
+    padding: 44px 32px 40px;
+    border-radius: 32px;
+    background: var(--dasar);
+    box-shadow: 18px 18px 40px var(--gelap), -14px -14px 34px var(--terang);
+    text-align: center;
+  }
+
+  /* Bulatan logo timbul */
+  .logo {
+    width: 112px; height: 112px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--dasar);
+    box-shadow: 9px 9px 18px var(--gelap), -9px -9px 18px var(--terang);
+  }
+  .logo img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+
+  h1 { margin: 0 0 6px; font-size: 1.85rem; font-weight: 600; }
+  .sub { margin: 0 0 30px; color: var(--lembut); font-size: .92rem; }
+
+  /* Kolom isian tenggelam */
+  .isian { position: relative; margin-bottom: 20px; }
+  .isian input {
+    width: 100%;
+    font: inherit; font-size: .95rem;
+    color: var(--teks);
+    padding: 17px 52px 17px 24px;
+    border: 0;
+    border-radius: 20px;
+    background: var(--dasar);
+    box-shadow: inset 6px 6px 12px var(--gelap), inset -6px -6px 12px var(--terang);
+    outline: none;
+  }
+  .isian input::placeholder { color: var(--nm-muted); opacity: .8; }
+  .isian input:focus-visible { box-shadow: inset 6px 6px 12px var(--gelap), inset -6px -6px 12px var(--terang), 0 0 0 3px var(--aksen); }
+
+  #lihat {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    border: 0; border-radius: 50%;
+    background: transparent; color: var(--lembut);
+    cursor: pointer;
+  }
+  #lihat.on { color: var(--aksen); }
+  #lihat:focus-visible { outline: 3px solid var(--aksen); }
+
+  /* Ingat saya + lupa */
+  .baris {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 2px 4px 26px;
+    font-size: .82rem; color: var(--lembut);
+  }
+  .ingat { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .ingat input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .kotak {
+    width: 28px; height: 28px; flex: none;
+    border-radius: 8px;
+    background: var(--dasar);
+    box-shadow: inset 3px 3px 6px var(--gelap), inset -3px -3px 6px var(--terang);
+    display: grid; place-items: center;
+    color: transparent;
+  }
+  .ingat input:checked + .kotak { color: var(--aksen); }
+  .ingat input:focus-visible + .kotak { outline: 3px solid var(--aksen); outline-offset: 2px; }
+
+  #lupa {
+    border: 0; background: none; padding: 4px;
+    font: inherit; font-size: .82rem; color: var(--aksen);
+    cursor: pointer; border-radius: 6px;
+  }
+  #lupa:focus-visible { outline: 3px solid var(--aksen); }
+
+  /* Tombol timbul */
+  #masuk {
+    width: 100%;
+    font: inherit; font-weight: 600; font-size: 1rem;
+    color: var(--aksen);
+    padding: 17px;
+    border: 0; border-radius: 20px;
+    background: var(--dasar);
+    box-shadow: 8px 8px 16px var(--gelap), -8px -8px 16px var(--terang);
+    cursor: pointer;
+    transition: box-shadow .15s;
+  }
+  #masuk:active:not(:disabled) {
+    box-shadow: inset 5px 5px 10px var(--gelap), inset -5px -5px 10px var(--terang);
+  }
+  #masuk:disabled { cursor: progress; color: var(--lembut); }
+  #masuk:focus-visible { outline: 3px solid var(--aksen); outline-offset: 3px; }
+
+  #err, #info {
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: .85rem; line-height: 1.45;
+    text-align: left;
+    background: var(--dasar);
+    box-shadow: inset 4px 4px 8px var(--gelap), inset -4px -4px 8px var(--terang);
+  }
+  #err { color: var(--bahaya); }
+  #info { color: var(--teks); }
+  #memuat { color: var(--lembut); font-size: .9rem; margin: 20px 0; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 380px) {
+    .kartu { padding: 36px 22px 32px; border-radius: 28px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<main class="kartu">
+  <div class="logo">
+    <img src="assets/templat/logo.jpeg" alt="Logo sekolah" onerror="this.style.visibility='hidden'">
+  </div>
+
+  <h1>Selamat Datang</h1>
+  <p class="sub">Masuk sebagai admin atau guru</p>
+
+  <p id="memuat" role="status">Memeriksa sesi login…</p>
+
+  <form id="form" hidden novalidate>
+    <div id="err" role="alert" hidden></div>
+    <div id="info" role="status" hidden></div>
+
+    <div class="isian">
+      <input id="email" type="email" placeholder="Email" aria-label="Email"
+             autocomplete="username" inputmode="email" autocapitalize="none" required>
+    </div>
+
+    <div class="isian">
+      <input id="sandi" type="password" placeholder="Kata sandi" aria-label="Kata sandi"
+             autocomplete="current-password" required>
+      <button id="lihat" type="button" aria-pressed="false" aria-label="Tampilkan kata sandi">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="baris">
+      <label class="ingat">
+        <input id="ingat" type="checkbox">
+        <span class="kotak" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        Ingat saya
+      </label>
+      <button id="lupa" type="button">Lupa kata sandi?</button>
+    </div>
+
+    <button id="masuk" type="submit">Masuk</button>
+  </form>
+</main>
+
+<script type="module">
+/* =========================================================
+   LOGIN ADMIN / GURU
+   Seluruh logika ada di assets/js/auth.js:
+   - masuk()     : admin (akun sama di 5 Firebase) atau guru (akun aktif)
+   - peranSesi() : mengenali sesi yang masih berlaku
+========================================================= */
+import { masuk, peranSesi, HALAMAN } from './assets/js/auth.js';
+
+const $ = id => document.getElementById(id);
+
+function tujuan(peran) {
+  const next = (new URLSearchParams(location.search).get('next') || '').split('#')[0];
+  const aman = /^[\w\-\/% ]+\.html$/.test(next) && !next.includes('..') && !next.startsWith('/');
+  const diFolderGuru = /^Dasbor(%20| )guru\//i.test(next);
+  if (peran === 'admin') return aman && !diFolderGuru ? next : HALAMAN.admin;
+  return aman && diFolderGuru ? next : HALAMAN.guru;
+}
+
+const arahkan = peran => location.replace(tujuan(peran));
+
+function tampilkanError(teks) {
+  $('err').textContent = teks;
+  $('err').hidden = !teks;
+}
+
+/* ---------- Form ---------- */
+$('lihat').onclick = () => {
+  const input = $('sandi');
+  const tampil = input.type === 'password';
+  input.type = tampil ? 'text' : 'password';
+  $('lihat').classList.toggle('on', tampil);
+  $('lihat').setAttribute('aria-pressed', String(tampil));
+  $('lihat').setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+};
+
+$('lupa').onclick = () => {
+  tampilkanError('');
+  $('info').hidden = false;
+  $('info').textContent = 'Guru: minta admin mereset sandi lewat halaman Akun Guru. Admin: atur ulang lewat Firebase Console (di kelima project).';
+};
+
+$('form').onsubmit = async e => {
+  e.preventDefault();
+  tampilkanError('');
+  $('info').hidden = true;
+
+  const email = $('email').value.trim();
+  const sandi = $('sandi').value;
+  if (!email || !sandi) return tampilkanError('Isi email dan kata sandi.');
+
+  const tombol = $('masuk');
+  tombol.disabled = true;
+  tombol.textContent = 'Memeriksa…';
+
+  try {
+    arahkan(await masuk(email, sandi, $('ingat').checked));
+  } catch (error) {
+    console.error('Login gagal:', error);
+    tampilkanError(error.message);
+    $('sandi').value = '';
+    $('sandi').focus();
+    tombol.disabled = false;
+    tombol.textContent = 'Masuk';
+  }
+};
+
+/* ---------- Mulai: lewati login bila sesi masih berlaku ---------- */
+try {
+  const sesi = await peranSesi();
+  if (sesi) arahkan(sesi.peran);
+} catch (e) {
+  console.warn('Gagal memeriksa sesi login:', e);
+}
+$('memuat').hidden = true;
+$('form').hidden = false;
+$('email').focus();
+</script>
+
+</body>
+</html>

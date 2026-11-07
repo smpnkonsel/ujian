@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Akun Guru · KW Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+/* ===== Desain neumorphism (dari neumorph.css) ===== */
+/* =========================================================
+   NEUMORPH.CSS — desain bersama KW Learning
+   Diambil dari dasbor.html. Pasang di <head> halaman lain:
+   Pakai kelas: .timbul .cekung .k .grid .dua .trk .pb .tombol .warn
+========================================================= */
+
+/* ---------- Variabel ---------- */
+:root{
+  --nm-bg:#E9ECF5;--nm-dark:rgba(163,177,198,.65);--nm-light:#fff;--nm-text:#3A4153;
+  --nm-muted:#6B7388;--nm-accent:#2B86E8;--nm-accent2:#7DB9F7;--nm-warn:#D9534F;
+  --nm-garis:rgba(138,146,166,.25);--nm-ok:#2FA36B;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --nm-bg:#222836;--nm-dark:rgba(8,11,18,.7);--nm-light:rgba(255,255,255,.055);--nm-text:#E6E9F2;
+  --nm-muted:#9AA4BA;--nm-accent:#5EA8F5;--nm-accent2:#8EC4FA;--nm-warn:#F08A86;--nm-garis:rgba(143,153,176,.22);}}
+:root[data-theme="dark"]{
+  --nm-bg:#222836;--nm-dark:rgba(8,11,18,.7);--nm-light:rgba(255,255,255,.055);--nm-text:#E6E9F2;
+  --nm-muted:#9AA4BA;--nm-accent:#5EA8F5;--nm-accent2:#8EC4FA;--nm-warn:#F08A86;--nm-garis:rgba(143,153,176,.22);}
+
+/* ---------- Dasar ---------- */
+*{box-sizing:border-box}
+body{margin:0;background:var(--nm-bg);color:var(--nm-text);font:14px/1.5 'Poppins','Public Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--nm-accent);outline-offset:3px}
+.hidden{display:none!important}
+h1{margin:0;font-size:22px;font-weight:600}
+
+/* ---------- Timbul & cekung (inti desain) ---------- */
+.timbul{background:var(--nm-bg);border:0;border-radius:14px;box-shadow:5px 5px 11px var(--nm-dark),-5px -5px 11px var(--nm-light)}
+.cekung{background:var(--nm-bg);border:0;border-radius:16px;box-shadow:inset 3px 3px 7px var(--nm-dark),inset -3px -3px 7px var(--nm-light)}
+
+/* ---------- Tombol, select, input ---------- */
+.tombol,select,input[type="text"],input[type="number"],input[type="password"],input[type="email"]{
+  padding:9px 14px;border:0;border-radius:14px;background:var(--nm-bg);
+  box-shadow:5px 5px 11px var(--nm-dark),-5px -5px 11px var(--nm-light)}
+input[type="text"],input[type="number"],input[type="password"],input[type="email"]{
+  box-shadow:inset 3px 3px 7px var(--nm-dark),inset -3px -3px 7px var(--nm-light)}
+.tombol{color:var(--nm-accent);font-weight:600}
+.tombol.bahaya{color:var(--nm-warn)}
+.tombol:hover:not(:disabled),.tombol:active{box-shadow:inset 4px 4px 9px var(--nm-dark),inset -4px -4px 9px var(--nm-light)}
+.tombol:disabled{opacity:.5;cursor:default;box-shadow:none}
+select{max-width:240px}
+
+/* ---------- Kartu & tata letak ---------- */
+.k{background:var(--nm-bg);border-radius:22px;padding:18px 20px;min-width:0;box-shadow:8px 8px 18px var(--nm-dark),-8px -8px 18px var(--nm-light)}
+.k span{color:var(--nm-muted);font-size:12.5px}
+.k b{display:block;font-size:30px;line-height:1.2;margin:2px 0;color:var(--nm-accent);font-weight:600}
+.k small{color:var(--nm-muted);font-size:12px}
+.k h2{margin:0 0 14px;font-size:15px;font-weight:600;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:22px}
+.dua{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:22px}
+
+/* ---------- Progress & batang ---------- */
+.pb{height:14px;padding:3px;border-radius:99px;margin-top:10px;box-shadow:inset 2px 2px 5px var(--nm-dark),inset -2px -2px 5px var(--nm-light)}
+.pb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--nm-accent2),var(--nm-accent));transition:width .4s}
+.trk{height:16px;padding:4px;border-radius:99px;box-shadow:inset 3px 3px 6px var(--nm-dark),inset -3px -3px 6px var(--nm-light)}
+.trk i{display:block;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--nm-accent2),var(--nm-accent))}
+.trk i.ada{min-width:4px}
+
+/* ---------- Tabel ---------- */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--nm-garis);white-space:nowrap}
+th{color:var(--nm-muted);font-weight:500;font-size:12.5px}
+tr:last-child td{border-bottom:0}
+.empty{color:var(--nm-muted);padding:10px 0}
+
+/* ---------- Peringatan & lampu status ---------- */
+.warn{background:#fff4c2;color:#5a4600;border-radius:14px;padding:10px 14px;margin-bottom:16px;box-shadow:4px 4px 10px var(--nm-dark)}
+.lamp::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#9aa8a3;margin-right:7px}
+.lamp.ok::before{background:var(--nm-ok);box-shadow:0 0 8px var(--nm-ok)}
+.lamp.gagal::before{background:var(--nm-warn);box-shadow:0 0 8px var(--nm-warn)}
+
+/* ---------- Toast ---------- */
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#14283E;color:#fff;padding:11px 20px;border-radius:12px;font-size:14px;z-index:90;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 30px);text-align:center}
+#toast.on{opacity:1}
+
+/* ---------- HP ---------- */
+@media (max-width:600px){
+  .grid{gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dua{gap:16px;grid-template-columns:minmax(0,1fr)}
+  .k{padding:15px;border-radius:20px}
+  .k b{font-size:24px}
+  select{max-width:100%;flex:1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style>
+<style>
+/* Variabel lama yang masih dipakai sidebar.css */
+:root{--paper:#F4F1EA;--card:#fff;--ink:#17202C;--soft:#5B6473;--muted:#5B6473;--navy:#0F3D63;--deep:#07203A;--gold:#C9962F;--gold-hi:#E9C46A;--gold-lo:#A8761A;--line:#E4DFD3;--ok:#2F9E5B;--no:#C0392B;--tint:#F3EEE1;--sw:260px;
+  --shadow:0 1px 2px rgba(15,35,60,.05),0 8px 24px -12px rgba(15,35,60,.18);--shadow-lg:0 2px 4px rgba(15,35,60,.06),0 18px 40px -16px rgba(15,35,60,.28);
+  --gold-grad:linear-gradient(135deg,#F0CF7A,#C9962F 55%,#A8761A);--navy-grad:linear-gradient(135deg,#14507F,#0F3D63 55%,#0A2B48)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#0A1018;--card:#131C28;--ink:#EAEEF4;--soft:#9AA7B8;--muted:#9AA7B8;--navy:#8DBFEB;--line:#243142;--tint:#1A2636}}
+:root[data-theme="dark"]{--paper:#0A1018;--card:#131C28;--ink:#EAEEF4;--soft:#9AA7B8;--muted:#9AA7B8;--navy:#8DBFEB;--line:#243142;--tint:#1A2636}
+
+.isi{padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));max-width:1180px;margin-inline:auto}
+.atas{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+.atas p{margin:2px 0 0;color:var(--nm-muted);font-size:13px}
+.alat{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.alat.bawah{margin-bottom:18px}
+#cari{flex:1 1 240px;max-width:360px}
+.id,.mono{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.mono{color:var(--nm-accent);font-weight:600}
+.st{font-size:12px;color:var(--nm-muted)}
+.st.baru{color:var(--nm-accent);font-weight:600}
+.st.ok{color:var(--nm-ok)}
+td.aksi{text-align:right}
+td.aksi .tombol{padding:5px 11px;font-size:12.5px;margin-left:6px}
+td.kosong{text-align:center;color:var(--nm-muted);padding:34px 10px}
+.cat{color:var(--nm-muted);font-size:12.5px;margin:14px 2px 0}
+dialog{border:0;border-radius:22px;background:var(--nm-bg);color:var(--nm-text);padding:22px;width:min(420px,calc(100vw - 32px));box-shadow:8px 8px 18px var(--nm-dark),-8px -8px 18px var(--nm-light)}
+dialog::backdrop{background:rgba(10,15,25,.45)}
+dialog h2{margin:0 0 4px;font-size:17px}
+.f{display:block;margin:14px 0}.f span{display:block;font-size:12.5px;color:var(--nm-muted);margin-bottom:6px}.f input{width:100%}
+@media (max-width:600px){.isi{padding:16px}#cari{max-width:none}}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-aktif="akun"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Akun Guru</h2>
+</div>
+
+
+<main class="isi">
+  <header class="atas">
+    <div><h1>Akun Guru</h1><p id="jml">Memuat data…</p></div>
+    <div class="alat">
+      <button id="unduh" type="button" class="tombol">Unduh daftar akun (CSV)</button>
+      <button id="simpan" type="button" class="tombol" disabled>Simpan akun</button>
+      <button id="aktifSemua" type="button" class="tombol">Aktifkan semua</button>
+    </div>
+  </header>
+
+  <div id="cfgwarn" class="warn hidden" role="alert"></div>
+
+  <div class="alat bawah">
+    <input id="cari" type="search" placeholder="Cari nama atau NIP" aria-label="Cari">
+  </div>
+
+  <div class="k">
+    <div class="tbl"><table>
+      <thead><tr><th>NIP / ID</th><th>Nama</th><th>Email</th><th>Sandi</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </div>
+  <p class="cat">Email: <b>nama depan</b>@<span id="dom"></span>. Sandi awal: 4 huruf pertama nama depan + 2 angka acak. <b>Aktifkan</b> menyimpan akun dan mendaftarkannya sebagai akun login di semua Firebase (Guru/Siswa, kelas VII, VIII, IX). Setelah aktif, akun tidak berubah kecuali lewat <b>Reset sandi</b>. Metode Email/Password harus sudah diaktifkan di Authentication tiap proyek Firebase.</p>
+</main>
+<dialog id="dlg">
+  <form id="frm">
+    <h2 id="jdl">Reset sandi</h2>
+    <p id="ket" class="st"></p>
+    <label class="f"><span>Sandi baru (minimal 6 karakter)</span><input id="sb" type="text" minlength="6" required autocomplete="off"></label>
+    <div class="alat" style="justify-content:flex-end">
+      <button id="acakBaru" type="button" class="tombol">Acak</button>
+      <button id="batalReset" type="button" class="tombol bahaya">Batal</button>
+      <button type="submit" class="tombol">Terapkan di semua Firebase</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script type="module">
+const DOMAIN = 'smp.belajar.id';          // ganti bila domain email berbeda
+const FIELD_EMAIL = 'akunEmail', FIELD_SANDI = 'akunSandi';
+const GELAR = /^(dr|drs|dra|ir|prof|h|hj|hi|kh)$/;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+let F, dbSiswaGuru, KOLEKSI = { guru: 'guru' }, galatMuat = '', P = {};
+try {
+  P = await import('../assets/js/firebase-pusat.js');
+  ({ F, dbSiswaGuru, KOLEKSI } = P);
+} catch (e) {
+  console.error(e);
+  galatMuat = 'Gagal memuat assets/js/firebase-pusat.js (' + (e.message || e) + ').';
+}
+
+let data = [];                 // dokumen guru dari Firebase
+const rencana = new Map();     // id -> {email, sandi}: akun baru/berubah yang belum disimpan
+let timer, sibuk = false;
+
+function toast(t) {
+  const el = $('toast'); el.textContent = t; el.classList.add('on');
+  clearTimeout(timer); timer = setTimeout(() => el.classList.remove('on'), 3500);
+}
+function peringatan(t) { const w = $('cfgwarn'); w.textContent = t || ''; w.classList.toggle('hidden', !t); }
+
+/* ---------- Pembuat akun ---------- */
+function kataNama(nama) {
+  return String(nama || '').split(',')[0]            // buang gelar belakang setelah koma
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z\s.]/g, ' ')
+    .split(/[\s.]+/).filter(k => k && !GELAR.test(k));
+}
+const dua = () => String(Math.floor(Math.random() * 100)).padStart(2, '0');
+const sandiDari = kata => (kata.join('') + 'xxxx').slice(0, 4) + dua();
+
+function emailDipakai() {
+  const s = new Set();
+  data.forEach(d => { const e = rencana.get(d.id)?.email || d[FIELD_EMAIL]; if (e) s.add(String(e).toLowerCase()); });
+  return s;
+}
+function buatEmail(kata, dipakai) {
+  const depan = kata[0] || 'guru';
+  const calon = [depan, kata[1] ? depan + kata[1] : null].filter(Boolean);
+  for (const c of calon) if (!dipakai.has(c + '@' + DOMAIN)) return c + '@' + DOMAIN;
+  for (let i = 2; ; i++) if (!dipakai.has(depan + i + '@' + DOMAIN)) return depan + i + '@' + DOMAIN;
+}
+function rencanakan() {
+  rencana.clear();
+  const dipakai = emailDipakai();
+  data.filter(d => !d[FIELD_EMAIL] || !d[FIELD_SANDI]).forEach(d => {
+    const kata = kataNama(d.nama);
+    const email = d[FIELD_EMAIL] || buatEmail(kata, dipakai);
+    dipakai.add(email.toLowerCase());
+    rencana.set(d.id, { email, sandi: d[FIELD_SANDI] || sandiDari(kata) });
+  });
+}
+const akunDari = d => rencana.get(d.id) || { email: d[FIELD_EMAIL] || '', sandi: d[FIELD_SANDI] || '' };
+
+/* ---------- Muat & gambar ---------- */
+async function muat() {
+  try {
+    peringatan('');
+    const s = await F.getDocs(F.collection(dbSiswaGuru, KOLEKSI.guru));
+    data = s.docs.map(x => ({ ...x.data(), id: x.id }));
+    rencanakan();
+    gambar();
+  } catch (e) {
+    console.error(e);
+    peringatan('Gagal mengambil data guru dari Firebase.');
+  }
+}
+
+function gambar() {
+  const q = $('cari').value.trim().toLowerCase();
+  const daftar = data
+    .filter(d => !q || [d.id, d.nama].some(v => String(v || '').toLowerCase().includes(q)))
+    .sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || ''), 'id'));
+
+  const aktif = data.filter(d => d.akunAktif).length;
+  const tersimpan = data.filter(d => d[FIELD_EMAIL] && d[FIELD_SANDI] && !d.akunAktif && !rencana.has(d.id)).length;
+  if (!sibuk) $('jml').textContent = data.length + ' guru · ' + aktif + ' akun aktif · ' + tersimpan + ' tersimpan · ' + rencana.size + ' belum disimpan';
+  $('simpan').disabled = sibuk || !rencana.size;
+  $('aktifSemua').disabled = sibuk || !data.length || data.every(d => d.akunAktif);
+
+  $('tb').innerHTML = daftar.length ? daftar.map(d => {
+    const a = akunDari(d), baru = rencana.has(d.id), on = !!d.akunAktif;
+    const st = on ? ['ok', 'Aktif'] : baru ? ['baru', 'Belum disimpan'] : ['', 'Belum aktif'];
+    const b = (aksi, teks) => `<button type="button" class="tombol" data-a="${aksi}" data-id="${esc(d.id)}" ${sibuk ? 'disabled' : ''}>${teks}</button>`;
+    return `<tr><td class="id">${esc(d.id)}</td><td>${esc(d.nama)}</td>
+      <td class="mono">${esc(a.email)}</td><td class="mono">${esc(a.sandi)}</td>
+      <td><span class="st ${st[0]}">${st[1]}</span></td>
+      <td class="aksi">${b('salin', 'Salin')}${on ? b('reset', 'Reset sandi') : b('acak', 'Acak sandi') + b('aktif', 'Aktifkan')}</td></tr>`;
+  }).join('') : `<tr><td colspan="6" class="kosong">${data.length ? 'Tidak ada data yang cocok.' : 'Belum ada data guru.'}</td></tr>`;
+}
+
+/* ---------- Aksi ---------- */
+function acak(id) {
+  const d = data.find(x => x.id === id); if (!d) return;
+  const a = akunDari(d);
+  rencana.set(id, { email: a.email || buatEmail(kataNama(d.nama), emailDipakai()), sandi: sandiDari(kataNama(d.nama)) });
+}
+
+async function simpan() {
+  if (!rencana.size) return;
+  $('simpan').disabled = true;
+  try {
+    const item = [...rencana.entries()];
+    for (let i = 0; i < item.length; i += 450) {
+      const batch = F.writeBatch(dbSiswaGuru);
+      item.slice(i, i + 450).forEach(([id, a]) => batch.set(F.doc(dbSiswaGuru, KOLEKSI.guru, id), {
+        [FIELD_EMAIL]: a.email, [FIELD_SANDI]: a.sandi, akunDibuatPada: F.serverTimestamp()
+      }, { merge: true }));
+      await batch.commit();
+    }
+    toast(item.length + ' akun guru disimpan.');
+    await muat();
+  } catch (e) {
+    console.error(e);
+    toast('Gagal menyimpan akun ke Firebase.');
+    $('simpan').disabled = false;
+  }
+}
+
+function unduh() {
+  const baris = data.map(d => ({ d, a: akunDari(d) })).filter(x => x.a.email)
+    .sort((x, y) => String(x.d.nama || '').localeCompare(String(y.d.nama || ''), 'id'));
+  if (!baris.length) return toast('Belum ada akun untuk diunduh.');
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const csv = '\uFEFF' + [['NIP / ID', 'Nama', 'Email', 'Sandi'].map(q).join(',')]
+    .concat(baris.map(({ d, a }) => [d.id, d.nama, a.email, a.sandi].map(q).join(','))).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const el = document.createElement('a');
+  el.href = url; el.download = 'Akun_Guru.csv';
+  document.body.appendChild(el); el.click(); el.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (rencana.size) toast('Catatan: ' + rencana.size + ' akun di berkas ini belum disimpan.');
+}
+
+/* ---------- Akun login: Firebase Authentication di semua proyek ---------- */
+let AUTH = null, idReset = null;
+
+async function siapAuth() {
+  if (AUTH) return AUTH;
+  /* Aplikasi cadangan per project: membuat akun guru tidak mengganggu sesi admin. */
+  const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js');
+  const Au = P.A;
+  const daftar = Object.entries(P.CONFIG).map(([kode, cfg]) => {
+    const nama = 'akun-guru-' + kode;
+    const app = getApps().find(a => a.name === nama) || initializeApp(cfg, nama);
+    return { kode, nama: P.NAMA_FIREBASE[kode], auth: Au.getAuth(app) };
+  });
+  AUTH = { Au, daftar };
+  return AUTH;
+}
+const galatAuth = e => (e && e.code ? e.code.replace('auth/', '') : (e && e.message) || String(e));
+const ringkas = h => h.filter(x => !x.ok).map(x => x.nama + ': ' + x.info).join('; ');
+
+async function tiapProyek(kerja) {
+  const { daftar } = await siapAuth();
+  const hasil = [];
+  for (const m of daftar) {
+    try { await kerja(m.auth); hasil.push({ nama: m.nama, ok: true }); }
+    catch (e) { hasil.push({ nama: m.nama, ok: false, info: galatAuth(e) }); }
+  }
+  return hasil;
+}
+async function daftarkan(auth, email, sandi) {
+  const { Au } = AUTH;
+  try { await Au.createUserWithEmailAndPassword(auth, email, sandi); }
+  catch (e) {
+    if (!e || e.code !== 'auth/email-already-in-use') throw e;
+    await Au.signInWithEmailAndPassword(auth, email, sandi);   // sudah ada: pastikan sandinya sama
+  }
+  await Au.signOut(auth);
+}
+async function gantiDi(auth, email, lama, baru) {
+  const { Au } = AUTH;
+  try { await Au.signInWithEmailAndPassword(auth, email, baru); }      // sudah berganti pada percobaan sebelumnya
+  catch (_) {
+    const c = await Au.signInWithEmailAndPassword(auth, email, lama);
+    await Au.updatePassword(c.user, baru);
+  }
+  await Au.signOut(auth);
+}
+/* Registri email guru di SETIAP project (koleksi akunGuru, id = email).
+   Firestore Rules memakainya untuk mengenali guru yang sah. */
+async function daftarRegistri(email, ada) {
+  const hasil = [];
+  for (const [kode, item] of Object.entries(P.FIREBASE_PUSAT)) {
+    try {
+      const ref = F.doc(item.db, KOLEKSI.akunGuru, String(email).toLowerCase());
+      if (ada) await F.setDoc(ref, { email: String(email).toLowerCase(), aktif: true, diubah: F.serverTimestamp() });
+      else await F.deleteDoc(ref);
+      hasil.push({ nama: item.nama, ok: true });
+    } catch (e) { hasil.push({ nama: item.nama, ok: false, info: galatAuth(e) }); }
+  }
+  return hasil;
+}
+async function tulis(id, isi) {
+  const batch = F.writeBatch(dbSiswaGuru);
+  batch.set(F.doc(dbSiswaGuru, KOLEKSI.guru, id), isi, { merge: true });
+  await batch.commit();
+}
+
+async function aktifkan(daftar) {
+  sibuk = true; gambar(); peringatan('');
+  const gagal = []; let n = 0;
+  try {
+    for (const d of daftar) {
+      $('jml').textContent = 'Mengaktifkan ' + (++n) + ' dari ' + daftar.length + '…';
+      const a = akunDari(d);
+      const h = await tiapProyek(au => daftarkan(au, a.email, a.sandi));
+      if (h.every(x => x.ok)) {
+        const reg = await daftarRegistri(a.email, true);
+        if (!reg.every(x => x.ok)) { gagal.push(d.nama + ' (registri: ' + ringkas(reg) + ')'); continue; }
+        await tulis(d.id, { [FIELD_EMAIL]: a.email, [FIELD_SANDI]: a.sandi, akunAktif: true, akunAktifPada: F.serverTimestamp(), akunProyek: h.map(x => x.nama) });
+        rencana.delete(d.id); d.akunAktif = true; d[FIELD_EMAIL] = a.email; d[FIELD_SANDI] = a.sandi;
+      } else gagal.push(d.nama + ' (' + ringkas(h) + ')');
+    }
+  } catch (e) { console.error(e); gagal.push(galatAuth(e)); }
+  sibuk = false; gambar();
+  if (gagal.length) peringatan('Belum berhasil diaktifkan: ' + gagal.join(' | '));
+  const ok = daftar.length - gagal.length;
+  if (ok > 0) toast(ok + ' akun guru aktif di semua Firebase.');
+}
+
+function bukaReset(d) {
+  idReset = d.id;
+  $('ket').textContent = d.nama + ' · ' + d[FIELD_EMAIL];
+  $('sb').value = sandiDari(kataNama(d.nama));
+  $('dlg').showModal();
+}
+async function terapkanReset(e) {
+  e.preventDefault();
+  const d = data.find(x => x.id === idReset), baru = $('sb').value.trim();
+  if (!d) return;
+  if (baru.length < 6) return toast('Sandi minimal 6 karakter.');
+  $('dlg').close();
+  if (baru === d[FIELD_SANDI]) return;
+  sibuk = true; gambar(); peringatan('');
+  try {
+    const h = await tiapProyek(au => gantiDi(au, d[FIELD_EMAIL], d[FIELD_SANDI], baru));
+    if (h.every(x => x.ok)) {
+      await tulis(d.id, { [FIELD_SANDI]: baru, sandiDiubahPada: F.serverTimestamp() });
+      d[FIELD_SANDI] = baru;
+      toast('Sandi ' + d.nama + ' diubah di semua Firebase.');
+    } else peringatan('Sandi ' + d.nama + ' belum berubah di semua Firebase (' + ringkas(h) + '). Ulangi reset dengan sandi yang sama: ' + baru);
+  } catch (err) { console.error(err); peringatan('Reset sandi gagal: ' + galatAuth(err)); }
+  sibuk = false; gambar();
+}
+
+/* ---------- Mulai ---------- */
+$('dom').textContent = DOMAIN;
+try { await (await import('../assets/js/sidebar.js')).muatSidebar(); } catch (e) { console.warn('Sidebar:', e); }
+
+$('cari').addEventListener('input', gambar);
+$('simpan').addEventListener('click', simpan);
+$('unduh').addEventListener('click', unduh);
+$('aktifSemua').addEventListener('click', () => {
+  const l = data.filter(d => !d.akunAktif);
+  if (l.length && confirm('Aktifkan ' + l.length + ' akun guru di semua Firebase?')) aktifkan(l);
+});
+$('frm').addEventListener('submit', terapkanReset);
+$('batalReset').addEventListener('click', () => $('dlg').close());
+$('acakBaru').addEventListener('click', () => { const d = data.find(x => x.id === idReset); if (d) $('sb').value = sandiDari(kataNama(d.nama)); });
+$('tb').addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const d = data.find(x => x.id === b.dataset.id); if (!d) return;
+  if (b.dataset.a === 'acak' && !d.akunAktif) { acak(d.id); gambar(); return; }
+  if (b.dataset.a === 'aktif') return aktifkan([d]);
+  if (b.dataset.a === 'reset') return bukaReset(d);
+  const a = akunDari(d);
+  try { await navigator.clipboard.writeText(a.email + '\n' + a.sandi); toast('Akun ' + d.nama + ' disalin.'); }
+  catch (_) { prompt('Salin akun:', a.email + ' / ' + a.sandi); }
+});
+
+if (galatMuat) { peringatan(galatMuat); $('jml').textContent = 'Data tidak dapat dimuat'; }
+else {
+  muat();
+}
+</script>
+</div>
+</body>
+</html>

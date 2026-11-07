@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buat Token — KW Learning</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="apple-touch-icon" href="../assets/templat/logo.jpeg">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+<link rel="stylesheet" href="../assets/css/token.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+
+<body>
+
+<!-- Sidebar dipasang seketika oleh js/sidebar-awal.js -->
+<div id="sidebar-slot" data-mode="halaman" data-aktif="token"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+
+<div id="mn">
+
+ <div class="top">
+  <button id="burger" aria-label="Buka menu">☰</button>
+  <h2 id="ttl">Buat Token</h2>
+ </div>
+
+ <div class="wrap">
+
+  <div id="cfgwarn" class="msg warn hidden">
+   <b>Ada masalah pada halaman ini.</b>
+  </div>
+
+  <h3 style="margin:0 0 6px;color:var(--navy)">Pilih paket soal</h3>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 12px">
+   Klik <b>Buat token</b> pada paket yang akan diujikan. Paket baru
+   ditambahkan di halaman <a href="Banksoal.html">Tambah paket soal</a>.
+  </p>
+
+  <div id="pakets"></div>
+
+  <h3 style="margin:22px 0 10px;color:var(--navy)">Daftar token</h3>
+
+  <div class="tools">
+   <input id="ftk" type="search"
+    placeholder="Cari token atau nama ujian…">
+  </div>
+
+  <div class="tw">
+   <table>
+    <thead>
+     <tr>
+      <th>Token</th>
+      <th>Ujian</th>
+      <th>Waktu</th>
+      <th>Status</th>
+      <th>Dibuat</th>
+      <th>Aksi</th>
+     </tr>
+    </thead>
+    <tbody id="tb">
+     <tr><td colspan="6" class="empty">Memuat…</td></tr>
+    </tbody>
+   </table>
+  </div>
+
+ </div>
+</div>
+
+<!-- MODAL TOKEN -->
+<div class="mo hidden" id="mo">
+ <div class="mb">
+  <h3>Buat token ujian</h3>
+  <p id="mnm"></p>
+
+  <label for="mw">Waktu mengerjakan (menit)</label>
+  <input id="mw" type="number" min="1" max="600" value="90">
+
+  <label for="mt">Kode token</label>
+  <input id="mt" maxlength="4" inputmode="numeric"
+   style="font-family:ui-monospace,Consolas,monospace;letter-spacing:2px">
+
+  <!-- Kunci jawaban dibaca otomatis dari dokumen Word -->
+  <p id="mkinfo" class="kinfo"></p>
+
+  <div id="merr" class="msg err hidden" style="margin-top:12px"></div>
+
+  <div class="ma">
+   <button class="btn" id="mc" type="button">Batal</button>
+   <button class="btn p" id="ms" type="button">Simpan token</button>
+  </div>
+ </div>
+</div>
+
+<script type="module" src="../assets/js/token.js?v=7"></script>
+
+</body>
+</html>

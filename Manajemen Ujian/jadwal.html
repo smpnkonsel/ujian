@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jadwal Ujian</title>
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+:root{
+  --bg:var(--nm-bg); --card:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --line:var(--nm-garis);
+  --head:var(--nm-bg); --headtxt:var(--nm-muted); --focus:var(--nm-accent);
+  --soon:color-mix(in srgb,var(--nm-kuning) 18%,var(--nm-bg)); --soontxt:var(--nm-kuning); --done:color-mix(in srgb,var(--nm-muted) 14%,var(--nm-bg)); --donetxt:var(--nm-muted); --today:color-mix(in srgb,var(--nm-ok) 16%,var(--nm-bg)); --todaytxt:var(--nm-ok);
+  --run:color-mix(in srgb,var(--nm-accent) 16%,var(--nm-bg)); --runtxt:var(--nm-accent);
+  --danger:var(--nm-warn); --warn:var(--nm-kuning);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:var(--nm-bg); --card:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --line:var(--nm-garis);
+    --head:var(--nm-bg); --headtxt:var(--nm-muted); --focus:var(--nm-accent);
+    --soon:color-mix(in srgb,var(--nm-kuning) 18%,var(--nm-bg)); --soontxt:var(--nm-kuning); --done:color-mix(in srgb,var(--nm-muted) 14%,var(--nm-bg)); --donetxt:var(--nm-muted); --today:color-mix(in srgb,var(--nm-ok) 16%,var(--nm-bg)); --todaytxt:var(--nm-ok);
+    --run:color-mix(in srgb,var(--nm-accent) 16%,var(--nm-bg)); --runtxt:var(--nm-accent);
+    --danger:var(--nm-warn); --warn:var(--nm-kuning);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;line-height:1.45;}
+.wrap{max-width:1040px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.6rem,4vw,2.3rem);margin:0}
+.sub{color:var(--muted);margin-top:4px}
+button,input,select,textarea{font:inherit;color:inherit}
+button,a.btn{cursor:pointer;border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:8px;text-decoration:none;display:inline-block}
+button:hover,a.btn:hover{border-color:var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+button.primary{background:var(--head);color:var(--headtxt);border-color:var(--head)}
+button.danger,a.danger{color:var(--danger)}
+button.small,a.small{padding:5px 10px;font-size:.9rem}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tools input,.tools select{border:1px solid var(--line);background:var(--card);padding:8px 12px;border-radius:8px}
+.tools input{flex:1 1 220px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{padding:12px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+thead th{background:var(--head);color:var(--headtxt);font-weight:600}
+td small{display:block;color:var(--muted)}
+td small.warn{color:var(--warn);font-weight:600}
+td.mapel{font-weight:600}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap}
+.b-soon{background:var(--soon);color:var(--soontxt)}
+.b-today{background:var(--today);color:var(--todaytxt)}
+.b-run{background:var(--run);color:var(--runtxt)}
+.b-done{background:var(--done);color:var(--donetxt)}
+tr.past td{color:var(--muted)}
+td.act{white-space:nowrap}
+td.act>*+*{margin-left:6px}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.empty.bad{color:var(--danger)}
+.count{color:var(--muted);margin:10px 2px 0;font-size:.9rem}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(520px,calc(100vw - 24px))}
+dialog::backdrop{background:rgba(10,18,30,.55)}
+dialog form,dialog .box{padding:22px}
+dialog h2{margin:0 0 14px;font-family:Georgia,serif;font-size:1.4rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:.92rem}
+label input,label textarea,label select{display:block;width:100%;margin-top:4px;font-weight:400;border:1px solid var(--line);background:var(--bg);padding:8px 10px;border-radius:8px}
+label .hint{display:block;margin-top:4px;font-weight:400;font-size:.85rem;color:var(--muted)}
+textarea{resize:vertical;min-height:64px}
+.pfx{display:flex;align-items:stretch;margin-top:4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden}
+.pfx-t{display:flex;align-items:center;padding:0 12px;background:var(--done);color:var(--muted);font-weight:600;border-right:1px solid var(--line)}
+.pfx input{margin-top:0;border:0;border-radius:0;background:transparent;flex:1;min-width:0}
+.err{color:var(--danger);min-height:1.3em;margin:10px 0 0;font-size:.92rem}
+.btns{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--head);color:var(--headtxt);padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.toast.on{opacity:1}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff;color:#000;}
+  .tools,.act,.count,header button,th.act,.toast{display:none}
+  .scroll{border:0;overflow:visible}
+  table{min-width:0}
+  thead th{background:#222!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-aktif="jadwal"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Jadwal Ujian</h2>
+</div>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Jadwal Ujian</h1>
+      <div class="sub">Semester Ganjil 2026/2027 · waktu WITA</div>
+    </div>
+    <div>
+      <button id="btnReload" title="Ambil data terbaru dari server">Muat ulang</button>
+      <button id="btnPrint">Cetak daftar</button>
+      <button class="primary" id="btnAdd">Buat jadwal</button>
+    </div>
+  </header>
+
+  <div class="tools">
+    <input type="search" id="q" placeholder="Cari mata pelajaran, paket, kelas, atau ruang" aria-label="Cari jadwal">
+    <select id="filterTingkat" aria-label="Filter tingkat">
+      <option value="">Semua tingkat</option>
+      <option value="VII">Kelas VII</option>
+      <option value="VIII">Kelas VIII</option>
+      <option value="IX">Kelas IX</option>
+    </select>
+    <select id="filter" aria-label="Filter status">
+      <option value="all">Semua jadwal</option>
+      <option value="upcoming">Berlangsung &amp; akan datang</option>
+      <option value="done">Sudah selesai</option>
+    </select>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th><th>Waktu</th><th>Mata pelajaran</th><th>Kelas</th><th>Ruang</th><th>Pengawas</th><th>Status</th><th class="act">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+    <div class="empty" id="empty">Memuat jadwal…</div>
+  </div>
+  <p class="count" id="count"></p>
+</div>
+
+<dialog id="dlg">
+  <form id="form" method="dialog" novalidate>
+    <h2 id="dlgTitle">Buat jadwal ujian</h2>
+    <div class="grid">
+      <label class="full">Paket soal
+        <select id="fPaket" required><option value="">Memuat paket soal…</option></select>
+        <span class="hint">Siswa akan mengerjakan paket ini saat memakai token jadwal ini.</span>
+      </label>
+      <label class="full">Mata pelajaran
+        <input id="fMapel" required maxlength="80" placeholder="Terisi otomatis dari paket, bisa diubah">
+      </label>
+      <label>Tingkat
+        <select id="fTingkat" required>
+          <option value="">Pilih tingkat</option>
+          <option value="VII">VII</option>
+          <option value="VIII">VIII</option>
+          <option value="IX">IX</option>
+        </select>
+      </label>
+      <label>Kelas
+        <input id="fKelas" required maxlength="30" placeholder="Contoh: VII-A">
+      </label>
+      <label class="full">Ruang
+        <span class="pfx"><span class="pfx-t">Ruang</span>
+          <input id="fRuang" inputmode="numeric" maxlength="3" placeholder="3" autocomplete="off">
+        </span>
+        <span class="hint">Cukup isi angka. Kata "Ruang" ditambahkan otomatis.</span>
+      </label>
+      <label class="full">Tanggal
+        <input id="fTgl" type="date" required>
+      </label>
+      <label>Jam mulai (WITA)
+        <input id="fMulai" type="time" required>
+      </label>
+      <label>Jam selesai (WITA)
+        <input id="fSelesai" type="time" required>
+      </label>
+      <label class="full">Durasi mengerjakan (menit)
+        <input id="fMenit" type="number" min="5" max="600" step="5" placeholder="Otomatis = jam selesai − jam mulai">
+        <span class="hint">Kosongkan untuk memakai selisih jam. Tidak boleh melebihi selisih jam mulai dan selesai.</span>
+      </label>
+      <label class="full">Pengawas
+        <select id="fPengawas"><option value="">Memuat data guru…</option></select>
+        <span class="hint">Daftar diambil dari data guru.</span>
+      </label>
+      <label class="full">Catatan
+        <textarea id="fCatatan" maxlength="300" placeholder="Contoh: Bawa alat tulis dan kartu ujian"></textarea>
+      </label>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <div class="btns">
+      <button type="button" id="btnCancel">Batal</button>
+      <button type="submit" class="primary" id="btnSave">Simpan jadwal</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgDel">
+  <div class="box">
+    <h2>Hapus jadwal?</h2>
+    <p id="delMsg"></p>
+    <p class="err" id="delErr" role="alert"></p>
+    <div class="btns">
+      <button type="button" id="delNo">Batal</button>
+      <button type="button" class="primary danger" id="delYes">Hapus</button>
+    </div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+/* =========================================================
+   HEMAT FIRESTORE
+   - Snapshot listener : 0 (tidak ada koneksi real-time yang terbuka)
+   - Reads   : getDocs sekali per koleksi, di-cache di sessionStorage
+               (jadwal 5 menit, paket & guru 10 menit). Paket & guru
+               baru dibaca saat formulir pertama kali dibuka.
+   - Writes  : edit hanya mengirim field yang berubah; tidak ada
+               tulis bila tidak ada perubahan.
+   - Setelah simpan/hapus data lokal & cache diperbarui sendiri,
+     tanpa membaca ulang dari server.
+   - Tombol "Muat ulang" memaksa baca ulang (data dari perangkat lain).
+========================================================= */
+var TZ = "Asia/Makassar", OFFSET = "+08:00";           // WITA, konsisten di semua perangkat
+var TTL_JADWAL = 5 * 60e3, TTL_REF = 10 * 60e3;
+
+var F, dbBankSoal, dbSiswaGuru, KOLEKSI;
+var items = [], paketList = [], guruList = [];
+var refLoaded = false, refPromise = null;
+var siap = false, loaded = false, loadError = "", bootError = "";
+var editId = null, editPaket = "", editPengawasId = "", editPengawasNama = "", delId = null;
+
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function toast(t){
+  var el = $("toast"); el.textContent = t; el.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(function(){ el.classList.remove("on"); }, 2500);
+}
+
+/* ---------- Waktu (selalu WITA) ---------- */
+function todayStr(){ return new Date().toLocaleDateString("en-CA", {timeZone: TZ}); }
+function ms(tgl, jam){ return Date.parse(tgl + "T" + jam + ":00" + OFFSET); }
+function startMs(it){ return it._m != null ? it._m : ms(it.tgl, it.mulai || "00:00"); }
+function endMs(it){ return it._s != null ? it._s : ms(it.tgl, it.selesai || "23:59"); }
+function menitAntara(a, b){
+  a = a.split(":"); b = b.split(":");
+  return (b[0] * 60 + +b[1]) - (a[0] * 60 + +a[1]);
+}
+function selisihHari(tgl){ return Math.round((Date.parse(tgl + "T00:00:00Z") - Date.parse(todayStr() + "T00:00:00Z")) / 864e5); }
+
+function status(it){
+  var now = Date.now();
+  if(now > endMs(it)) return {k:"done", t:"Selesai"};
+  if(now >= startMs(it)) return {k:"run", t:"Berlangsung"};
+  var h = selisihHari(it.tgl);
+  if(h <= 0) return {k:"today", t:"Hari ini"};
+  return {k:"soon", t: h === 1 ? "Besok" : h + " hari lagi"};
+}
+function fmtDate(s){
+  return new Date(s + "T12:00:00Z").toLocaleDateString("id-ID", {weekday:"long", day:"numeric", month:"long", year:"numeric", timeZone:"UTC"});
+}
+
+/* ---------- Cache sessionStorage ---------- */
+function cacheGet(k, ttl){
+  try{
+    var o = JSON.parse(sessionStorage.getItem("jdw:" + k) || "null");
+    if(o && Date.now() - o.t < ttl) return o.d;
+  }catch(e){}
+  return null;
+}
+function cacheSet(k, d){ try{ sessionStorage.setItem("jdw:" + k, JSON.stringify({t: Date.now(), d: d})); }catch(e){} }
+function cacheDel(k){ try{ sessionStorage.removeItem("jdw:" + k); }catch(e){} }
+
+function ambil(snap){ return snap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); }); }
+function ts(v){ return v && v.toMillis ? v.toMillis() : (typeof v === "number" ? v : null); }
+
+// Ubah dokumen Firestore jadi objek ringan yang aman disimpan di cache.
+function normal(x){
+  var m = ts(x.mulaiAt), s = ts(x.selesaiAt);
+  var o = Object.assign({}, x);
+  delete o.mulaiAt; delete o.selesaiAt; delete o.dibuat; delete o.diubah;
+  // Dokumen lama tanpa mulaiAt/selesaiAt: hitung dari tgl + jam (WITA).
+  o._m = m != null ? m : ms(x.tgl, x.mulai || "00:00");
+  o._s = s != null ? s : ms(x.tgl, x.selesai || "23:59");
+  return o;
+}
+
+/* ---------- Pemuatan data ---------- */
+async function muatJadwal(paksa){
+  var c = paksa ? null : cacheGet("jadwal", TTL_JADWAL);
+  if(c){ items = c; loaded = true; loadError = ""; render(); return; }
+  try{
+    var snap = await F.getDocs(F.collection(dbBankSoal, KOLEKSI.jadwal));
+    items = ambil(snap).map(normal);
+    cacheSet("jadwal", items);
+    loadError = "";
+  }catch(err){
+    console.error(err);
+    loadError = err && err.code === "permission-denied"
+      ? "Akses ditolak oleh aturan Firestore untuk koleksi jadwal."
+      : "Gagal memuat jadwal dari server. Periksa koneksi lalu klik Muat ulang.";
+  }
+  loaded = true;
+  render();
+}
+
+function muatReferensi(paksa){
+  if(refLoaded && !paksa) return Promise.resolve();
+  if(refPromise && !paksa) return refPromise;
+  refPromise = (async function(){
+    var p = paksa ? null : cacheGet("paket", TTL_REF);
+    var g = paksa ? null : cacheGet("guru", TTL_REF);
+    try{
+      if(!p){
+        var sp = await F.getDocs(F.collection(dbBankSoal, KOLEKSI.paket));
+        p = ambil(sp).map(function(x){ return {id:x.id, nama:x.nama, paketNama:x.paketNama, mapel:x.mapel, kelas:x.kelas}; });
+        cacheSet("paket", p);
+      }
+    }catch(err){ console.error(err); p = []; $("fPaket").innerHTML = "<option value=''>Gagal memuat paket soal</option>"; }
+    try{
+      if(!g){
+        var sg = await F.getDocs(F.collection(dbSiswaGuru, KOLEKSI.guru));
+        g = ambil(sg).map(function(x){ return {id:x.id, nama:x.nama, namaLengkap:x.namaLengkap, name:x.name}; });
+        cacheSet("guru", g);
+      }
+    }catch(err){ console.error(err); g = []; $("fPengawas").innerHTML = "<option value=''>Gagal memuat data guru</option>"; }
+    paketList = p.sort(function(a,b){ return namaPaket(a).localeCompare(namaPaket(b), "id"); });
+    guruList = g.sort(function(a,b){ return String(namaGuru(a)).localeCompare(String(namaGuru(b)), "id"); });
+    refLoaded = true;
+    if($("dlg").open){ isiPilihanPaket(); isiPilihanGuru(); }
+  })();
+  return refPromise;
+}
+
+/* ---------- Pilihan form ---------- */
+function namaPaket(p){ return p.nama || p.paketNama || p.mapel || p.id; }
+function namaGuru(g){ return g.nama || g.namaLengkap || g.name || g.id; }
+
+function isiPilihanPaket(){
+  var sel = $("fPaket"), pilih = sel.value || editPaket;
+  var html = "<option value=''>Pilih paket soal</option>" + paketList.map(function(p){
+    return "<option value='" + esc(p.id) + "'>" + esc(namaPaket(p)) + (p.kelas ? " (" + esc(p.kelas) + ")" : "") + "</option>";
+  }).join("");
+  if(pilih && !paketList.some(function(p){ return p.id === pilih; }))
+    html += "<option value='" + esc(pilih) + "'>(paket tidak ditemukan)</option>";
+  sel.innerHTML = html; sel.value = pilih || "";
+}
+
+function isiPilihanGuru(){
+  var sel = $("fPengawas"), pilih = sel.value || editPengawasId;
+  if(!pilih && editPengawasNama){
+    var c = guruList.filter(function(g){ return namaGuru(g) === editPengawasNama; })[0];
+    if(c) pilih = c.id;
+  }
+  var html = "<option value=''>Belum ditentukan</option>" + guruList.map(function(g){
+    return "<option value='" + esc(g.id) + "'>" + esc(namaGuru(g)) + "</option>";
+  }).join("");
+  var ada = guruList.some(function(g){ return g.id === pilih; });
+  if(editPengawasNama && !ada && (!pilih || pilih === "__lama")){
+    html += "<option value='__lama'>" + esc(editPengawasNama) + " (tidak ada di data guru)</option>";
+    pilih = "__lama";
+  }
+  sel.innerHTML = html; sel.value = pilih || "";
+}
+
+/* ---------- Tabel ---------- */
+function render(){
+  var q = $("q").value.trim().toLowerCase(), f = $("filter").value, ft = $("filterTingkat").value;
+  var rows = items.slice().sort(function(a,b){ return startMs(a) - startMs(b); }).filter(function(it){
+    var st = status(it).k;
+    if(f === "upcoming" && st === "done") return false;
+    if(f === "done" && st !== "done") return false;
+    if(ft && it.tingkat !== ft) return false;
+    if(!q) return true;
+    return [it.mapel, it.paketNama, it.kelas, it.tingkat, it.ruang, it.pengawas].join(" ").toLowerCase().indexOf(q) > -1;
+  });
+  $("list").innerHTML = rows.map(function(it){
+    var st = status(it);
+    var note = it.catatan ? "<small>" + esc(it.catatan) + "</small>" : "";
+    var paket = it.paketId ? "<small>Paket: " + esc(it.paketNama || it.paketId) + "</small>" : "<small class='warn'>Belum ada paket soal</small>";
+    var token = it.paketId
+      ? "<a class='btn small' href='token.html?jadwal=" + encodeURIComponent(it.id) + "'>Buat token</a>"
+      : "";
+    return "<tr class='" + (st.k === "done" ? "past" : "") + "'>" +
+      "<td>" + esc(fmtDate(it.tgl)) + "</td>" +
+      "<td>" + esc(it.mulai) + "–" + esc(it.selesai) + (it.menit ? "<small>" + esc(it.menit) + " menit</small>" : "") + "</td>" +
+      "<td class='mapel'>" + esc(it.mapel) + paket + note + "</td>" +
+      "<td>" + esc(it.kelas) + "</td>" +
+      "<td>" + (esc(it.ruang) || "–") + "</td>" +
+      "<td>" + (esc(it.pengawas) || "–") + "</td>" +
+      "<td><span class='badge b-" + st.k + "'>" + st.t + "</span></td>" +
+      "<td class='act'>" + token +
+      "<button class='small' data-edit='" + esc(it.id) + "'>Edit</button>" +
+      "<button class='small danger' data-del='" + esc(it.id) + "'>Hapus</button></td></tr>";
+  }).join("");
+
+  var empty = $("empty");
+  empty.classList.toggle("bad", !!loadError);
+  if(loadError){ empty.hidden = false; empty.textContent = loadError; }
+  else if(!loaded){ empty.hidden = false; empty.textContent = "Memuat jadwal…"; }
+  else if(rows.length === 0){
+    empty.hidden = false;
+    empty.textContent = items.length === 0
+      ? "Belum ada jadwal ujian. Klik “Buat jadwal” untuk menambahkan yang pertama."
+      : "Tidak ada jadwal yang cocok dengan pencarian atau filter.";
+  } else empty.hidden = true;
+  $("count").textContent = loaded && !loadError ? "Menampilkan " + rows.length + " dari " + items.length + " jadwal" : "";
+}
+
+/* ---------- Form ---------- */
+function openForm(it){
+  editId = it ? it.id : null;
+  editPaket = it ? (it.paketId || "") : "";
+  $("dlgTitle").textContent = it ? "Edit jadwal ujian" : "Buat jadwal ujian";
+  $("fMapel").value = it ? it.mapel : "";
+  $("fTingkat").value = it ? (it.tingkat || "") : "";
+  $("fKelas").value = it ? it.kelas : "";
+  var rg = it ? String(it.ruang || "") : "";
+  var rm = rg.match(/^\s*(?:ruang\s*)?(\d+)\s*$/i);
+  $("fRuang").value = rm ? rm[1] : rg;
+  $("fTgl").value = it ? it.tgl : "";
+  $("fMulai").value = it ? it.mulai : "07:30";
+  $("fSelesai").value = it ? it.selesai : "09:30";
+  $("fMenit").value = it && it.menit ? it.menit : "";
+  editPengawasId = it ? (it.pengawasId || "") : "";
+  editPengawasNama = it ? (it.pengawas || "") : "";
+  $("fCatatan").value = it ? (it.catatan || "") : "";
+  $("fPaket").value = ""; $("fPengawas").value = "";
+  isiPilihanPaket(); isiPilihanGuru();
+  $("err").textContent = "";
+  $("dlg").showModal();
+  $("fPaket").focus();
+  muatReferensi(false);   // paket & guru dibaca sekali, hanya saat form dibuka
+}
+
+$("fPaket").addEventListener("change", function(){
+  var p = paketList.filter(function(x){ return x.id === $("fPaket").value; })[0];
+  if(!p) return;
+  if(!$("fMapel").value.trim()) $("fMapel").value = p.mapel || namaPaket(p);
+  if(!$("fKelas").value.trim() && p.kelas) $("fKelas").value = p.kelas;
+  if(!$("fTingkat").value){
+    var m = String(p.kelas || "").toUpperCase().match(/^(VIII|VII|IX)/);
+    if(m) $("fTingkat").value = m[1];
+  }
+});
+$("fKelas").addEventListener("blur", function(){
+  if($("fTingkat").value) return;
+  var m = $("fKelas").value.toUpperCase().match(/^(VIII|VII|IX)/);
+  if(m) $("fTingkat").value = m[1];
+});
+
+$("btnAdd").addEventListener("click", function(){ openForm(null); });
+$("btnCancel").addEventListener("click", function(){ $("dlg").close(); });
+$("btnPrint").addEventListener("click", function(){ window.print(); });
+$("q").addEventListener("input", render);
+$("filter").addEventListener("change", render);
+$("filterTingkat").addEventListener("change", render);
+$("btnReload").addEventListener("click", async function(){
+  if(!siap) return;
+  var b = $("btnReload"); b.disabled = true;
+  cacheDel("jadwal"); loaded = false; render();
+  await muatJadwal(true);
+  if(refLoaded) await muatReferensi(true);
+  b.disabled = false;
+  toast("Data dimuat ulang.");
+});
+
+$("form").addEventListener("submit", async function(e){
+  e.preventDefault();
+  var err = $("err");
+  if(!siap){ err.textContent = bootError || "Koneksi ke server belum siap. Tunggu sebentar lalu coba lagi."; return; }
+  if(!refLoaded){ err.textContent = "Data paket dan guru masih dimuat. Coba lagi sebentar."; return; }
+
+  var paketId = $("fPaket").value;
+  var p = paketList.filter(function(x){ return x.id === paketId; })[0];
+  var gid = $("fPengawas").value;
+  var g = guruList.filter(function(x){ return x.id === gid; })[0];
+  var rv = $("fRuang").value.trim();
+  var d = {
+    pengawasId: g ? g.id : "",
+    paketId: paketId,
+    paketNama: p ? namaPaket(p) : (editId ? (items.filter(function(x){ return x.id === editId; })[0] || {}).paketNama || "" : ""),
+    mapel: $("fMapel").value.trim(),
+    tingkat: $("fTingkat").value,
+    kelas: $("fKelas").value.trim(),
+    ruang: /^\d+$/.test(rv) ? "Ruang " + Number(rv) : rv,
+    tgl: $("fTgl").value, mulai: $("fMulai").value, selesai: $("fSelesai").value,
+    pengawas: g ? namaGuru(g) : (gid === "__lama" ? editPengawasNama : ""),
+    catatan: $("fCatatan").value.trim()
+  };
+  if(!d.paketId){ err.textContent = "Pilih paket soal terlebih dahulu."; return; }
+  if(!d.mapel || !d.tingkat || !d.kelas || !d.tgl || !d.mulai || !d.selesai){
+    err.textContent = "Isi mata pelajaran, tingkat, kelas, tanggal, jam mulai, dan jam selesai."; return;
+  }
+  if(d.selesai <= d.mulai){ err.textContent = "Jam selesai harus lebih akhir dari jam mulai."; return; }
+
+  var jendela = menitAntara(d.mulai, d.selesai);
+  var menit = Number($("fMenit").value) || jendela;
+  if(menit < 5){ err.textContent = "Durasi minimal 5 menit."; return; }
+  if(menit > jendela){
+    err.textContent = "Durasi (" + menit + " menit) melebihi rentang jam mulai–selesai (" + jendela + " menit).";
+    return;
+  }
+  d.menit = menit;
+  var mMs = ms(d.tgl, d.mulai), sMs = ms(d.tgl, d.selesai);   // selalu WITA
+
+  var btn = $("btnSave"); btn.disabled = true; err.textContent = "";
+  try{
+    if(editId){
+      var lama = items.filter(function(x){ return x.id === editId; })[0] || {};
+      var patch = {};
+      Object.keys(d).forEach(function(k){ if(d[k] !== lama[k]) patch[k] = d[k]; });
+      if(lama._m !== mMs) patch.mulaiAt = F.Timestamp.fromMillis(mMs);
+      if(lama._s !== sMs) patch.selesaiAt = F.Timestamp.fromMillis(sMs);
+      if(Object.keys(patch).length){
+        patch.diubah = F.serverTimestamp();
+        await F.updateDoc(F.doc(dbBankSoal, KOLEKSI.jadwal, editId), patch);
+        items = items.map(function(x){ return x.id === editId ? Object.assign({}, x, d, {_m: mMs, _s: sMs}) : x; });
+        cacheSet("jadwal", items);
+        toast("Jadwal diperbarui.");
+      } else toast("Tidak ada perubahan.");
+    } else {
+      var data = Object.assign({}, d, {
+        mulaiAt: F.Timestamp.fromMillis(mMs), selesaiAt: F.Timestamp.fromMillis(sMs),
+        dibuat: F.serverTimestamp()
+      });
+      var ref = await F.addDoc(F.collection(dbBankSoal, KOLEKSI.jadwal), data);
+      items = items.concat([Object.assign({}, d, {id: ref.id, _m: mMs, _s: sMs})]);
+      cacheSet("jadwal", items);
+      toast("Jadwal tersimpan.");
+    }
+    $("dlg").close();
+    render();
+  }catch(ex){
+    console.error(ex);
+    err.textContent = ex && ex.code === "permission-denied"
+      ? "Akses ditolak oleh aturan Firestore."
+      : "Gagal menyimpan ke server. Periksa koneksi lalu coba lagi.";
+  }finally{ btn.disabled = false; }
+});
+
+/* ---------- Edit & hapus ---------- */
+$("list").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if(!b || !b.dataset) return;
+  if(b.dataset.edit){
+    var it = items.filter(function(x){ return x.id === b.dataset.edit; })[0];
+    if(it) openForm(it);
+  } else if(b.dataset.del){
+    var t = items.filter(function(x){ return x.id === b.dataset.del; })[0];
+    if(!t) return;
+    delId = t.id;
+    $("delMsg").textContent = "Jadwal " + t.mapel + " kelas " + t.kelas + " (" + t.tgl + ") akan dihapus. " +
+      "Token yang sudah dibuat dari jadwal ini tidak lagi menemukan jadwalnya, sehingga siswa tidak bisa memakainya.";
+    $("delErr").textContent = "";
+    $("dlgDel").showModal();
+  }
+});
+$("delNo").addEventListener("click", function(){ $("dlgDel").close(); });
+$("delYes").addEventListener("click", async function(){
+  if(!delId) return;
+  if(!siap){ $("delErr").textContent = bootError || "Koneksi belum siap."; return; }
+  var b = $("delYes"); b.disabled = true;
+  try{
+    await F.deleteDoc(F.doc(dbBankSoal, KOLEKSI.jadwal, delId));
+    items = items.filter(function(x){ return x.id !== delId; });
+    cacheSet("jadwal", items);
+    $("dlgDel").close();
+    render();
+    toast("Jadwal dihapus.");
+  }catch(ex){
+    console.error(ex);
+    $("delErr").textContent = ex && ex.code === "permission-denied"
+      ? "Akses ditolak oleh aturan Firestore." : "Gagal menghapus jadwal. Periksa koneksi lalu coba lagi.";
+  }finally{ b.disabled = false; }
+});
+
+/* ---------- Mulai ---------- */
+async function mulaiFirebase(){
+  try{
+    var pusat = await import("../assets/js/firebase-pusat.js");
+    F = pusat.F; dbBankSoal = pusat.dbBankSoal; dbSiswaGuru = pusat.dbSiswaGuru; KOLEKSI = pusat.KOLEKSI;
+    siap = true;
+    await muatJadwal(false);
+  }catch(err){
+    console.error(err);
+    bootError = "Tidak dapat memuat Firebase: " + (err && err.message ? err.message : err);
+    loaded = true; loadError = bootError; render();
+  }
+}
+
+render();
+setInterval(function(){ if(!document.hidden) render(); }, 60000);   // hanya menggambar ulang status, tanpa baca server
+mulaiFirebase();
+</script>
+</div>
+</body>
+</html>

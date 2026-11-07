@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rekap Nilai · KW Learning</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+  .tw { border: 0; box-shadow: none; background: transparent; }
+  td.n, th.n { text-align: right; }
+  .badge.ok { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
+  .badge.bad { background: color-mix(in srgb, var(--nm-warn) 16%, var(--nm-bg)); color: var(--nm-warn); }
+  .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
+  .tools .kkm input { width: 76px; min-width: 0; flex: none; }
+  .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
+  th button { all: unset; cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-peran="admin" data-aktif="rekap"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+
+<div id="mn">
+  <div class="top">
+    <button id="burger" type="button" aria-label="Buka menu">☰</button>
+    <h2>Rekap Nilai</h2>
+  </div>
+  <div class="wrap">
+    <div id="info" class="msg warn" role="status" hidden></div>
+
+    <section class="stats" aria-label="Ringkasan">
+      <div class="st"><b id="n-peserta">0</b><span>Peserta</span></div>
+      <div class="st"><b id="n-rata">–</b><span>Rata-rata</span></div>
+      <div class="st"><b id="n-max">–</b><span>Tertinggi</span></div>
+      <div class="st"><b id="n-min">–</b><span>Terendah</span></div>
+    </section>
+
+    <div class="card">
+      <h3>Rekap nilai per kelas</h3>
+      <div class="tools">
+        <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
+        <select id="fTingkat" aria-label="Tingkat"><option value="">Semua tingkat</option></select>
+        <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
+      </div>
+      <div class="acts" style="margin-bottom:12px">
+        <button id="muat" class="btn p" type="button">Muat ulang</button>
+        <button id="unduh" class="btn" type="button">Unduh CSV</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Kelas</th><th class="n">Peserta</th><th class="n">Rata-rata</th><th class="n">Tertinggi</th>
+          <th class="n">Terendah</th><th class="n">Tuntas</th><th class="n">Belum</th><th class="n">Ketuntasan</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table></div>
+      <p class="empty" id="empty" hidden>Belum ada nilai untuk direkap.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
+import { norm, esc, fmtN, toast } from '../assets/js/util.js';
+
+const $ = id => document.getElementById(id);
+let ROWS = [];
+const KUNCI_KKM = 'kw-kkm';
+try {
+  const v = Number(localStorage.getItem(KUNCI_KKM));
+  const app = JSON.parse(localStorage.getItem('kw_pengaturan_app') || 'null');   // KKM dari Pengaturan Aplikasi
+  const awal = v > 0 && v <= 100 ? v : Number(app && app.kkm);
+  if (awal > 0 && awal <= 100) $('kkm').value = awal;
+} catch (_) {}
+const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) ? v : 75; };
+
+function isiPilihan(sel, label, nilai) {
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${label}</option>` + nilai.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  sel.value = nilai.includes(cur) ? cur : '';
+}
+
+function rekap() {
+  const p = $('fPaket').value, t = $('fTingkat').value;
+  const data = ROWS.filter(r => r.nilai !== null && (!p || r.paket === p) && (!t || r.tingkat === t));
+  const peta = new Map();
+  data.forEach(r => { const k = r.kelas || r.tingkat; if (!peta.has(k)) peta.set(k, []); peta.get(k).push(r.nilai); });
+  const baris = [...peta.entries()].sort((a, b) => urutAlfa(a[0], b[0])).map(([kelas, v]) => {
+    const tun = v.filter(n => n >= kkm()).length;
+    return { kelas, n: v.length, rata: v.reduce((a, x) => a + x, 0) / v.length, max: Math.max(...v), min: Math.min(...v), tun, belum: v.length - tun };
+  });
+  return { data, baris };
+}
+
+function gambar() {
+  const { data, baris } = rekap();
+  const ns = data.map(r => r.nilai);
+  $('n-peserta').textContent = data.length;
+  $('n-rata').textContent = ns.length ? fmtN(ns.reduce((a, x) => a + x, 0) / ns.length) : '–';
+  $('n-max').textContent = ns.length ? fmtN(Math.max(...ns)) : '–';
+  $('n-min').textContent = ns.length ? fmtN(Math.min(...ns)) : '–';
+  $('body').innerHTML = baris.map(b => `<tr><td><b>${esc(b.kelas)}</b></td><td class="n">${b.n}</td><td class="n">${fmtN(b.rata)}</td>
+    <td class="n">${fmtN(b.max)}</td><td class="n">${fmtN(b.min)}</td><td class="n">${b.tun}</td><td class="n">${b.belum}</td>
+    <td class="n"><span class="badge ${b.tun / b.n >= .75 ? 'ok' : 'bad'}">${Math.round(b.tun / b.n * 100)}%</span></td></tr>`).join('');
+  $('empty').hidden = baris.length > 0;
+}
+
+async function muat() {
+  const info = $('info'), dot = $('dot'), cs = $('cs');
+  info.hidden = true;
+  try {
+    const { rows, gagal } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu' });
+    ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), tingkat: r.tingkat }));
+    if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
+    if (dot) dot.classList.add('on');
+    if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
+  } catch (e) {
+    console.error(e); ROWS = [];
+    info.hidden = false; info.textContent = 'Gagal memuat data dari Firebase: ' + (e.message || e);
+  }
+  isiPilihan($('fPaket'), 'Semua ujian', [...new Set(ROWS.map(r => r.paket).filter(x => x && x !== '-'))].sort(urutAlfa));
+  isiPilihan($('fTingkat'), 'Semua tingkat', [...new Set(ROWS.map(r => r.tingkat))].sort(urutAlfa));
+  gambar();
+}
+
+function unduh() {
+  const { baris } = rekap();
+  if (!baris.length) return toast('Tidak ada data untuk diunduh.');
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const out = [['Kelas', 'Peserta', 'Rata-rata', 'Tertinggi', 'Terendah', 'Tuntas', 'Belum tuntas'].map(q).join(',')]
+    .concat(baris.map(b => [b.kelas, b.n, fmtN(b.rata), b.max, b.min, b.tun, b.belum].map(q).join(',')));
+  const url = URL.createObjectURL(new Blob(['\uFEFF' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = 'Rekap_Nilai.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+['fPaket', 'fTingkat'].forEach(id => $(id).addEventListener('change', gambar));
+$('kkm').addEventListener('input', () => { try { localStorage.setItem(KUNCI_KKM, String(kkm())); } catch (_) {} gambar(); });
+$('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
+$('unduh').onclick = unduh;
+muat();
+</script>
+</body>
+</html>

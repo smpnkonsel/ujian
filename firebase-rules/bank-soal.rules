@@ -1,0 +1,48 @@
+rules_version = '2';
+// ==========================================================================
+// PROJECT: BANK SOAL DAN JADWAL (bank-soal-edaf4)
+// Koleksi: paket, jadwal, akunGuru
+// ==========================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== GANTI dengan email admin Anda (sama di kelima project) =====
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ["GANTI_DENGAN_EMAIL_ADMIN@contoh.com"];
+    }
+    // Guru sah = emailnya terdaftar di koleksi akunGuru project ini
+    // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru).
+    function isGuru() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/akunGuru/$(request.auth.token.email));
+    }
+    function isStaff() { return isAdmin() || isGuru(); }
+
+    // Daftar email guru: hanya admin yang menulis; guru hanya membaca miliknya.
+    match /akunGuru/{email} {
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.token.email == email);
+      allow write: if isAdmin();
+    }
+
+    // Jadwal: halaman ujian siswa mencari jadwal berdasarkan tingkat.
+    match /jadwal/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Paket soal: siswa membaca satu paket (get) saat ujian dimulai;
+    // daftar paket hanya untuk admin/guru.
+    match /paket/{id} {
+      allow get: if true;
+      allow list: if isStaff();
+      allow write: if isAdmin();
+    }
+
+    match /{other=**} {
+      allow read, write: if false;
+    }
+  }
+}

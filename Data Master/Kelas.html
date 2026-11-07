@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Kelas · KW Learning</title>
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+/* Halaman Data Kelas · KW Learning
+   Tampilan sama dengan Data Siswa (tema gelap). Hanya untuk menampilkan data. */
+
+:root {
+  --dt-bg:var(--nm-bg);
+  --dt-panel:var(--nm-bg);
+  --dt-panel-2:color-mix(in srgb,var(--nm-text) 5%,var(--nm-bg));
+  --dt-garis:var(--nm-garis);
+  --dt-teks:var(--nm-text);
+  --dt-redup:var(--nm-muted);
+  --dt-aksen:var(--nm-accent);
+  --dt-aksen-teks:#fff;
+  --dt-bahaya:var(--nm-warn);
+  --dt-ok:var(--nm-ok);
+  --dt-emas: #e0b85a;
+  --dt-warn-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
+  --dt-warn-teks:var(--nm-kuning);
+  --dt-radius:14px;
+  /* Jika sidebar tetap (fixed) di sisi kiri, isi lebarnya lewat variabel ini
+     di sidebar.css, mis. :root { --sidebar-w:0px} */
+  --sidebar-w:0px;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--dt-bg);
+  color: var(--dt-teks);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- Tata letak ---------- */
+.isi {
+  max-width: 1100px;
+  margin: 0 auto;
+  margin-left: max(var(--sidebar-w), calc((100% - 1100px) / 2));
+  padding: 20px 16px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+
+.atas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.atas h1 { margin: 0 0 4px; font-size: 1.6rem; line-height: 1.2; }
+.atas p { margin: 0; color: var(--dt-redup); font-size: .9rem; }
+#rinci { margin-top: 2px; }
+
+.alat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ---------- Kontrol ---------- */
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--dt-garis);
+  border-radius: 8px;
+  background: var(--dt-panel-2);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+button:hover { border-color: var(--dt-aksen); }
+button:disabled { opacity: .6; cursor: default; }
+
+input,
+select {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--dt-garis);
+  border-radius: 8px;
+  background: var(--dt-panel);
+  width: 100%;
+}
+.alat input[type="search"] { flex: 1 1 220px; width: auto; }
+.alat select { flex: 0 1 180px; width: auto; }
+
+:focus-visible {
+  outline: 2px solid var(--dt-aksen);
+  outline-offset: 2px;
+}
+input:focus,
+select:focus { border-color: var(--dt-aksen); outline: none; box-shadow: 0 0 0 3px rgba(79, 157, 255, .25); }
+
+/* ---------- Peringatan ---------- */
+.warn {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: var(--dt-radius);
+  background: var(--dt-warn-bg);
+  color: var(--dt-warn-teks);
+  font-size: .9rem;
+}
+
+/* ---------- Kartu ringkasan ---------- */
+.ringkas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.rk {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--dt-panel);
+  border: 1px solid var(--dt-garis);
+  border-left: 4px solid var(--dt-emas);
+  border-radius: var(--dt-radius);
+}
+.rk-label { color: var(--dt-redup); font-size: .85rem; }
+.rk-angka {
+  margin: 4px 0 6px;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+}
+.rk-ket { color: var(--dt-redup); font-size: .82rem; }
+
+/* ---------- Daftar kelas (kotak) ---------- */
+.tingkat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 22px 0 10px;
+  font-size: 1.1rem;
+}
+.tingkat:first-child { margin-top: 4px; }
+.tingkat span { color: var(--dt-redup); font-size: .85rem; font-weight: 400; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.kotak {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-height: 0;
+  padding: 16px 18px;
+  text-align: left;
+  background: var(--dt-panel);
+  border: 1px solid var(--dt-garis);
+  border-left: 4px solid var(--dt-aksen);
+  border-radius: var(--dt-radius);
+}
+.kotak[data-tingkat="VIII"] { border-left-color: var(--dt-emas); }
+.kotak[data-tingkat="IX"] { border-left-color: var(--dt-ok); }
+.kotak[data-tingkat="Lainnya"] { border-left-color: var(--dt-redup); }
+.kotak:hover { transform: translateY(-2px); background: var(--dt-panel-2); }
+
+.kotak-atas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kotak-nama { font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; }
+.kotak-jml { font-size: .9rem; }
+.kotak-jml b { font-size: 1.3rem; }
+.kotak-gender,
+.kotak-wali { color: var(--dt-redup); font-size: .85rem; }
+.kotak-lihat { margin-top: 4px; color: var(--dt-aksen); font-size: .85rem; font-weight: 600; }
+
+.kosong {
+  padding: 40px 14px;
+  text-align: center;
+  color: var(--dt-redup);
+  background: var(--dt-panel);
+  border: 1px solid var(--dt-garis);
+  border-radius: var(--dt-radius);
+}
+
+.lencana {
+  display: inline-block;
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--dt-panel-2);
+  border: 1px solid var(--dt-garis);
+  text-align: center;
+  font-size: .82rem;
+}
+
+/* ---------- Dialog daftar siswa ---------- */
+dialog {
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 1px solid var(--dt-garis);
+  border-radius: 14px;
+  background: var(--dt-panel);
+  color: var(--dt-teks);
+  overflow: hidden;
+}
+dialog[open] { display: flex; flex-direction: column; }
+dialog::backdrop { background: rgba(3, 7, 18, .65); }
+
+.dkepala {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+}
+.dkepala h2 { margin: 0 0 2px; font-size: 1.3rem; }
+.dkepala p { margin: 0; color: var(--dt-redup); font-size: .88rem; }
+.dcari { padding: 0 20px 12px; }
+.dbadan { overflow: auto; border-top: 1px solid var(--dt-garis); }
+.dkaki {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--dt-garis);
+}
+
+table { width: 100%; border-collapse: collapse; min-width: 440px; }
+th,
+td { padding: 10px 14px; text-align: left; vertical-align: middle; }
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--dt-panel-2);
+  color: var(--dt-redup);
+  font-size: .8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--dt-garis);
+}
+tbody tr + tr td { border-top: 1px solid var(--dt-garis); }
+tbody tr:hover td { background: rgba(79, 157, 255, .05); }
+td.no { color: var(--dt-redup); width: 44px; }
+td.nis { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.nama { font-weight: 600; }
+td.dkosong { text-align: center; color: var(--dt-redup); padding: 32px 14px; }
+
+@media (max-width: 900px) {
+  .ringkas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .isi { padding: 14px 12px 40px; }
+  .atas h1 { font-size: 1.35rem; }
+  .ringkas { gap: 10px; }
+  .rk { padding: 14px; }
+  .rk-angka { font-size: 1.6rem; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .kotak { padding: 14px; }
+  .alat input[type="search"],
+  .alat select { flex: 1 1 100%; }
+  .dkepala { padding: 16px 16px 10px; }
+  .dcari { padding: 0 16px 10px; }
+  .dkaki { padding: 10px 16px; }
+  .dkaki button { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body data-jenis="kelas">
+<div id="sidebar-slot" data-mode="halaman" data-aktif="kelas"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Data Kelas</h2>
+</div>
+
+
+<main class="isi">
+  <header class="atas">
+    <div>
+      <h1>Data Kelas</h1>
+      <p id="jml">Memuat data…</p>
+      <p id="rinci"></p>
+    </div>
+    <button id="muat" type="button" title="Baca ulang data dari server">Muat ulang</button>
+  </header>
+
+  <div id="cfgwarn" class="warn hidden"></div>
+
+  <!-- Kartu ringkasan -->
+  <section id="ringkas" class="ringkas hidden" aria-label="Ringkasan kelas"></section>
+
+  <div class="alat">
+    <input id="cari" type="search" placeholder="Cari kelas atau wali kelas" aria-label="Cari kelas">
+    <select id="ft" aria-label="Saring tingkat">
+      <option value="">Semua tingkat</option>
+      <option value="VII">Kelas VII</option>
+      <option value="VIII">Kelas VIII</option>
+      <option value="IX">Kelas IX</option>
+    </select>
+  </div>
+
+  <div id="daftar"></div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dj">
+  <div class="dkepala">
+    <div>
+      <h2 id="dj">Kelas</h2>
+      <p id="dsub"></p>
+    </div>
+  </div>
+  <div class="dcari">
+    <input id="dcari" type="search" placeholder="Cari nama atau NIS siswa" aria-label="Cari siswa">
+  </div>
+  <div class="dbadan">
+    <table>
+      <thead><tr><th>No</th><th>NIS/NISN</th><th>Nama lengkap</th><th>L/P</th><th>Agama</th></tr></thead>
+      <tbody id="dtb"></tbody>
+    </table>
+  </div>
+  <div class="dkaki">
+    <button id="dtutup" type="button">Tutup</button>
+  </div>
+</dialog>
+
+<script type="module">
+/*
+  Firebase dimuat dengan import dinamis. Jika berkas firebase-pusat.js
+  gagal dimuat, penyebabnya ditampilkan di halaman.
+
+  HEMAT FIRESTORE:
+  - Tanpa onSnapshot (tidak ada listener / koneksi aktif)
+  - Data siswa & kelas dibaca sekali, di-cache 10 menit di sessionStorage
+  - Tombol "Muat ulang" membaca ulang dari server bila diperlukan
+*/
+let F, dbSiswaGuru;
+let KOLEKSI = { siswa: "siswa", kelas: "kelas" };
+let galatMuat = "";
+
+try {
+  ({ F, dbSiswaGuru, KOLEKSI } = await import("../assets/js/firebase-pusat.js"));
+} catch (e) {
+  console.error("firebase-pusat.js gagal dimuat:", e);
+
+  galatMuat = location.protocol === "file:"
+    ? "Halaman dibuka langsung dari berkas (file://), sehingga Firebase tidak bisa dimuat. Buka lewat server atau hosting (mis. localhost atau Firebase Hosting)."
+    : "Gagal memuat assets/js/firebase-pusat.js (" + (e && e.message ? e.message : e) + "). Pastikan berkas itu ada di assets/js/ dan mengekspor F, dbSiswaGuru, dan KOLEKSI.";
+}
+
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  const TINGKAT = ["VII", "VIII", "IX", "Lainnya"];
+  const CACHE_MENIT = 10;
+
+  let siswa = [];
+  let infoKelas = new Map(); // kelas -> { wali, tahun } (opsional)
+  let kelasTerbuka = null;
+  let sedangMemuat = true;
+  let waktuMuat = 0;
+
+  /* =====================================================
+     UTILITAS
+  ===================================================== */
+
+  const esc = (s) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[c]);
+
+  const rapikan = (s) =>
+    String(s ?? "").replace(/\s+/g, " ").trim();
+
+  // Kelas ditulis angka Romawi: "7a", "VII-A", "VII A" -> "VII A"
+  const ROMAWI = { "7": "VII", "8": "VIII", "9": "IX" };
+
+  function normKelas(v) {
+    const s = rapikan(v)
+      .toUpperCase()
+      .replace(/[.\-_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const m = s.match(/^(VII|VIII|IX|7|8|9)\s*([A-Z])$/);
+
+    return m ? `${ROMAWI[m[1]] || m[1]} ${m[2]}` : s;
+  }
+
+  const RANK = { VII: 7, VIII: 8, IX: 9 };
+
+  function kunciKelas(k) {
+    const m = String(k).match(/^(VII|VIII|IX)\s+(.*)$/);
+    return m ? [RANK[m[1]], m[2]] : [99, String(k)];
+  }
+
+  const banding = (a, b) =>
+    a.localeCompare(b, "id", { numeric: true });
+
+  const urutKelas = (a, b) => {
+    const x = kunciKelas(a);
+    const y = kunciKelas(b);
+    return (x[0] - y[0]) || banding(x[1], y[1]);
+  };
+
+  function tingkatDari(kelas) {
+    const m = String(kelas).match(/^(VII|VIII|IX)\b/);
+    return m ? m[1] : "Lainnya";
+  }
+
+  function tampilkanPeringatan(teks) {
+    const w = $("cfgwarn");
+
+    if (!teks) {
+      w.classList.add("hidden");
+      return;
+    }
+
+    w.textContent = teks;
+    w.classList.remove("hidden");
+  }
+
+  const jam = (ms) =>
+    new Date(ms).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+
+  /* =====================================================
+     BACA FIRESTORE HEMAT (sekali baca + cache)
+  ===================================================== */
+
+  /* Baca satu query satu kali. Pakai getDocs bila tersedia;
+     bila tidak, ambil snapshot pertama lalu langsung berhenti
+     mendengarkan (tetap hanya satu kali baca). */
+  function bacaSekali(q) {
+    if (typeof F.getDocs === "function") return F.getDocs(q);
+
+    return new Promise((resolve, reject) => {
+      let berhenti = null;
+      let selesai = false;
+
+      berhenti = F.onSnapshot(q, (snap) => {
+        if (selesai) return;
+        selesai = true;
+        if (berhenti) berhenti();
+        resolve(snap);
+      }, reject);
+
+      if (selesai && berhenti) berhenti();
+    });
+  }
+
+  function bacaCache() {
+    try {
+      const mentah = sessionStorage.getItem("kelas:data");
+      if (!mentah) return null;
+
+      const obj = JSON.parse(mentah);
+      if (!obj || Date.now() - obj.t > CACHE_MENIT * 60000) return null;
+
+      return obj;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function tulisCache() {
+    try {
+      sessionStorage.setItem("kelas:data", JSON.stringify({
+        t: waktuMuat,
+        siswa,
+        kelas: [...infoKelas.entries()]
+      }));
+    } catch (e) { /* penyimpanan penuh: abaikan */ }
+  }
+
+  async function muatData(paksa) {
+    tampilkanPeringatan("");
+
+    if (!paksa) {
+      const c = bacaCache();
+
+      if (c) {
+        siswa = c.siswa || [];
+        infoKelas = new Map(c.kelas || []);
+        waktuMuat = c.t;
+        sedangMemuat = false;
+        render();
+        return;
+      }
+    }
+
+    sedangMemuat = true;
+    $("muat").disabled = true;
+    render();
+
+    // Siswa dan kelas dibaca paralel, masing-masing satu kali
+    const [rs, rk] = await Promise.allSettled([
+      bacaSekali(F.collection(dbSiswaGuru, KOLEKSI.siswa)),
+      KOLEKSI.kelas
+        ? bacaSekali(F.collection(dbSiswaGuru, KOLEKSI.kelas))
+        : Promise.resolve(null)
+    ]);
+
+    if (rs.status === "fulfilled") {
+      siswa = rs.value.docs.map((dok) => {
+        const d = dok.data();
+
+        return {
+          nis: dok.id,
+          nama: String(d.nama ?? ""),
+          kelas: normKelas(d.kelas),
+          gender: String(d.gender ?? ""),
+          agama: String(d.agama ?? "")
+        };
+      });
+    } else {
+      console.error("Firebase siswa:", rs.reason);
+
+      tampilkanPeringatan(
+        "Data siswa gagal dimuat. Periksa koneksi dan aturan keamanan Firestore."
+      );
+
+      sedangMemuat = false;
+      $("muat").disabled = false;
+      $("jml").textContent = "Data tidak dapat dimuat";
+      $("rinci").textContent = "";
+      $("ringkas").classList.add("hidden");
+      $("daftar").innerHTML =
+        '<div class="kosong">Tidak dapat memuat data kelas.</div>';
+      return;
+    }
+
+    // Opsional: wali kelas & tahun ajaran dari koleksi kelas (jika ada)
+    infoKelas = new Map();
+
+    if (rk.status === "fulfilled" && rk.value) {
+      rk.value.docs.forEach((dok) => {
+        const d = dok.data();
+        const nama = normKelas(d.nama);
+
+        if (nama) {
+          infoKelas.set(nama, {
+            wali: rapikan(d.wali),
+            tahun: rapikan(d.tahun)
+          });
+        }
+      });
+    } else if (rk.status === "rejected") {
+      console.warn("Koleksi kelas tidak dapat dibaca:", rk.reason);
+    }
+
+    waktuMuat = Date.now();
+    tulisCache();
+
+    sedangMemuat = false;
+    $("muat").disabled = false;
+    render();
+  }
+
+  /* =====================================================
+     PENGELOMPOKAN: SISWA -> KELAS
+  ===================================================== */
+
+  function kelompokkan() {
+    const peta = new Map();
+
+    const ambil = (nama) => {
+      if (!peta.has(nama)) {
+        peta.set(nama, {
+          nama,
+          tingkat: tingkatDari(nama),
+          siswa: [],
+          wali: "",
+          tahun: ""
+        });
+      }
+      return peta.get(nama);
+    };
+
+    siswa.forEach((s) => {
+      if (s.kelas) ambil(s.kelas).siswa.push(s);
+    });
+
+    // kelas yang terdaftar di koleksi kelas tetapi belum punya siswa
+    infoKelas.forEach((info, nama) => {
+      const k = ambil(nama);
+      k.wali = info.wali;
+      k.tahun = info.tahun;
+    });
+
+    return peta;
+  }
+
+  const hitung = (daftar, g) =>
+    daftar.filter((s) => s.gender === g).length;
+
+  /* =====================================================
+     KARTU RINGKASAN
+  ===================================================== */
+
+  function renderRingkas(semuaKelas) {
+    const box = $("ringkas");
+
+    if (!semuaKelas.length) {
+      box.classList.add("hidden");
+      box.innerHTML = "";
+      return;
+    }
+
+    const totalSiswa = semuaKelas.reduce((n, k) => n + k.siswa.length, 0);
+    const rombel = (t) => semuaKelas.filter((k) => k.tingkat === t).length;
+
+    const kartu = [
+      { label: "Total kelas", angka: semuaKelas.length, ket: `${totalSiswa} siswa` },
+      { label: "Kelas VII", angka: rombel("VII"), ket: "rombel" },
+      { label: "Kelas VIII", angka: rombel("VIII"), ket: "rombel" },
+      { label: "Kelas IX", angka: rombel("IX"), ket: "rombel" }
+    ];
+
+    // Kartu tambahan hanya bila ada kelas di luar VII–IX
+    if (rombel("Lainnya")) {
+      kartu.push({ label: "Lainnya", angka: rombel("Lainnya"), ket: "rombel" });
+    }
+
+    box.innerHTML = kartu.map((k) => `
+      <div class="rk">
+        <span class="rk-label">${esc(k.label)}</span>
+        <span class="rk-angka">${k.angka}</span>
+        <span class="rk-ket">${esc(k.ket)}</span>
+      </div>
+    `).join("");
+
+    box.classList.remove("hidden");
+  }
+
+  /* =====================================================
+     TAMPILAN KOTAK KELAS
+  ===================================================== */
+
+  function render() {
+    if (sedangMemuat) {
+      $("jml").textContent = "Memuat data…";
+      $("rinci").textContent = "";
+      $("ringkas").classList.add("hidden");
+      $("daftar").innerHTML =
+        '<div class="kosong">Memuat data dari Firebase...</div>';
+      return;
+    }
+
+    const peta = kelompokkan();
+    const semuaKelas = [...peta.values()];
+
+    renderRingkas(semuaKelas);
+
+    const kata = rapikan($("cari").value).toLowerCase();
+    const tingkat = $("ft").value;
+
+    const tampil = semuaKelas
+      .filter((k) =>
+        (!tingkat || k.tingkat === tingkat) &&
+        (
+          !kata ||
+          k.nama.toLowerCase().includes(kata) ||
+          k.wali.toLowerCase().includes(kata)
+        )
+      )
+      .sort((a, b) => urutKelas(a.nama, b.nama));
+
+    const totalSiswa = siswa.length;
+
+    $("jml").textContent =
+      tampil.length === semuaKelas.length
+        ? `${semuaKelas.length} kelas`
+        : `${tampil.length} dari ${semuaKelas.length} kelas`;
+
+    $("rinci").textContent = semuaKelas.length
+      ? `${totalSiswa} siswa di seluruh kelas · diperbarui ${jam(waktuMuat)}`
+      : "Belum ada data kelas";
+
+    if (!tampil.length) {
+      $("daftar").innerHTML = `
+        <div class="kosong">
+          ${
+            semuaKelas.length
+              ? "Tidak ada kelas yang cocok dengan pencarian."
+              : "Belum ada data siswa. Tambahkan siswa di halaman Data Siswa."
+          }
+        </div>
+      `;
+
+      refreshDialog(peta);
+      return;
+    }
+
+    $("daftar").innerHTML = TINGKAT.map((t) => {
+      const grup = tampil.filter((k) => k.tingkat === t);
+
+      if (!grup.length) return "";
+
+      const jmlSiswa = grup.reduce((n, k) => n + k.siswa.length, 0);
+
+      return `
+        <h2 class="tingkat">
+          ${t === "Lainnya" ? "Kelas lainnya" : "Kelas " + t}
+          <span>${grup.length} rombel · ${jmlSiswa} siswa</span>
+        </h2>
+
+        <div class="grid">
+          ${grup.map((k) => `
+            <button
+              type="button"
+              class="kotak"
+              data-kelas="${esc(k.nama)}"
+              data-tingkat="${esc(k.tingkat)}">
+
+              <span class="kotak-atas">
+                <span class="kotak-nama">${esc(k.nama)}</span>
+                <span class="kotak-jml"><b>${k.siswa.length}</b> siswa</span>
+              </span>
+
+              <span class="kotak-gender">
+                Laki-laki ${hitung(k.siswa, "L")} · Perempuan ${hitung(k.siswa, "P")}
+              </span>
+
+              ${k.wali
+                ? `<span class="kotak-wali">Wali kelas: ${esc(k.wali)}</span>`
+                : ""}
+
+              <span class="kotak-lihat">Lihat daftar siswa →</span>
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }).join("");
+
+    refreshDialog(peta);
+  }
+
+  /* =====================================================
+     DIALOG DAFTAR SISWA
+  ===================================================== */
+
+  function bukaDaftar(nama) {
+    kelasTerbuka = nama;
+    $("dcari").value = "";
+
+    isiDaftar(kelompokkan());
+
+    $("dlg").showModal();
+    $("dcari").focus();
+  }
+
+  function refreshDialog(peta) {
+    if (kelasTerbuka && $("dlg").open) isiDaftar(peta);
+  }
+
+  function isiDaftar(peta) {
+    const k = peta.get(kelasTerbuka) || {
+      nama: kelasTerbuka,
+      siswa: [],
+      wali: "",
+      tahun: ""
+    };
+
+    const info = [
+      `${k.siswa.length} siswa`,
+      `Laki-laki ${hitung(k.siswa, "L")}`,
+      `Perempuan ${hitung(k.siswa, "P")}`
+    ];
+
+    if (k.wali) info.push(`Wali kelas: ${k.wali}`);
+    if (k.tahun) info.push(`Tahun ajaran ${k.tahun}`);
+
+    $("dj").textContent = "Kelas " + k.nama;
+    $("dsub").textContent = info.join(" · ");
+
+    const kata = rapikan($("dcari").value).toLowerCase();
+
+    const baris = k.siswa
+      .filter((s) =>
+        !kata ||
+        s.nama.toLowerCase().includes(kata) ||
+        s.nis.includes(kata)
+      )
+      .sort((a, b) => a.nama.localeCompare(b.nama, "id"));
+
+    $("dtb").innerHTML = baris.length
+      ? baris.map((s, i) => `
+          <tr>
+            <td class="no">${i + 1}</td>
+            <td class="nis">${esc(s.nis)}</td>
+            <td class="nama">${esc(s.nama)}</td>
+            <td>${esc(s.gender)}</td>
+            <td>${esc(s.agama)}</td>
+          </tr>
+        `).join("")
+      : `
+          <tr>
+            <td class="dkosong" colspan="5">
+              ${
+                k.siswa.length
+                  ? "Tidak ada siswa yang cocok dengan pencarian."
+                  : "Belum ada siswa di kelas ini."
+              }
+            </td>
+          </tr>
+        `;
+  }
+
+  /* =====================================================
+     EVENT
+  ===================================================== */
+
+  function pasangEvent() {
+    $("cari").addEventListener("input", render);
+    $("ft").addEventListener("change", render);
+
+    $("muat").addEventListener("click", () => muatData(true));
+
+    $("daftar").addEventListener("click", (e) => {
+      const kotak = e.target.closest("[data-kelas]");
+
+      if (kotak) bukaDaftar(kotak.dataset.kelas);
+    });
+
+    $("dcari").addEventListener("input", () =>
+      isiDaftar(kelompokkan())
+    );
+
+    $("dtutup").addEventListener("click", () => $("dlg").close());
+
+    $("dlg").addEventListener("click", (e) => {
+      if (e.target === $("dlg")) $("dlg").close();
+    });
+
+    $("dlg").addEventListener("close", () => {
+      kelasTerbuka = null;
+    });
+  }
+
+  /* =====================================================
+     MULAI
+  ===================================================== */
+
+  function mulai() {
+    pasangEvent();
+
+    if (galatMuat) {
+      sedangMemuat = false;
+      $("muat").disabled = true;
+      tampilkanPeringatan(galatMuat);
+      $("jml").textContent = "Data tidak dapat dimuat";
+      $("daftar").innerHTML =
+        '<div class="kosong">Firebase belum terhubung.</div>';
+      return;
+    }
+
+    muatData(false);
+  }
+
+  mulai();
+
+})();
+</script>
+</div>
+</body>
+</html>

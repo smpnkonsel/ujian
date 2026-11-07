@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jawaban Siswa · KW Learning</title>
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+:root{--bg:var(--nm-bg);--card:var(--nm-bg);--ink:var(--nm-text);--muted:var(--nm-muted);--line:var(--nm-garis);--head:var(--nm-bg);--headtxt:var(--nm-muted);--focus:var(--nm-accent)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.hidden{display:none!important}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+h1{margin:0;font-size:24px}.sub{margin:4px 0 0;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit}
+button{cursor:pointer}button.primary{background:var(--head);color:var(--headtxt);border-color:var(--head)}
+button.small{padding:4px 10px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--head);color:var(--headtxt);font-weight:600;white-space:nowrap}
+td small{display:block;color:var(--muted)}
+td.n,th.n{text-align:right}
+tbody tr:last-child td{border-bottom:0}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.count{color:var(--muted);margin:8px 2px}
+dialog{border:1px solid var(--line);border-radius:12px;padding:18px;width:min(640px,94vw);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h2{margin:0 0 4px;font-size:18px}
+#dInfo{color:var(--muted);margin:0 0 12px}
+#dGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-height:50vh;overflow:auto}
+#dGrid .sel{border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center;background:#fff}
+#dGrid .sel span{display:block;font-size:11px;color:var(--muted)}
+#dGrid .sel b{font-size:15px;word-break:break-all}
+#dGrid .sel.kosong{background:#fdecea}
+.btns{display:flex;justify-content:flex-end;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--head);color:var(--headtxt);padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-aktif="jawaban"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Jawaban Siswa</h2>
+</div>
+
+
+<div class="wrap">
+  <div id="cfgwarn" class="hidden" style="background:#fff4c2;color:#5a4600;border:1px solid #e6cf6a;border-radius:9px;padding:8px 12px;margin-bottom:12px"></div>
+
+  <header>
+    <div>
+      <h1>Jawaban Siswa</h1>
+      <p class="sub">Kode jawaban yang dikirim siswa saat mengumpulkan ujian</p>
+    </div>
+    <div>
+      <button id="btnMuat" type="button">Muat ulang</button>
+      <button id="btnCsv" type="button" class="primary">Unduh CSV</button>
+    </div>
+  </header>
+
+  <div class="tools">
+    <input type="search" id="q" placeholder="Cari nama atau NIS" aria-label="Cari siswa">
+    <select id="fUjian" aria-label="Filter ujian"></select>
+    <select id="fKelas" aria-label="Filter kelas"></select>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Siswa</th><th>Kelas</th><th>Ujian</th><th class="n">Benar / Salah / Kosong</th><th class="n">Nilai</th><th></th></tr></thead>
+      <tbody id="isi"></tbody>
+    </table>
+    <div class="empty" id="kosong">Memuat…</div>
+  </div>
+  <p class="count" id="jml"></p>
+</div>
+
+<dialog id="dlg">
+  <h2 id="dJudul"></h2>
+  <p id="dInfo"></p>
+  <div id="dGrid"></div>
+  <div class="btns"><button type="button" id="tutup" class="primary">Tutup</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script type="module">
+/* =========================================================
+   Jawaban Siswa — data dari ../assets/js/firebase-pusat.js
+   Menampilkan kode jawaban tiap siswa dari koleksi "hasil"
+   (tiga Firebase tingkat VII/VIII/IX).
+   Kode: pg/bs = huruf (bs: A=Benar, B=Salah), pgk = huruf-huruf,
+   jodoh = nomor pasangan dipisah koma, "-" = tidak dijawab.
+========================================================= */
+const LOKASI_FIREBASE = '../assets/js/firebase-pusat.js';
+const BATAS_PER_TINGKAT = 500;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const urutAlfa = (a, b) => String(a).localeCompare(String(b), 'id', {numeric:true});
+const ms = v => !v ? 0 : typeof v === 'number' ? v : v.toMillis ? v.toMillis() : (v.toDate ? v.toDate().getTime() : (new Date(v).getTime() || 0));
+
+function peringatan(teks){
+  const w = $('cfgwarn');
+  w.classList.remove('hidden');
+  const p = document.createElement('div');
+  p.textContent = teks;
+  w.appendChild(p);
+}
+let tmToast;
+function toast(teks){
+  const t = $('toast'); t.textContent = teks; t.classList.add('on');
+  clearTimeout(tmToast); tmToast = setTimeout(() => t.classList.remove('on'), 2200);
+}
+function unduhCsv(nama, baris){
+  const teks = baris.map(b => b.map(v => {
+    const s = String(v ?? '');
+    return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + teks], {type:'text/csv;charset=utf-8'}));
+  a.download = nama;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* Dokumen "hasil" -> baris tabel. Sesuaikan nama field di sini bila berbeda. */
+function norm(id, x, tingkat){
+  return {
+    id, tingkat,
+    nama: x.nama || x.nis || '(tanpa nama)',
+    nis: x.nis || '',
+    kelas: x.kelas || '',
+    paket: x.paket || x.paketNama || x.ujian || x.judul || x.mapel || '(tanpa judul)',
+    benar: x.benar, salah: x.salah, kosong: x.kosong,
+    nilai: x.nilai ?? x.skor,
+    jawaban: typeof x.jawaban === 'string' ? x.jawaban : Array.isArray(x.jawaban) ? x.jawaban.join('|') : '',
+    waktu: ms(x.selesai || x.waktu || x.dikumpulkan || x.dibuat)
+  };
+}
+
+let rows = [];
+
+function pecah(r){
+  if(!r.jawaban) return [];
+  return r.jawaban.includes('|') ? r.jawaban.split('|') : (r.jawaban.includes(',') && !/^[A-F-]+(,[A-F-]+)*$/.test(r.jawaban) ? [r.jawaban] : r.jawaban.split(''));
+}
+
+function fillSelect(sel, label, values){
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${label}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  sel.value = values.includes(cur) ? cur : '';
+}
+
+function saring(){
+  const u = $('fUjian').value, k = $('fKelas').value, q = $('q').value.trim().toLowerCase();
+  return rows.filter(r => (!u || r.paket === u) && (!k || r.kelas === k) &&
+    (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)))
+    .sort((a, b) => urutAlfa(a.paket, b.paket) || urutAlfa(a.kelas, b.kelas) || urutAlfa(a.nama, b.nama));
+}
+
+function render(){
+  fillSelect($('fUjian'), 'Semua ujian', [...new Set(rows.map(r => r.paket))].sort(urutAlfa));
+  fillSelect($('fKelas'), 'Semua kelas', [...new Set(rows.map(r => r.kelas).filter(Boolean))].sort(urutAlfa));
+  const list = saring();
+
+  $('isi').innerHTML = list.map(r => `<tr data-id="${esc(r.id)}" data-t="${esc(r.tingkat)}">
+      <td>${esc(r.nama)}<small>NIS ${esc(r.nis || '–')}</small></td>
+      <td>${esc(r.kelas)}</td><td>${esc(r.paket)}</td>
+      <td class="n">${r.benar ?? '–'} / ${r.salah ?? '–'} / ${r.kosong ?? '–'}</td>
+      <td class="n"><b>${r.nilai ?? '–'}</b></td>
+      <td><button type="button" class="small">Lihat jawaban</button></td></tr>`).join('');
+
+  $('kosong').hidden = list.length > 0;
+  $('kosong').textContent = rows.length ? 'Tidak ada data yang cocok.' : 'Belum ada siswa yang mengumpulkan ujian.';
+  $('jml').textContent = list.length + ' dari ' + rows.length + ' pengumpulan';
+}
+
+function detail(r){
+  const j = pecah(r);
+  $('dJudul').textContent = r.nama + ' — ' + r.paket;
+  $('dInfo').textContent = 'NIS ' + (r.nis || '–') + ' · Kelas ' + r.kelas + ' · Nilai ' + (r.nilai ?? '–') +
+    ' · Benar ' + (r.benar ?? '–') + ', salah ' + (r.salah ?? '–') + ', kosong ' + (r.kosong ?? '–');
+  $('dGrid').innerHTML = j.length
+    ? j.map((v, i) => `<div class="sel ${v === '-' ? 'kosong' : ''}"><span>${i + 1}</span><b>${esc(v)}</b></div>`).join('')
+    : '<p>Jawaban tidak tersimpan untuk pengumpulan ini.</p>';
+  $('dlg').showModal();
+}
+
+async function muat(){
+  const {F, dbTingkat, TINGKAT, KOLEKSI} = await import(LOKASI_FIREBASE);
+  const kol = KOLEKSI.hasil || 'hasil';
+  const hasil = await Promise.allSettled(TINGKAT.map(t =>
+    F.getDocs(F.query(F.collection(dbTingkat(t), kol), F.limit(BATAS_PER_TINGKAT)))));
+
+  const baru = [], gagal = [];
+  hasil.forEach((h, i) => {
+    if(h.status === 'fulfilled') h.value.docs.forEach(d => baru.push(norm(d.id, d.data(), TINGKAT[i])));
+    else { gagal.push(TINGKAT[i]); console.warn(kol, TINGKAT[i], h.reason); }
+  });
+  if(gagal.length === TINGKAT.length) throw new Error('semua tingkat gagal dimuat. Periksa aturan Firestore atau koneksi.');
+  if(gagal.length) peringatan('Koleksi "' + kol + '" tingkat ' + gagal.join(', ') + ' gagal dimuat. Periksa aturan Firestore atau koneksi.');
+
+  rows = baru.sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
+  render();
+}
+
+$('isi').onclick = e => {
+  const tr = e.target.closest('tr'); if(!tr) return;
+  const r = rows.find(x => x.id === tr.dataset.id && x.tingkat === tr.dataset.t);
+  if(r) detail(r);
+};
+$('tutup').onclick = () => $('dlg').close();
+['fUjian', 'fKelas'].forEach(id => $(id).addEventListener('change', render));
+$('q').addEventListener('input', render);
+$('btnMuat').onclick = () => {
+  $('cfgwarn').innerHTML = ''; $('cfgwarn').classList.add('hidden');
+  muat().then(() => toast('Data dimuat ulang.')).catch(e => peringatan(String(e.message || e)));
+};
+$('btnCsv').onclick = () => unduhCsv('jawaban-siswa.csv', [
+  ['NIS', 'Nama', 'Kelas', 'Ujian', 'Nilai', 'Jawaban'],
+  ...saring().map(r => [r.nis, r.nama, r.kelas, r.paket, r.nilai, pecah(r).join(' ')])
+]);
+
+try { await muat(); }
+catch(e){ console.error(e); peringatan('Jawaban gagal dimuat: ' + (e.message || e.code || e)); render(); }
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="id">
+<head>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Guru · KW Learning</title>
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+:root {
+  --bg:var(--nm-bg);
+  --kartu:var(--nm-bg);
+  --teks:var(--nm-text);
+  --redup:var(--nm-muted);
+  --garis:var(--nm-garis);
+  --utama:var(--nm-accent);
+  --utama-teks:#fff;
+  --bahaya:var(--nm-warn);
+  --peringatan-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
+  --peringatan-teks:var(--nm-kuning);
+  --bayang:var(--nm-out-s);
+  --r:16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:var(--nm-bg);
+    --kartu:var(--nm-bg);
+    --teks:var(--nm-text);
+    --redup:var(--nm-muted);
+    --garis:var(--nm-garis);
+    --utama:var(--nm-accent);
+    --utama-teks:#fff;
+    --bahaya:var(--nm-warn);
+    --peringatan-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
+    --peringatan-teks:var(--nm-kuning);
+    --bayang:var(--nm-out-s);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--teks);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.hidden { display: none !important; }
+
+.isi {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.atas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.atas h1 { margin: 0 0 2px; font-size: 1.6rem; line-height: 1.2; }
+.atas p { margin: 0; color: var(--redup); }
+#rinci { font-size: .85rem; }
+
+.alat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.atas .alat { margin-bottom: 0; }
+
+button, select, input, textarea { font: inherit; color: inherit; }
+
+button {
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+button:hover { border-color: var(--redup); }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--utama);
+  outline-offset: 2px;
+}
+button:disabled { opacity: .55; cursor: not-allowed; }
+
+button.utama {
+  background: var(--utama);
+  border-color: var(--utama);
+  color: var(--utama-teks);
+  font-weight: 600;
+}
+button.utama:hover { opacity: .9; }
+
+button.bahaya { color: var(--bahaya); }
+button.kecil { padding: 4px 10px; font-size: .85rem; }
+
+input[type="text"], input[type="search"], input:not([type]), select {
+  border: 1px solid var(--garis);
+  background: var(--kartu);
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 0;
+}
+#cari { flex: 1 1 240px; max-width: 360px; }
+#fk { flex: 0 1 200px; }
+
+.warn {
+  background: var(--peringatan-bg);
+  color: var(--peringatan-teks);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: .9rem;
+}
+
+.k {
+  background: var(--kartu);
+  border: 1px solid var(--garis);
+  border-radius: var(--r);
+  box-shadow: var(--bayang);
+}
+
+.tbl { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--garis); vertical-align: middle; }
+th {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--redup);
+  font-weight: 600;
+  white-space: nowrap;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: color-mix(in srgb, var(--utama) 5%, transparent); }
+td.aksi { text-align: right; white-space: nowrap; }
+td.aksi button + button { margin-left: 6px; }
+td.kosong { text-align: center; color: var(--redup); padding: 36px 16px; }
+.id { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; }
+
+.lencana {
+  display: inline-block;
+  padding: 1px 8px;
+  margin: 1px 4px 1px 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--utama) 12%, transparent);
+  color: var(--utama);
+  font-size: .78rem;
+}
+
+/* dialog */
+dialog {
+  border: 1px solid var(--garis);
+  border-radius: var(--r);
+  background: var(--kartu);
+  color: var(--teks);
+  padding: 0;
+  width: min(480px, calc(100vw - 32px));
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+}
+dialog::backdrop { background: rgba(10, 15, 25, .5); }
+dialog form { padding: 20px; }
+dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
+
+.f { display: block; margin-bottom: 14px; }
+.f span { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+.f small { display: block; color: var(--redup); font-size: .78rem; margin-top: 3px; }
+.f input { width: 100%; }
+
+.gf { color: var(--bahaya); font-size: .88rem; margin: 0 0 10px; }
+
+.tombol { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+/* toast: di tengah layar */
+.toast {
+  position: fixed;
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 16px 24px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--teks);
+  color: var(--bg);
+  font-size: .95rem;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
+  z-index: 2000;
+  animation: toast-masuk .18s ease-out;
+}
+@keyframes toast-masuk {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+
+@media (max-width: 600px) {
+  .isi { padding: 16px 12px 40px; }
+  .atas .alat { width: 100%; }
+  .atas .alat button { flex: 1 1 auto; }
+  #cari, #fk { flex: 1 1 100%; max-width: none; }
+}
+
+/* dialog konfirmasi (tengah layar) */
+.konfirm { width: min(380px, calc(100vw - 32px)); text-align: center; }
+.kbox { padding: 24px 22px 20px; }
+.kbox h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.kbox p { margin: 0 0 20px; color: var(--redup); white-space: pre-line; }
+.konfirm .tombol { justify-content: center; }
+.konfirm .tombol button { min-width: 96px; }
+button.utama.merah { background: var(--bahaya); border-color: var(--bahaya); color: #fff; }
+</style>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+</head>
+<body data-jenis="guru">
+<div id="sidebar-slot" data-mode="halaman" data-aktif="guru"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+<div class="top">
+  <button id="burger" type="button" aria-label="Buka menu">☰</button>
+  <h2>Data Guru</h2>
+</div>
+
+
+<main class="isi">
+  <header class="atas">
+    <div><h1>Data Guru</h1><p id="jml">Memuat data…</p><p id="rinci"></p></div>
+    <div class="alat">
+      <button id="templat" type="button">Unduh templat Excel</button>
+      <button id="impor" type="button">Impor Excel/CSV</button>
+      <input id="berkas" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden">
+      <button id="tambah" type="button" class="utama">Tambah guru</button>
+    </div>
+  </header>
+
+  <div id="cfgwarn" class="warn hidden"></div>
+
+  <div class="alat">
+    <input id="cari" type="search" placeholder="Cari nama atau NIP" aria-label="Cari">
+    <select id="fk" aria-label="Saring kelas"></select>
+  </div>
+
+  <div class="k tbl">
+    <table>
+      <thead><tr><th>NIP / ID guru</th><th>Nama lengkap</th><th>Mata pelajaran</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</main>
+
+<datalist id="dk"></datalist>
+
+<dialog id="dlg">
+  <form id="frm">
+    <h2 id="jdl"></h2>
+    <div id="isi"></div>
+    <p id="gf" class="gf hidden" role="alert"></p>
+    <div class="tombol">
+      <button id="batal" type="button">Batal</button>
+      <button id="simpan" type="submit" class="utama">Simpan</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgk" class="konfirm">
+  <div class="kbox">
+    <h2 id="kjdl">Konfirmasi</h2>
+    <p id="kpesan"></p>
+    <div class="tombol">
+      <button id="ktidak" type="button">Batal</button>
+      <button id="kya" type="button" class="utama">Ya</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="module">
+/*
+  Firebase dimuat dengan import dinamis. Jika berkas firebase-pusat.js
+  gagal dimuat, tombol-tombol lain tetap berfungsi dan penyebabnya
+  ditampilkan di halaman (bukan hanya di konsol).
+*/
+let F, dbSiswaGuru;
+let KOLEKSI = { guru: "guru", siswa: "siswa" };
+let galatMuat = "";
+
+try {
+  ({ F, dbSiswaGuru, KOLEKSI } = await import("../assets/js/firebase-pusat.js"));
+} catch (e) {
+  console.error("firebase-pusat.js gagal dimuat:", e);
+
+  galatMuat = location.protocol === "file:"
+    ? "Halaman dibuka langsung dari berkas (file://), sehingga Firebase tidak bisa dimuat. Buka lewat server atau hosting (mis. localhost atau Firebase Hosting)."
+    : "Gagal memuat assets/js/firebase-pusat.js (" + (e && e.message ? e.message : e) + "). Pastikan berkas itu ada di assets/js/ dan mengekspor F, dbSiswaGuru, dan KOLEKSI.";
+}
+
+(() => {
+  "use strict";
+
+  /* =========================================
+     KONFIGURASI
+  ========================================= */
+
+  const $ = (id) => document.getElementById(id);
+
+  const KOLEKSI_GURU = KOLEKSI.guru;
+
+  // Berkas templat yang diunduh (dibuat sesuai kolom di bawah).
+  const NAMA_TEMPLAT = "Template_Data_Guru.xlsx";
+  const URL_TEMPLAT = "../assets/templat/" + NAMA_TEMPLAT;
+  const SHEET_DATA = "Data Guru";
+
+  // Pustaka pembaca Excel (SheetJS): coba salinan lokal dulu, lalu CDN.
+  const SUMBER_XLSX = [
+    "../assets/js/xlsx.full.min.js",
+    "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+  ];
+
+  /*
+    Judul kolom pada templat:
+    NIP / ID guru | Nama lengkap | Mata pelajaran
+    (kolom "Kelas diampu" bersifat opsional)
+  */
+  const BIDANG = [
+    {
+      k: "id",
+      l: "NIP / ID Guru",
+      wajib: true,
+      alias: ["nip/id guru", "nip/id", "nip", "id guru", "id", "nuptk"]
+    },
+    {
+      k: "nama",
+      l: "Nama Lengkap",
+      wajib: true,
+      alias: ["nama lengkap", "nama", "nama guru"]
+    },
+    {
+      k: "mapel",
+      l: "Mata Pelajaran",
+      wajib: true,
+      alias: ["mata pelajaran", "mapel", "mata pelajaran diampu"]
+    },
+    {
+      k: "kelas",
+      l: "Kelas Diampu",
+      wajib: false,
+      alias: ["kelas diampu", "kelas"],
+      daftar: "dk"
+    }
+  ];
+
+  const KOLOM = ["id", "nama", "mapel"];
+  const CARI = ["id", "nama"];
+
+  let data = [];
+  let idDiedit = null;
+  let sedangMemuat = false;
+  let timerToast;
+
+  /* =========================================
+     UTILITAS
+  ========================================= */
+
+  const esc = (s) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[c]);
+
+  const rapikan = (s) =>
+    String(s ?? "").replace(/\s+/g, " ").trim();
+
+  const normKepala = (s) =>
+    rapikan(s).toLowerCase().replace(/\s*\/\s*/g, "/");
+
+  // Kelas ditulis angka Romawi: "7a", "VII-A", "VII A" -> "VII A"
+  const ROMAWI = { "7": "VII", "8": "VIII", "9": "IX" };
+
+  function normKelas(v) {
+    const s = rapikan(v)
+      .toUpperCase()
+      .replace(/[.\-_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const m = s.match(/^(VII|VIII|IX|7|8|9)\s*([A-Z])$/);
+
+    return m ? `${ROMAWI[m[1]] || m[1]} ${m[2]}` : s;
+  }
+
+  const pecahKelas = (s) =>
+    String(s || "")
+      .split(/[,;]/)
+      .map(normKelas)
+      .filter(Boolean);
+
+  const RANK = { VII: 7, VIII: 8, IX: 9 };
+
+  function kunciKelas(k) {
+    const m = String(k).match(/^(VII|VIII|IX)\s+(.*)$/);
+    return m ? [RANK[m[1]], m[2]] : [99, String(k)];
+  }
+
+  const banding = (a, b) =>
+    a.localeCompare(b, "id", {
+      numeric: true,
+      sensitivity: "base"
+    });
+
+  const urutKelas = (a, b) => {
+    const x = kunciKelas(a);
+    const y = kunciKelas(b);
+    return (x[0] - y[0]) || banding(x[1], y[1]);
+  };
+
+  const urut = banding;
+
+  /* Pemberitahuan (toast) di tengah layar, tanpa alert/confirm bawaan browser. */
+
+  const ADA_POPOVER =
+    typeof HTMLElement !== "undefined" && "popover" in HTMLElement.prototype;
+
+  function tampilToast(el) {
+    if (ADA_POPOVER) {
+      if (!el.matches(":popover-open")) el.showPopover();
+    } else {
+      el.style.display = "block";
+    }
+  }
+
+  function sembunyiToast(el) {
+    if (ADA_POPOVER) {
+      try {
+        if (el.matches(":popover-open")) el.hidePopover();
+      } catch (e) { /* abaikan */ }
+    } else {
+      el.style.display = "none";
+    }
+  }
+
+  // Dialog konfirmasi di tengah layar; mengembalikan true/false.
+  function konfirmasi(pesan, opsi = {}) {
+    const { judul = "Konfirmasi", ya = "Ya", bahaya = false } = opsi;
+
+    return new Promise((selesai) => {
+      const dlg = $("dlgk");
+      const btnYa = $("kya");
+      const btnTidak = $("ktidak");
+      let hasil = false;
+
+      $("kjdl").textContent = judul;
+      $("kpesan").textContent = pesan;
+      btnYa.textContent = ya;
+      btnYa.classList.toggle("merah", bahaya);
+
+      const onYa = () => { hasil = true; dlg.close(); };
+      const onTidak = () => dlg.close();
+      const onLatar = (e) => { if (e.target === dlg) dlg.close(); };
+
+      const bersih = () => {
+        btnYa.removeEventListener("click", onYa);
+        btnTidak.removeEventListener("click", onTidak);
+        dlg.removeEventListener("click", onLatar);
+        dlg.removeEventListener("close", bersih);
+        selesai(hasil);
+      };
+
+      btnYa.addEventListener("click", onYa);
+      btnTidak.addEventListener("click", onTidak);
+      dlg.addEventListener("click", onLatar);
+      dlg.addEventListener("close", bersih);
+
+      dlg.showModal();
+      btnTidak.focus();
+    });
+  }
+
+  function toast(pesan) {
+    let el = $("toast");
+
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      el.className = "toast";
+      el.setAttribute("role", "status");
+
+      if (ADA_POPOVER) el.setAttribute("popover", "manual");
+      else el.style.display = "none";
+
+      document.body.appendChild(el);
+    }
+
+    el.textContent = pesan;
+
+    tampilToast(el);
+
+    // ulangi animasi bila toast sedang tampil
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+
+    clearTimeout(timerToast);
+
+    timerToast = setTimeout(() => sembunyiToast(el), 4000);
+  }
+
+  function peringatan(pesan) {
+    const el = $("cfgwarn");
+
+    if (!el) return;
+
+    if (!pesan) {
+      el.classList.add("hidden");
+      return;
+    }
+
+    el.textContent = pesan;
+    el.classList.remove("hidden");
+  }
+
+  /* =========================================
+     FIREBASE: MEMUAT DATA GURU
+  ========================================= */
+
+  async function muatGuru() {
+    sedangMemuat = true;
+
+    try {
+      peringatan("");
+
+      const ref = F.collection(
+        dbSiswaGuru,
+        KOLEKSI_GURU
+      );
+
+      const snapshot = await F.getDocs(ref);
+
+      data = snapshot.docs.map((dok) => ({
+        ...dok.data(),
+        id: dok.id
+      }));
+
+      gambar();
+
+    } catch (error) {
+      console.error("Gagal memuat guru:", error);
+
+      peringatan(
+        "Gagal mengambil data guru dari Firebase."
+      );
+
+      toast("Koneksi Firebase bermasalah.");
+
+    } finally {
+      sedangMemuat = false;
+    }
+  }
+
+  /* =========================================
+     FIREBASE: SIMPAN DATA GURU
+  ========================================= */
+
+  async function simpanFirebase(item, idLama = null) {
+    const idBaru = String(item.id).trim();
+
+    if (!idBaru) {
+      throw new Error("NIP/ID guru wajib diisi.");
+    }
+
+    const batch = F.writeBatch(dbSiswaGuru);
+
+    const refBaru = F.doc(
+      dbSiswaGuru,
+      KOLEKSI_GURU,
+      idBaru
+    );
+
+    if (idLama && idLama !== idBaru) {
+      const refLama = F.doc(
+        dbSiswaGuru,
+        KOLEKSI_GURU,
+        idLama
+      );
+
+      batch.delete(refLama);
+    }
+
+    batch.set(refBaru, {
+      ...item,
+      id: idBaru,
+      diperbaruiPada: F.serverTimestamp()
+    });
+
+    await batch.commit();
+  }
+
+  /* =========================================
+     FILTER KELAS
+  ========================================= */
+
+  function semuaKelas() {
+    return [
+      ...new Set(
+        data.flatMap((d) => pecahKelas(d.kelas))
+      )
+    ].sort(urutKelas);
+  }
+
+  function isiPilihan() {
+    const fk = $("fk");
+
+    if (!fk) return;
+
+    const sebelumnya = fk.value;
+    const kelas = semuaKelas();
+
+    fk.innerHTML =
+      '<option value="">Semua kelas</option>' +
+      kelas.map((k) =>
+        `<option value="${esc(k)}">${esc(k)}</option>`
+      ).join("");
+
+    fk.value = kelas.includes(sebelumnya)
+      ? sebelumnya
+      : "";
+
+    const dk = $("dk");
+
+    if (dk) {
+      dk.innerHTML = kelas.map((k) =>
+        `<option value="${esc(k)}"></option>`
+      ).join("");
+    }
+  }
+
+  /* =========================================
+     PENCARIAN
+  ========================================= */
+
+  function tersaring() {
+    const q = $("cari").value.trim().toLowerCase();
+    const fk = $("fk").value;
+
+    return data
+      .filter((d) =>
+        !fk || pecahKelas(d.kelas).includes(fk)
+      )
+      .filter((d) =>
+        !q || CARI.some((k) =>
+          String(d[k] || "").toLowerCase().includes(q)
+        )
+      )
+      .sort((a, b) =>
+        urut(a.nama || "", b.nama || "")
+      );
+  }
+
+  /* =========================================
+     TABEL
+  ========================================= */
+
+  function gambar() {
+    isiPilihan();
+
+    const daftar = tersaring();
+
+    const adaFilter =
+      $("cari").value.trim() || $("fk").value;
+
+    $("jml").textContent = adaFilter
+      ? `${daftar.length} dari ${data.length} guru`
+      : `${data.length} guru terdaftar`;
+
+    const jumlahMapel = new Set(
+      data
+        .map((d) => (d.mapel || "").trim().toLowerCase())
+        .filter(Boolean)
+    ).size;
+
+    $("rinci").textContent =
+      `${jumlahMapel} mata pelajaran · ${semuaKelas().length} kelas`;
+
+    $("tb").innerHTML = daftar.length
+      ? daftar.map((d) => `
+          <tr>
+            <td class="id">${esc(d.id)}</td>
+            <td>${esc(d.nama)}</td>
+            <td>${esc(d.mapel)}</td>
+
+            <td class="aksi">
+              <button
+                type="button"
+                class="kecil"
+                data-aksi="ubah"
+                data-id="${esc(d.id)}">
+                Ubah
+              </button>
+
+              <button
+                type="button"
+                class="kecil bahaya"
+                data-aksi="hapus"
+                data-id="${esc(d.id)}">
+                Hapus
+              </button>
+            </td>
+          </tr>
+        `).join("")
+      : `
+          <tr>
+            <td colspan="4" class="kosong">
+              ${
+                data.length
+                  ? "Tidak ada data yang cocok."
+                  : "Belum ada data guru."
+              }
+            </td>
+          </tr>
+        `;
+  }
+
+  /* =========================================
+     FORM
+  ========================================= */
+
+  function bukaForm(item = null) {
+    idDiedit = item ? item.id : null;
+
+    $("jdl").textContent = item
+      ? "Ubah Data Guru"
+      : "Tambah Guru";
+
+    $("isi").innerHTML = BIDANG.map((b) => `
+      <label class="f">
+        <span>
+          ${esc(b.l)}${b.wajib ? " *" : ""}
+        </span>
+
+        <input
+          name="${b.k}"
+          type="text"
+          autocomplete="off"
+          ${b.wajib ? "required" : ""}
+          ${b.daftar ? `list="${b.daftar}"` : ""}
+          value="${esc(item ? item[b.k] : "")}"
+        >
+      </label>
+    `).join("");
+
+    $("gf").classList.add("hidden");
+    $("dlg").showModal();
+    $("frm").elements[0].focus();
+  }
+
+  function galat(pesan) {
+    $("gf").textContent = pesan;
+    $("gf").classList.remove("hidden");
+  }
+
+  async function kirimForm(e) {
+    e.preventDefault();
+
+    if (sedangMemuat) return;
+
+    const tombol = $("frm").querySelector(
+      '[type="submit"]'
+    );
+
+    if (tombol) tombol.disabled = true;
+
+    try {
+      const baru = {};
+
+      for (const b of BIDANG) {
+        baru[b.k] = String(
+          $("frm").elements[b.k].value || ""
+        ).trim();
+
+        if (b.wajib && !baru[b.k]) {
+          galat(`${b.l} wajib diisi.`);
+          return;
+        }
+      }
+
+      baru.id = baru.id.replace(/\s+/g, "");
+
+      if (baru.id.includes("/")) {
+        galat("NIP/ID guru tidak boleh memuat tanda /.");
+        return;
+      }
+
+      baru.kelas = pecahKelas(baru.kelas).join(", ");
+
+      const kembar = data.some((d) =>
+        d.id === baru.id && d.id !== idDiedit
+      );
+
+      if (kembar) {
+        galat("NIP/ID guru sudah terdaftar.");
+        return;
+      }
+
+      await simpanFirebase(baru, idDiedit);
+
+      $("dlg").close();
+
+      toast(
+        idDiedit
+          ? "Data guru berhasil diperbarui."
+          : "Data guru berhasil ditambahkan."
+      );
+
+      await muatGuru();
+
+    } catch (error) {
+      console.error(error);
+
+      galat(
+        "Gagal menyimpan data guru ke Firebase."
+      );
+
+    } finally {
+      if (tombol) tombol.disabled = false;
+    }
+  }
+
+  /* =========================================
+     HAPUS
+  ========================================= */
+
+  async function hapus(id) {
+    const guru = data.find((d) => d.id === id);
+
+    if (!guru) return;
+
+    if (!(await konfirmasi(
+      `Hapus guru ${guru.nama}?`,
+      { judul: "Hapus guru", ya: "Hapus", bahaya: true }
+    ))) return;
+
+    try {
+      const ref = F.doc(
+        dbSiswaGuru,
+        KOLEKSI_GURU,
+        id
+      );
+
+      await F.deleteDoc(ref);
+
+      toast("Data guru berhasil dihapus.");
+
+      await muatGuru();
+
+    } catch (error) {
+      console.error(error);
+      toast("Gagal menghapus data guru.");
+    }
+  }
+
+  /* =========================================
+     PEMBACA BERKAS: EXCEL (.xlsx/.xls) DAN CSV
+  ========================================= */
+
+  function parseCSV(teks) {
+    teks = teks.replace(/^\uFEFF/, "");
+
+    const baris1 = teks.split(/\r?\n/, 1)[0] || "";
+
+    const pemisah =
+      (baris1.match(/;/g) || []).length >
+      (baris1.match(/,/g) || []).length
+        ? ";"
+        : ",";
+
+    const hasil = [];
+    let baris = [];
+    let sel = "";
+    let kutip = false;
+
+    for (let i = 0; i < teks.length; i++) {
+      const c = teks[i];
+
+      if (kutip) {
+        if (c === '"' && teks[i + 1] === '"') {
+          sel += '"';
+          i++;
+        } else if (c === '"') {
+          kutip = false;
+        } else {
+          sel += c;
+        }
+      } else if (c === '"') {
+        kutip = true;
+      } else if (c === pemisah) {
+        baris.push(sel);
+        sel = "";
+      } else if (c === "\n" || c === "\r") {
+        if (c === "\r" && teks[i + 1] === "\n") i++;
+
+        baris.push(sel);
+        hasil.push(baris);
+
+        baris = [];
+        sel = "";
+      } else {
+        sel += c;
+      }
+    }
+
+    if (sel !== "" || baris.length) {
+      baris.push(sel);
+      hasil.push(baris);
+    }
+
+    return hasil.filter((r) =>
+      r.some((x) => x.trim() !== "")
+    );
+  }
+
+  function muatSkrip(src) {
+    return new Promise((ok, gagal) => {
+      const s = document.createElement("script");
+
+      s.src = src;
+      s.onload = ok;
+      s.onerror = () => {
+        s.remove();
+        gagal(new Error("Gagal memuat " + src));
+      };
+
+      document.head.appendChild(s);
+    });
+  }
+
+  let janjiXlsx = null;
+
+  function pastikanXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+
+    if (!janjiXlsx) {
+      janjiXlsx = (async () => {
+        for (const src of SUMBER_XLSX) {
+          try {
+            await muatSkrip(src);
+            if (window.XLSX) return window.XLSX;
+          } catch (e) {
+            console.warn(e.message);
+          }
+        }
+
+        janjiXlsx = null;
+        throw new Error("Pustaka Excel tidak dapat dimuat.");
+      })();
+    }
+
+    return janjiXlsx;
+  }
+
+  // Mengembalikan tabel (array baris, tiap baris array teks).
+  async function bacaTabel(berkas) {
+    const nama = berkas.name.toLowerCase();
+
+    if (/\.(xlsx|xls)$/.test(nama)) {
+      const X = await pastikanXlsx();
+
+      const buku = X.read(
+        await berkas.arrayBuffer(),
+        { type: "array" }
+      );
+
+      const namaSheet =
+        buku.SheetNames.find((n) =>
+          n.trim().toLowerCase() === SHEET_DATA.toLowerCase()
+        ) || buku.SheetNames[0];
+
+      const baris = X.utils.sheet_to_json(
+        buku.Sheets[namaSheet],
+        { header: 1, raw: false, defval: "" }
+      );
+
+      return baris
+        .map((b) => b.map((x) => String(x ?? "").trim()))
+        .filter((b) => b.some((x) => x !== ""));
+    }
+
+    return parseCSV(await berkas.text());
+  }
+
+  /* =========================================
+     UNDUH TEMPLAT DAN IMPOR
+  ========================================= */
+
+  async function unduhTemplat() {
+    try {
+      const res = await fetch(URL_TEMPLAT, { cache: "no-cache" });
+
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      const url = URL.createObjectURL(await res.blob());
+
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = NAMA_TEMPLAT;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    } catch (error) {
+      console.error("Unduh templat:", error);
+
+      toast(
+        "Templat tidak ditemukan di assets/templat/" + NAMA_TEMPLAT + "."
+      );
+    }
+  }
+
+  async function imporBerkas(berkas) {
+    if (!berkas) return;
+
+    try {
+      const tabel = await bacaTabel(berkas);
+
+      if (tabel.length < 2) {
+        toast("Berkas kosong atau hanya berisi judul kolom.");
+        return;
+      }
+
+      const kepala = tabel[0].map(normKepala);
+      const indeks = {};
+
+      for (const b of BIDANG) {
+        const i = kepala.findIndex((h) => b.alias.includes(h));
+
+        if (i >= 0) indeks[b.k] = i;
+      }
+
+      const hilang = BIDANG.filter((b) =>
+        b.wajib && !(b.k in indeks)
+      );
+
+      if (hilang.length) {
+        toast(
+          "Kolom wajib tidak ditemukan: " +
+          hilang.map((b) => b.l).join(", ") + "."
+        );
+        return;
+      }
+
+      const hasil = new Map();
+      let dilewati = 0;
+
+      for (const r of tabel.slice(1)) {
+        const item = {};
+
+        for (const b of BIDANG) {
+          if (!(b.k in indeks)) continue;
+
+          item[b.k] = rapikan(r[indeks[b.k]]);
+        }
+
+        item.id = (item.id || "")
+          .replace(/\s+/g, "")
+          .replace(/^'/, "");
+
+        // Kolom kelas hanya diolah bila ada di berkas.
+        if ("kelas" in item) {
+          item.kelas = pecahKelas(item.kelas).join(", ");
+        }
+
+        if (
+          !item.id ||
+          item.id.includes("/") ||
+          !item.nama ||
+          !item.mapel
+        ) {
+          dilewati++;
+          continue;
+        }
+
+        hasil.set(item.id, item);
+      }
+
+      const daftar = [...hasil.values()];
+
+      if (!daftar.length) {
+        toast("Tidak ada baris yang valid untuk diimpor.");
+        return;
+      }
+
+      const diperbarui = daftar.filter((item) =>
+        data.some((d) => d.id === item.id)
+      ).length;
+
+      const baru = daftar.length - diperbarui;
+
+      // merge: kolom yang tidak ada di berkas (mis. kelas) tidak ditimpa.
+      for (let i = 0; i < daftar.length; i += 450) {
+        const batch = F.writeBatch(dbSiswaGuru);
+
+        daftar.slice(i, i + 450).forEach((item) => {
+          const ref = F.doc(
+            dbSiswaGuru,
+            KOLEKSI_GURU,
+            item.id
+          );
+
+          batch.set(ref, {
+            ...item,
+            diperbaruiPada: F.serverTimestamp()
+          }, { merge: true });
+        });
+
+        await batch.commit();
+      }
+
+      toast(
+        `Impor selesai: ${baru} baru, ${diperbarui} diperbarui, ${dilewati} dilewati.`
+      );
+
+      await muatGuru();
+
+    } catch (error) {
+      console.error(error);
+      toast("Gagal mengimpor berkas. Pastikan formatnya sesuai templat.");
+    } finally {
+      $("berkas").value = "";
+    }
+  }
+
+  /* =========================================
+     EVENT
+  ========================================= */
+
+  function mulai() {
+    document.querySelector("thead tr").innerHTML =
+      KOLOM.map((k) => {
+        const b = BIDANG.find((x) => x.k === k);
+        return `<th>${esc(b.l)}</th>`;
+      }).join("") + "<th>Aksi</th>";
+
+    $("tambah").textContent = "Tambah Guru";
+
+    $("cari").placeholder = "Cari nama atau NIP";
+
+    $("tambah").addEventListener(
+      "click",
+      () => bukaForm()
+    );
+
+    $("templat").addEventListener(
+      "click",
+      unduhTemplat
+    );
+
+    $("impor").addEventListener(
+      "click",
+      () => $("berkas").click()
+    );
+
+    $("berkas").addEventListener(
+      "change",
+      (e) => imporBerkas(e.target.files[0])
+    );
+
+    $("cari").addEventListener("input", gambar);
+    $("fk").addEventListener("change", gambar);
+
+    $("frm").addEventListener("submit", kirimForm);
+
+    $("batal").addEventListener(
+      "click",
+      () => $("dlg").close()
+    );
+
+    $("tb").addEventListener("click", (e) => {
+      const tombol = e.target.closest("[data-aksi]");
+
+      if (!tombol) return;
+
+      if (tombol.dataset.aksi === "ubah") {
+        const item = data.find(
+          (d) => d.id === tombol.dataset.id
+        );
+
+        if (item) bukaForm(item);
+      } else {
+        hapus(tombol.dataset.id);
+      }
+    });
+
+    $("dlg").addEventListener("click", (e) => {
+      if (e.target === $("dlg")) {
+        $("dlg").close();
+      }
+    });
+
+    if (galatMuat) {
+      peringatan(galatMuat);
+      $("jml").textContent = "Data tidak dapat dimuat";
+      $("tb").innerHTML =
+        '<tr><td colspan="4" class="kosong">Firebase belum terhubung.</td></tr>';
+      return;
+    }
+
+    muatGuru();
+  }
+
+  mulai();
+
+})();
+</script>
+</div>
+</body>
+</html>

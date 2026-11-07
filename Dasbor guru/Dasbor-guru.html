@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dasbor Guru · KW Learning</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="guru"></script>
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+  .sb { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+        box-shadow: inset 2px 2px 5px var(--nm-dark), inset -2px -2px 5px var(--nm-light); }
+  .sb.belum { color: var(--nm-kuning); } .sb.jalan { color: var(--nm-ok); } .sb.selesai { color: var(--nm-muted); }
+  .alat .btn[aria-pressed="true"] { color: var(--nm-accent);
+    box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light); }
+  .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; margin-bottom: 24px; }
+  .menu a { display: block; padding: 16px 18px; border-radius: 20px; text-decoration: none; color: var(--nm-text);
+            background: var(--nm-bg); box-shadow: 6px 6px 14px var(--nm-dark), -6px -6px 14px var(--nm-light); }
+  .menu a:hover { box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light); }
+  .menu b { display: block; color: var(--nm-accent); } .menu span { font-size: 12.5px; color: var(--nm-muted); }
+  h4.gr { margin: 22px 0 12px; font-size: 14px; color: var(--nm-muted); font-weight: 600; }
+  .tw { border: 0; box-shadow: none; background: transparent; }
+</style>
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-peran="guru" data-aktif="dasbor"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+
+<div id="mn">
+  <div class="top">
+    <button id="burger" type="button" aria-label="Buka menu">☰</button>
+    <h2 id="sapa">Dasbor Guru</h2>
+  </div>
+
+  <div class="wrap">
+    <p id="tanggal" style="margin:0 0 16px;color:var(--nm-muted)"></p>
+    <div id="info" class="msg warn" role="status" hidden></div>
+
+    <section class="stats" aria-label="Ringkasan">
+      <div class="st"><b id="n-hari">0</b><span>Jadwal hari ini</span></div>
+      <div class="st"><b id="n-jalan">0</b><span>Sedang berlangsung</span></div>
+      <div class="st"><b id="n-paket">0</b><span>Paket soal</span></div>
+      <div class="st"><b id="n-siswa">0</b><span>Total siswa</span></div>
+    </section>
+
+    <div class="card">
+      <h3>Jadwal ujian hari ini</h3>
+      <div class="alat" style="margin-bottom:12px">
+        <button class="btn" id="f-saya" type="button" aria-pressed="true">Jadwal saya</button>
+        <button class="btn" id="f-semua" type="button" aria-pressed="false">Semua jadwal</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Waktu</th><th>Mapel</th><th>Kelas</th><th>Ruang</th><th>Pengawas</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="isi"></tbody>
+      </table></div>
+      <p class="empty" id="kosong" hidden>Tidak ada jadwal ujian hari ini.</p>
+    </div>
+
+    <div id="menu"></div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { F, dbBankSoal, dbSiswaGuru, KOLEKSI } from '../assets/js/firebase-pusat.js';
+import { $, esc } from '../assets/js/util.js';
+
+const MENU_GURU = [
+  { g: 'Data Master', i: [['Data Siswa', 'siswa.html', 'Daftar siswa'], ['Data Kelas', 'Kelas.html', 'Daftar kelas']] },
+  { g: 'Monitoring', i: [['Ruang Ujian', 'ruang.html', 'Pantau per ruang'], ['Monitoring Peserta', 'monitoring.html', 'Status login dan progres'], ['Aktivitas Siswa', 'aktivitas.html', 'Aktivitas peserta saat ujian']] },
+  { g: 'Hasil Ujian', i: [['Jawaban Siswa', 'jawaban.html', 'Jawaban tiap siswa'], ['Nilai Ujian', 'hasil.html', 'Hasil dan nilai ujian'], ['Rekap Nilai', 'nilai.html', 'Rekap nilai dan ketuntasan']] }
+];
+const pesan = t => { $('info').hidden = !t; $('info').textContent = t || ''; };
+
+let guru = {};
+try { guru = JSON.parse(localStorage.getItem('kw_guru') || sessionStorage.getItem('kw_guru') || '{}') || {}; } catch (e) {}
+document.addEventListener('kw-sesi', e => { if (e.detail && e.detail.guru) { guru = e.detail.guru; sapa(); } });
+function sapa() {
+  $('sapa').textContent = 'Selamat datang, ' + (guru.nama || 'Guru');
+  $('tanggal').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + (guru.mapel ? ' · ' + guru.mapel : '');
+}
+sapa();
+
+$('menu').innerHTML = MENU_GURU.map(k => `<h4 class="gr">${esc(k.g)}</h4><div class="menu">` +
+  k.i.map(([n, u, d]) => `<a href="${esc(encodeURI(u))}"><b>${esc(n)}</b><span>${esc(d)}</span></a>`).join('') + '</div>').join('');
+
+const mulaiJ = j => new Date((j.tgl || '') + 'T' + (j.mulai || '00:00'));
+const akhirJ = j => new Date((j.tgl || '') + 'T' + (j.selesai || '23:59'));
+const statusJ = j => { const k = new Date(); return k < mulaiJ(j) ? 'belum' : k <= akhirJ(j) ? 'jalan' : 'selesai'; };
+const LBL = { belum: 'Belum mulai', jalan: 'Berlangsung', selesai: 'Selesai' };
+const ambil = async (db, kol) => (await F.getDocs(F.collection(db, kol))).docs.map(d => ({ id: d.id, ...d.data() }));
+
+let JADWAL = [], saya = true;
+
+function gambar() {
+  const hari = new Date().toLocaleDateString('sv-SE');
+  let list = JADWAL.filter(x => x.tgl === hari).sort((a, b) => mulaiJ(a) - mulaiJ(b));
+  /* "Jadwal saya": guru menjadi pengawas jadwal tersebut */
+  const milik = list.filter(x => guru.id && x.pengawasId === guru.id);
+  if (saya) list = milik;
+  $('n-hari').textContent = list.length;
+  $('n-jalan').textContent = list.filter(x => statusJ(x) === 'jalan').length;
+  $('kosong').hidden = list.length > 0;
+  $('kosong').textContent = saya ? 'Tidak ada jadwal ujian Anda hari ini. Pilih "Semua jadwal" untuk melihat yang lain.' : 'Tidak ada jadwal ujian hari ini.';
+  $('isi').innerHTML = list.map(x => { const st = statusJ(x); return `<tr>
+    <td>${esc(x.mulai)}–${esc(x.selesai)}</td><td><b>${esc(x.mapel)}</b></td>
+    <td>${esc(Array.isArray(x.kelas) ? x.kelas.join(', ') : x.kelas || x.tingkat)}</td><td>${esc(x.ruang || '-')}</td>
+    <td>${esc(x.pengawas || '-')}</td>
+    <td><span class="sb ${st}">${LBL[st]}</span></td>
+    <td><a href="monitoring.html?tingkat=${encodeURIComponent(x.tingkat || '')}&jadwal=${encodeURIComponent(x.id)}">Pantau</a></td></tr>`; }).join('');
+}
+
+function pilih(milikSaya) {
+  saya = milikSaya;
+  $('f-saya').setAttribute('aria-pressed', String(saya));
+  $('f-semua').setAttribute('aria-pressed', String(!saya));
+  gambar();
+}
+$('f-saya').onclick = () => pilih(true);
+$('f-semua').onclick = () => pilih(false);
+
+(async () => {
+  const [j, p, s] = await Promise.allSettled([
+    ambil(dbBankSoal, KOLEKSI.jadwal), ambil(dbBankSoal, KOLEKSI.paket), ambil(dbSiswaGuru, KOLEKSI.siswa)]);
+  if (p.status === 'fulfilled') $('n-paket').textContent = p.value.length;
+  if (s.status === 'fulfilled') $('n-siswa').textContent = s.value.length;
+  const dot = $('dot'), cs = $('cs');
+  const ok = [j, p, s].filter(x => x.status === 'fulfilled').length;
+  if (dot) dot.classList.toggle('on', ok > 0);
+  if (cs) cs.textContent = 'Terhubung: ' + ok + ' dari 3 sumber data';
+  if (j.status === 'rejected') pesan('Jadwal tidak bisa dibaca: ' + (j.reason.code || j.reason.message));
+  else {
+    JADWAL = j.value;
+    /* Bila guru belum menjadi pengawas jadwal apa pun hari ini, tampilkan semua */
+    const hari = new Date().toLocaleDateString('sv-SE');
+    const adaMilik = JADWAL.some(x => x.tgl === hari && guru.id && x.pengawasId === guru.id);
+    pilih(adaMilik);
+  }
+})();
+</script>
+</body>
+</html>
