@@ -10,140 +10,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Data Guru · KW Learning</title>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
+/* Halaman Data Guru · KW Learning (responsif)
+   Warna, tombol, isian, dan dialog mengikuti neumorph.css.
+   Di sini hanya tata letak dan hal khusus halaman ini. */
+
 :root {
-  --bg:var(--nm-bg);
-  --kartu:var(--nm-bg);
-  --teks:var(--nm-text);
-  --redup:var(--nm-muted);
-  --garis:var(--nm-garis);
-  --utama:var(--nm-accent);
-  --utama-teks:#fff;
-  --bahaya:var(--nm-warn);
-  --peringatan-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
-  --peringatan-teks:var(--nm-kuning);
-  --bayang:var(--nm-out-s);
-  --r:16px;
+  --redup: var(--nm-muted);
+  --utama: var(--nm-accent);
+  --bahaya: var(--nm-warn);
+  --peringatan-bg: color-mix(in srgb, var(--nm-kuning) 16%, var(--nm-bg));
+  --peringatan-teks: var(--nm-kuning);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:var(--nm-bg);
-    --kartu:var(--nm-bg);
-    --teks:var(--nm-text);
-    --redup:var(--nm-muted);
-    --garis:var(--nm-garis);
-    --utama:var(--nm-accent);
-    --utama-teks:#fff;
-    --bahaya:var(--nm-warn);
-    --peringatan-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
-    --peringatan-teks:var(--nm-kuning);
-    --bayang:var(--nm-out-s);
-  }
-}
-
-* { box-sizing: border-box; }
-
-html, body { margin: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--teks);
-  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.hidden { display: none !important; }
-
+/* ---------- Tata letak: mepet sidebar, jarak kanan kecil ---------- */
 .isi {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
+  max-width: none;
+  margin: 0;
+  padding: 24px 24px calc(48px + env(safe-area-inset-bottom, 0px));
 }
 
-.atas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
+.atas { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
 .atas h1 { margin: 0 0 2px; font-size: 1.6rem; line-height: 1.2; }
 .atas p { margin: 0; color: var(--redup); }
 #rinci { font-size: .85rem; }
 
-.alat {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 12px;
-}
+.alat { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
 .atas .alat { margin-bottom: 0; }
 
-button, select, input, textarea { font: inherit; color: inherit; }
-
-button {
-  border: 1px solid var(--garis);
-  background: var(--kartu);
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background .15s, border-color .15s, opacity .15s;
-}
-button:hover { border-color: var(--redup); }
-button:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid var(--utama);
-  outline-offset: 2px;
-}
-button:disabled { opacity: .55; cursor: not-allowed; }
-
-button.utama {
-  background: var(--utama);
-  border-color: var(--utama);
-  color: var(--utama-teks);
-  font-weight: 600;
-}
-button.utama:hover { opacity: .9; }
-
+/* ---------- Ukuran kontrol (tampilan dari neumorph.css) ---------- */
+button { min-height: 40px; padding: 8px 16px; }
+button.kecil { min-height: 32px; padding: 4px 12px; font-size: .85rem; }
 button.bahaya { color: var(--bahaya); }
-button.kecil { padding: 4px 10px; font-size: .85rem; }
-
-input[type="text"], input[type="search"], input:not([type]), select {
-  border: 1px solid var(--garis);
-  background: var(--kartu);
-  padding: 8px 12px;
-  border-radius: 8px;
-  min-width: 0;
-}
+input, select { min-height: 40px; min-width: 0; }
 #cari { flex: 1 1 240px; max-width: 360px; }
 #fk { flex: 0 1 200px; }
 
+/* ---------- Peringatan ---------- */
 .warn {
   background: var(--peringatan-bg);
   color: var(--peringatan-teks);
   padding: 10px 14px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-size: .9rem;
 }
 
-.k {
-  background: var(--kartu);
-  border: 1px solid var(--garis);
-  border-radius: var(--r);
-  box-shadow: var(--bayang);
-}
-
-.tbl { overflow-x: auto; }
+/* ---------- Tabel ---------- */
+.k { background: var(--nm-bg); border: 0; border-radius: 22px; box-shadow: var(--nm-out); }
+.tbl { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 22px; }
 
 table { width: 100%; border-collapse: collapse; min-width: 560px; }
-th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--garis); vertical-align: middle; }
+th, td { text-align: left; padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid var(--nm-garis); }
 th {
+  background: transparent;
   font-size: .78rem;
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -152,51 +73,62 @@ th {
   white-space: nowrap;
 }
 tbody tr:last-child td { border-bottom: 0; }
-tbody tr:hover { background: color-mix(in srgb, var(--utama) 5%, transparent); }
 td.aksi { text-align: right; white-space: nowrap; }
-td.aksi button + button { margin-left: 6px; }
+td.aksi button + button { margin-left: 8px; }
 td.kosong { text-align: center; color: var(--redup); padding: 36px 16px; }
 .id { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; }
 
 .lencana {
   display: inline-block;
-  padding: 1px 8px;
-  margin: 1px 4px 1px 0;
+  padding: 2px 10px;
+  margin: 2px 4px 2px 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--utama) 12%, transparent);
+  background: var(--nm-bg);
+  box-shadow: var(--nm-in-s);
   color: var(--utama);
   font-size: .78rem;
 }
 
-/* dialog */
-dialog {
-  border: 1px solid var(--garis);
-  border-radius: var(--r);
-  background: var(--kartu);
-  color: var(--teks);
-  padding: 0;
-  width: min(480px, calc(100vw - 32px));
-  box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
-}
-dialog::backdrop { background: rgba(10, 15, 25, .5); }
-dialog form { padding: 20px; }
+/* ---------- Dialog ---------- */
+dialog { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: auto; }
+dialog form { padding: 22px; }
 dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
 
 .f { display: block; margin-bottom: 14px; }
-.f span { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
-.f small { display: block; color: var(--redup); font-size: .78rem; margin-top: 3px; }
+.f span { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+.f small { display: block; color: var(--redup); font-size: .78rem; margin-top: 4px; }
 .f input { width: 100%; }
 
-.gf { color: var(--bahaya); font-size: .88rem; margin: 0 0 10px; }
+.gf {
+  color: var(--bahaya);
+  font-size: .88rem;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--nm-warn) 12%, var(--nm-bg));
+}
 
-.tombol { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+/* Baris tombol di dialog (div.tombol, bukan tombolnya) */
+.tombol { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 
-/* toast: di tengah layar */
-.toast {
+/* Dialog konfirmasi (tengah layar) */
+.konfirm { width: min(380px, calc(100vw - 32px)); text-align: center; }
+.kbox { padding: 24px 22px 20px; }
+.kbox h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.kbox p { margin: 0 0 20px; color: var(--redup); white-space: pre-line; }
+.konfirm .tombol { justify-content: center; }
+.konfirm .tombol button { min-width: 96px; }
+button.utama.merah { color: var(--bahaya) !important; }
+
+/* ---------- Toast: di tengah layar ----------
+   #toast.toast mengalahkan #toast milik neumorph.css
+   (opacity 0, di bawah layar, butuh class .on). */
+#toast.toast {
   position: fixed;
   inset: auto;
   left: 50%;
   top: 50%;
+  bottom: auto;
   margin: 0;
   transform: translate(-50%, -50%);
   width: max-content;
@@ -204,13 +136,16 @@ dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
   padding: 16px 24px;
   border: 0;
   border-radius: 14px;
-  background: var(--teks);
-  color: var(--bg);
+  background: var(--nm-bg);
+  color: var(--nm-text);
+  box-shadow: var(--nm-out);
   font-size: .95rem;
   font-weight: 500;
   text-align: center;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, .35);
   z-index: 2000;
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
   animation: toast-masuk .18s ease-out;
 }
 @keyframes toast-masuk {
@@ -218,24 +153,54 @@ dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-
-@media (max-width: 600px) {
-  .isi { padding: 16px 12px 40px; }
-  .atas .alat { width: 100%; }
-  .atas .alat button { flex: 1 1 auto; }
-  #cari, #fk { flex: 1 1 100%; max-width: none; }
+/* ---------- Tablet ---------- */
+@media (max-width: 820px) {
+  .isi { padding: 16px 14px calc(40px + env(safe-area-inset-bottom, 0px)); }
 }
 
-/* dialog konfirmasi (tengah layar) */
-.konfirm { width: min(380px, calc(100vw - 32px)); text-align: center; }
-.kbox { padding: 24px 22px 20px; }
-.kbox h2 { margin: 0 0 8px; font-size: 1.15rem; }
-.kbox p { margin: 0 0 20px; color: var(--redup); white-space: pre-line; }
-.konfirm .tombol { justify-content: center; }
-.konfirm .tombol button { min-width: 96px; }
-button.utama.merah { background: var(--bahaya); border-color: var(--bahaya); color: #fff; }
+/* ---------- HP ---------- */
+@media (max-width: 600px) {
+  .atas .alat { width: 100%; }
+  .atas .alat button { flex: 1 1 auto; }
+  #cari, #fk { flex: 1 1 100%; max-width: none; width: 100%; }
+
+  input, select { font-size: 16px; min-height: 42px; }  /* cegah zoom iOS */
+
+  /* Tabel jadi kartu */
+  .k.tbl { background: transparent; box-shadow: none; overflow: visible; border-radius: 0; }
+  .tbl table, .tbl tbody, .tbl tr, .tbl td { display: block; width: 100%; min-width: 0; }
+  .tbl thead { display: none; }
+  .tbl tbody tr {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: var(--nm-bg);
+    border-radius: 20px;
+    box-shadow: var(--nm-out);
+  }
+  .tbl td { padding: 4px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+  .tbl td[data-label]::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 76px;
+    margin-right: 8px;
+    color: var(--redup);
+    font-size: .8rem;
+    font-weight: 400;
+  }
+  .tbl td.aksi { margin-top: 8px; text-align: left; }
+  .tbl td.aksi button { min-height: 38px; }
+  .tbl td.kosong { padding: 28px 8px; text-align: center; }
+
+  dialog { width: calc(100vw - 20px); border-radius: 20px; }
+  dialog form { padding: 18px; }
+  .tombol button { flex: 1 1 0; }
+}
+
+/* ---------- HP kecil ---------- */
+@media (max-width: 380px) {
+  .isi { padding: 12px 10px 36px; }
+}
 </style>
-<link rel="stylesheet" href="../assets/css/neumorph.css">
 </head>
 <body data-jenis="guru">
 <div id="sidebar-slot" data-mode="halaman" data-aktif="guru"></div>
@@ -710,9 +675,9 @@ try {
     $("tb").innerHTML = daftar.length
       ? daftar.map((d) => `
           <tr>
-            <td class="id">${esc(d.id)}</td>
-            <td>${esc(d.nama)}</td>
-            <td>${esc(d.mapel)}</td>
+            <td class="id" data-label="NIP / ID">${esc(d.id)}</td>
+            <td data-label="Nama">${esc(d.nama)}</td>
+            <td data-label="Mapel">${esc(d.mapel)}</td>
 
             <td class="aksi">
               <button

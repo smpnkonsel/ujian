@@ -13,14 +13,44 @@
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-  .tw { border: 0; box-shadow: none; background: transparent; }
+  .tw {
+    border: 0; box-shadow: none; background: transparent;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
   td.n, th.n { text-align: right; }
-  .badge.ok { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
+  td small { display: block; color: var(--nm-muted); font-size: 12px; }
+
+  .badge.ok  { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
   .badge.bad { background: color-mix(in srgb, var(--nm-warn) 16%, var(--nm-bg)); color: var(--nm-warn); }
+
   .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
   .tools .kkm input { width: 76px; min-width: 0; flex: none; }
   .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
-  th button { all: unset; cursor: pointer; font-weight: 600; }
+
+  /* Tombol urut di judul kolom: tampil seperti teks biasa */
+  th button {
+    all: unset;
+    cursor: pointer;
+    font-weight: 600;
+    color: inherit;
+    font-size: inherit;
+  }
+  th button:hover { color: var(--nm-accent); }
+  th button:focus-visible { outline: 2px solid var(--nm-accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* Tablet */
+  @media (max-width: 820px) {
+    .tools select { flex: 1 1 160px; }
+  }
+
+  /* HP: filter selebar layar, tabel tetap bisa digeser agar pengurutan kolom tetap ada */
+  @media (max-width: 600px) {
+    .tools input, .tools select { flex: 1 1 100%; width: 100%; }
+    .tools .kkm { flex: 1 1 100%; }
+    .tools .kkm input { width: 90px; flex: none; }
+    .acts .btn { flex: 1 1 auto; }
+    .tw table { min-width: 640px; }
+  }
 </style>
 </head>
 <body>
@@ -32,10 +62,10 @@
     <button id="burger" type="button" aria-label="Buka menu">☰</button>
     <h2>Nilai Ujian</h2>
   </div>
-  <div class="wrap">
+  <div class="wrap penuh">
     <div id="info" class="msg warn" role="status" hidden></div>
 
-    <section class="stats" aria-label="Ringkasan">
+    <section class="stats maks4" aria-label="Ringkasan">
       <div class="st"><b id="n-total">0</b><span>Jumlah nilai</span></div>
       <div class="st"><b id="n-rata">–</b><span>Rata-rata</span></div>
       <div class="st"><b id="n-tuntas">0</b><span>Tuntas</span></div>

@@ -64,7 +64,15 @@
   z-index: 20;
 }
 
-#mn .top h2 { font-size: 21px; color: var(--ink); flex: 1; }
+#mn .top h2 {
+  font-size: 21px;
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 #mn #burger {
   display: none;
@@ -72,6 +80,7 @@
   background: var(--base);
   border-radius: 12px;
   width: 44px; height: 44px;
+  flex: none;
   font-size: 18px;
   color: var(--navy);
   box-shadow: var(--out-sm);
@@ -81,7 +90,7 @@
 #mn .wrap {
   max-width: 1060px;
   margin: 0 auto;
-  padding: 28px 28px 70px;
+  padding: 28px 28px calc(70px + env(safe-area-inset-bottom, 0px));
   animation: naik .35s ease both;
 }
 
@@ -175,7 +184,13 @@
 
 /* ---------- Tabel ---------- */
 
-#mn .tw { overflow-x: auto; border-radius: 20px; background: var(--base); box-shadow: var(--out); }
+#mn .tw {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 20px;
+  background: var(--base);
+  box-shadow: var(--out);
+}
 
 #mn table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
@@ -249,6 +264,7 @@
   margin-bottom: 14px;
   background: var(--base);
   box-shadow: var(--in-sm);
+  overflow-wrap: anywhere;
 }
 #mn .msg.err  { color: var(--no); border-left: 4px solid var(--no); }
 #mn .msg.warn { color: var(--nm-warn); border-left: 4px solid #D9A21B; }
@@ -315,6 +331,7 @@
   background: var(--base);
   box-shadow: var(--out-sm);
   font-size: 14.5px;
+  overflow-wrap: anywhere;
 }
 
 #mn .q .qn {
@@ -330,7 +347,7 @@
   box-shadow: var(--in-sm);
 }
 
-#mn .q img { max-width: 240px; height: auto; border-radius: 12px; }
+#mn .q img { max-width: min(240px, 100%); height: auto; border-radius: 12px; }
 
 #mn .q ol {
   list-style: none;
@@ -347,6 +364,7 @@
 #mn .kunci {
   margin-top: 12px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   padding: 9px 14px;
@@ -439,7 +457,7 @@
   align-items: center;
   justify-content: center;
   z-index: 60;
-  padding: 20px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
   font-family: 'Poppins', system-ui, sans-serif;
 }
 
@@ -449,6 +467,9 @@
   padding: 28px 30px;
   width: 100%;
   max-width: 440px;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   position: relative;
   box-shadow: var(--shadow-lg);
   color: var(--ink);
@@ -494,6 +515,7 @@
   background: var(--base);
   color: var(--soft);
   box-shadow: var(--in-sm);
+  overflow-wrap: anywhere;
 }
 .mo .kinfo.ok   { color: var(--ok); border-left: 4px solid var(--ok); }
 .mo .kinfo.warn { color: var(--nm-warn); border-left: 4px solid #D9A21B; }
@@ -528,28 +550,37 @@
 @media (max-width: 820px) {
   #mn { margin-left: 0; }
   #mn #burger { display: block; }
-  #mn .wrap { padding: 20px 16px 60px; }
+  #mn .wrap { padding: 20px 16px calc(60px + env(safe-area-inset-bottom, 0px)); }
   #mn .top { padding-left: 16px; padding-right: 16px; }
   #mn .q ol { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
+  #mn .top h2 { font-size: 18px; }
   #mn .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   #mn .st { padding: 13px; }
   #mn .st b { font-size: 23px; }
   #mn .st span { font-size: 11px; }
   #mn .card { padding: 18px; border-radius: 20px; }
-  #mn .acts .btn { min-height: 44px; }
+
+  /* Area sentuh minimal 44px untuk semua tombol, termasuk di modal */
+  #mn .btn, .mo .btn { min-height: 44px; }
+
   #mn .tools { gap: 10px; }
-  #mn .tools input, #mn .tools select { font-size: 16px; width: 100%; flex-basis: 100%; }
-  #mn .field input, #mn .field select, #mn .source-panel input { font-size: 16px; }
+  #mn .tools input, #mn .tools select { font-size: 16px; width: 100%; flex-basis: 100%; min-height: 44px; }
+  #mn .field input, #mn .field select, #mn .source-panel input, #mn .source-panel select { font-size: 16px; min-height: 44px; }
   #mn .pk { align-items: flex-start; }
   #mn .pk .acts { width: 100%; }
   #mn .pk .btn { flex: 1; }
+  #mn .prev { max-height: 60dvh; }
   #mn .q { padding: 14px; }
-  .mo .mb { padding: 22px 18px; }
-  .mo .mb input { font-size: 16px; }
   #mn .q .qn { position: static; margin-bottom: 10px; }
+
+  .mo { padding-left: 12px; padding-right: 12px; }
+  .mo .mb { padding: 22px 18px; border-radius: 22px; }
+  .mo .mb input { font-size: 16px; min-height: 44px; }
+  .mo .ma { gap: 10px; }
+  .mo .ma .btn { flex: 1 1 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -20,7 +20,6 @@
   .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
   .tools .kkm input { width: 76px; min-width: 0; flex: none; }
   .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
-  th button { all: unset; cursor: pointer; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -48,6 +47,7 @@
         <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
         <select id="fTingkat" aria-label="Tingkat"><option value="">Semua tingkat</option></select>
         <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
+        <label class="kkm">Target tuntas (%) <input id="target" type="number" min="0" max="100" value="75" aria-label="Target ketuntasan klasikal dalam persen"></label>
       </div>
       <div class="acts" style="margin-bottom:12px">
         <button id="muat" class="btn p" type="button">Muat ulang</button>
@@ -70,15 +70,26 @@ import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
 import { norm, esc, fmtN, toast } from '../assets/js/util.js';
 
 const $ = id => document.getElementById(id);
-let ROWS = [];
+const BATAS_DATA = 5000;          // batas baca per permintaan (sebelumnya 1000)
+const TARGET_AWAL = 75;           // target ketuntasan klasikal (%) bawaan
 const KUNCI_KKM = 'kw-kkm';
+const KUNCI_TARGET = 'kw-target-tuntas';
+let ROWS = [];
+
 try {
   const v = Number(localStorage.getItem(KUNCI_KKM));
   const app = JSON.parse(localStorage.getItem('kw_pengaturan_app') || 'null');   // KKM dari Pengaturan Aplikasi
   const awal = v > 0 && v <= 100 ? v : Number(app && app.kkm);
   if (awal > 0 && awal <= 100) $('kkm').value = awal;
+  const t = Number(localStorage.getItem(KUNCI_TARGET));
+  $('target').value = t > 0 && t <= 100 ? t : TARGET_AWAL;
 } catch (_) {}
+
 const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) ? v : 75; };
+const target = () => { const v = Number($('target').value); return Number.isFinite(v) && v > 0 ? v : TARGET_AWAL; };
+const maks = a => a.reduce((m, x) => (x > m ? x : m), -Infinity);   // aman untuk array besar
+const mins = a => a.reduce((m, x) => (x < m ? x : m), Infinity);
+const jumlah = a => a.reduce((s, x) => s + x, 0);
 
 function isiPilihan(sel, label, nilai) {
   const cur = sel.value;
@@ -93,7 +104,7 @@ function rekap() {
   data.forEach(r => { const k = r.kelas || r.tingkat; if (!peta.has(k)) peta.set(k, []); peta.get(k).push(r.nilai); });
   const baris = [...peta.entries()].sort((a, b) => urutAlfa(a[0], b[0])).map(([kelas, v]) => {
     const tun = v.filter(n => n >= kkm()).length;
-    return { kelas, n: v.length, rata: v.reduce((a, x) => a + x, 0) / v.length, max: Math.max(...v), min: Math.min(...v), tun, belum: v.length - tun };
+    return { kelas, n: v.length, rata: jumlah(v) / v.length, max: maks(v), min: mins(v), tun, belum: v.length - tun, persen: Math.round(tun / v.length * 100) };
   });
   return { data, baris };
 }
@@ -102,28 +113,31 @@ function gambar() {
   const { data, baris } = rekap();
   const ns = data.map(r => r.nilai);
   $('n-peserta').textContent = data.length;
-  $('n-rata').textContent = ns.length ? fmtN(ns.reduce((a, x) => a + x, 0) / ns.length) : '–';
-  $('n-max').textContent = ns.length ? fmtN(Math.max(...ns)) : '–';
-  $('n-min').textContent = ns.length ? fmtN(Math.min(...ns)) : '–';
+  $('n-rata').textContent = ns.length ? fmtN(jumlah(ns) / ns.length) : '–';
+  $('n-max').textContent = ns.length ? fmtN(maks(ns)) : '–';
+  $('n-min').textContent = ns.length ? fmtN(mins(ns)) : '–';
   $('body').innerHTML = baris.map(b => `<tr><td><b>${esc(b.kelas)}</b></td><td class="n">${b.n}</td><td class="n">${fmtN(b.rata)}</td>
     <td class="n">${fmtN(b.max)}</td><td class="n">${fmtN(b.min)}</td><td class="n">${b.tun}</td><td class="n">${b.belum}</td>
-    <td class="n"><span class="badge ${b.tun / b.n >= .75 ? 'ok' : 'bad'}">${Math.round(b.tun / b.n * 100)}%</span></td></tr>`).join('');
+    <td class="n"><span class="badge ${b.tun / b.n * 100 >= target() ? 'ok' : 'bad'}">${b.persen}%</span></td></tr>`).join('');
   $('empty').hidden = baris.length > 0;
 }
 
 async function muat() {
   const info = $('info'), dot = $('dot'), cs = $('cs');
   info.hidden = true;
+  const pesan = [];
   try {
-    const { rows, gagal } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu' });
+    const { rows, gagal } = await ambilTingkat('hasil', { batas: BATAS_DATA, urut: 'waktu' });
     ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), tingkat: r.tingkat }));
-    if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
+    if (gagal.length) pesan.push('Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.');
+    if (rows.length >= BATAS_DATA) pesan.push('Jumlah data mencapai batas ' + BATAS_DATA + '; rekap mungkin belum lengkap.');
     if (dot) dot.classList.add('on');
     if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
   } catch (e) {
     console.error(e); ROWS = [];
-    info.hidden = false; info.textContent = 'Gagal memuat data dari Firebase: ' + (e.message || e);
+    pesan.push('Gagal memuat data dari Firebase: ' + (e.message || e));
   }
+  if (pesan.length) { info.hidden = false; info.textContent = pesan.join(' '); }
   isiPilihan($('fPaket'), 'Semua ujian', [...new Set(ROWS.map(r => r.paket).filter(x => x && x !== '-'))].sort(urutAlfa));
   isiPilihan($('fTingkat'), 'Semua tingkat', [...new Set(ROWS.map(r => r.tingkat))].sort(urutAlfa));
   gambar();
@@ -133,8 +147,8 @@ function unduh() {
   const { baris } = rekap();
   if (!baris.length) return toast('Tidak ada data untuk diunduh.');
   const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const out = [['Kelas', 'Peserta', 'Rata-rata', 'Tertinggi', 'Terendah', 'Tuntas', 'Belum tuntas'].map(q).join(',')]
-    .concat(baris.map(b => [b.kelas, b.n, fmtN(b.rata), b.max, b.min, b.tun, b.belum].map(q).join(',')));
+  const out = [['Kelas', 'Peserta', 'Rata-rata', 'Tertinggi', 'Terendah', 'Tuntas', 'Belum tuntas', 'Ketuntasan (%)'].map(q).join(',')]
+    .concat(baris.map(b => [b.kelas, b.n, fmtN(b.rata), b.max, b.min, b.tun, b.belum, b.persen].map(q).join(',')));
   const url = URL.createObjectURL(new Blob(['\uFEFF' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a'); a.href = url; a.download = 'Rekap_Nilai.csv';
   document.body.appendChild(a); a.click(); a.remove();
@@ -143,6 +157,7 @@ function unduh() {
 
 ['fPaket', 'fTingkat'].forEach(id => $(id).addEventListener('change', gambar));
 $('kkm').addEventListener('input', () => { try { localStorage.setItem(KUNCI_KKM, String(kkm())); } catch (_) {} gambar(); });
+$('target').addEventListener('input', () => { try { localStorage.setItem(KUNCI_TARGET, String(target())); } catch (_) {} gambar(); });
 $('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
 $('unduh').onclick = unduh;
 muat();

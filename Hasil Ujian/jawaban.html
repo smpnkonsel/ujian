@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>document.documentElement.style.visibility='hidden'</script>
 <script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jawaban Siswa · KW Learning</title>
 <link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
@@ -17,11 +17,13 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .hidden{display:none!important}
-.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px calc(48px + env(safe-area-inset-bottom,0px))}
 header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
 h1{margin:0;font-size:24px}.sub{margin:4px 0 0;color:var(--muted)}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit}
+.tools input[type="search"]{flex:1 1 220px;min-width:0}
+.tools select{flex:0 1 200px;min-width:0}
+input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--nm-bg);color:inherit}
 button{cursor:pointer}button.primary{background:var(--head);color:var(--headtxt);border-color:var(--head)}
 button.small{padding:4px 10px}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -34,18 +36,46 @@ td.n,th.n{text-align:right}
 tbody tr:last-child td{border-bottom:0}
 .empty{padding:22px;text-align:center;color:var(--muted)}
 .count{color:var(--muted);margin:8px 2px}
-dialog{border:1px solid var(--line);border-radius:12px;padding:18px;width:min(640px,94vw);background:var(--card);color:var(--ink)}
+dialog{border:1px solid var(--line);border-radius:12px;padding:18px;width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
-dialog h2{margin:0 0 4px;font-size:18px}
+dialog h2{margin:0 0 4px;font-size:18px;word-break:break-word}
 #dInfo{color:var(--muted);margin:0 0 12px}
-#dGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-height:50vh;overflow:auto}
-#dGrid .sel{border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center;background:#fff}
+#dGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-height:50dvh;overflow:auto}
+#dGrid .sel{border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center;background:var(--nm-bg)}
 #dGrid .sel span{display:block;font-size:11px;color:var(--muted)}
 #dGrid .sel b{font-size:15px;word-break:break-all}
-#dGrid .sel.kosong{background:#fdecea}
+#dGrid .sel.kosong{background:color-mix(in srgb,var(--nm-warn) 18%,var(--nm-bg))}
 .btns{display:flex;justify-content:flex-end;margin-top:14px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--head);color:var(--headtxt);padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:calc(100vw - 24px);background:var(--head);color:var(--headtxt);padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
+
+/* ---------- Responsif ---------- */
+@media (max-width:680px){
+  .wrap{padding:16px 12px calc(40px + env(safe-area-inset-bottom,0px))}
+  h1{font-size:20px}
+  header > div:last-child{display:flex;gap:8px;width:100%}
+  header > div:last-child button{flex:1 1 0}
+
+  /* Area sentuh 44px */
+  input,select,button{min-height:44px}
+  button.small{min-height:44px;padding:8px 14px}
+  .tools input[type="search"],.tools select{flex:1 1 100%}
+
+  /* Tabel berubah menjadi kartu per pengumpulan */
+  .scroll{overflow-x:visible;background:transparent;border:0}
+  table{min-width:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tbody tr{margin-bottom:10px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+  tbody tr:last-child{margin-bottom:0}
+  td,tbody tr:last-child td{padding:3px 0;border:0}
+  td.n{text-align:left}
+  td[data-label]::before{content:attr(data-label) ": ";color:var(--muted)}
+  td:first-child{font-weight:600}
+  td:last-child button{width:100%;margin-top:8px}
+
+  .btns button{width:100%}
+}
 </style>
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 </head>
@@ -179,9 +209,10 @@ function render(){
 
   $('isi').innerHTML = list.map(r => `<tr data-id="${esc(r.id)}" data-t="${esc(r.tingkat)}">
       <td>${esc(r.nama)}<small>NIS ${esc(r.nis || '–')}</small></td>
-      <td>${esc(r.kelas)}</td><td>${esc(r.paket)}</td>
-      <td class="n">${r.benar ?? '–'} / ${r.salah ?? '–'} / ${r.kosong ?? '–'}</td>
-      <td class="n"><b>${r.nilai ?? '–'}</b></td>
+      <td data-label="Kelas">${esc(r.kelas)}</td>
+      <td data-label="Ujian">${esc(r.paket)}</td>
+      <td class="n" data-label="Benar / Salah / Kosong">${r.benar ?? '–'} / ${r.salah ?? '–'} / ${r.kosong ?? '–'}</td>
+      <td class="n" data-label="Nilai"><b>${r.nilai ?? '–'}</b></td>
       <td><button type="button" class="small">Lihat jawaban</button></td></tr>`).join('');
 
   $('kosong').hidden = list.length > 0;
