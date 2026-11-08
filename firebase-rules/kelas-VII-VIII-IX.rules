@@ -12,7 +12,7 @@ service cloud.firestore {
     // ===== GANTI dengan email admin Anda (sama di kelima project) =====
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email in ["GANTI_DENGAN_EMAIL_ADMIN@contoh.com"];
+        && request.auth.token.email in ["admin@smpn20.id"];
     }
     // Guru sah = emailnya terdaftar di koleksi akunGuru project ini
     // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru).
@@ -95,5 +95,12 @@ service cloud.firestore {
     match /{other=**} {
       allow read, write: if false;
     }
+    match /nilai/{doc} {
+  allow read: if isStaff();
+  allow create, update: if isStaff()
+    && request.resource.data.siswa is map
+    && request.resource.data.keys().size() <= 20;
+  allow delete: if isAdmin();
+}
   }
 }
