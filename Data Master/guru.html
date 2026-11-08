@@ -351,6 +351,10 @@ try {
       daftarKelas: ["IX A", ...]      // turunan, untuk penyaringan
     }
 
+    Field milik halaman lain (mis. Akun Guru: akunEmail, akunSandi,
+    akunAktif, akunProyek, ...) juga ada di dokumen yang sama.
+    Halaman ini TIDAK boleh menimpanya, jadi penyimpanan memakai merge.
+
     Struktur daftar mapel di Firestore (Daftar/mapel), field langsung:
     {
       "matematika": { id: "matematika", nama: "Matematika", singkatan: "MTK" },
@@ -797,6 +801,8 @@ try {
   ========================================= */
 
   // Mengembalikan { mapelDitambah, mapelGagal }.
+  // Dokumen guru DIGABUNG (merge), bukan diganti utuh, sehingga field milik
+  // halaman lain (akunEmail, akunSandi, akunAktif, akunProyek, dst.) tidak hilang.
   // Guru dan mapel baru disimpan dalam satu batch. Bila batch itu ditolak
   // (mis. aturan Firestore belum mengizinkan Daftar/mapel), guru tetap
   // disimpan tanpa mapel dan alasannya dikembalikan di mapelGagal.
@@ -808,21 +814,43 @@ try {
     }
 
     const baru = mapelBaru(item.mengajar.map((x) => x.mapel));
+    const pindahId = !!idLama && idLama !== idBaru;
+    const lama = idLama ? data.find((d) => d.id === idLama) : null;
 
     const susun = (denganMapel) => {
       const batch = F.writeBatch(dbSiswaGuru);
 
-      if (idLama && idLama !== idBaru) {
-        batch.delete(F.doc(dbSiswaGuru, KOLEKSI_GURU, idLama));
+      // Jika NIP/ID diganti, bawa semua field lama ke dokumen baru
+      // (kecuali field format lama mapel/kelas berupa teks).
+      let dasar = {};
+      if (pindahId && lama) {
+        dasar = { ...lama };
+        delete dasar.mapel;
+        delete dasar.kelas;
+        delete dasar.diperbaruiPada;
       }
 
-      // Tanpa merge: dokumen diganti utuh, sehingga kolom lama
-      // (mapel dan kelas berupa teks) ikut hilang.
-      batch.set(F.doc(dbSiswaGuru, KOLEKSI_GURU, idBaru), {
+      const isi = {
+        ...dasar,
         ...item,
         id: idBaru,
         diperbaruiPada: F.serverTimestamp()
-      });
+      };
+
+      // Buang field format lama bila deleteField tersedia di firebase-pusat.js.
+      // Jika tidak, field itu dibiarkan: tidak berbahaya karena
+      // ambilMengajar() memprioritaskan array "mengajar".
+      if (typeof F.deleteField === "function") {
+        isi.mapel = F.deleteField();
+        isi.kelas = F.deleteField();
+      }
+
+      if (pindahId) {
+        batch.delete(F.doc(dbSiswaGuru, KOLEKSI_GURU, idLama));
+      }
+
+      // merge: true -> field lain di dokumen tidak tersentuh.
+      batch.set(F.doc(dbSiswaGuru, KOLEKSI_GURU, idBaru), isi, { merge: true });
 
       if (denganMapel) tulisMapelKeBatch(batch, baru);
 

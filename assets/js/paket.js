@@ -1,25 +1,152 @@
 /* =========================================================
-   PAKET.JS — halaman paket.html (mengikuti Firebase pusat)
+   PAKET.JS — halaman paket (admin dan guru, satu file)
+   - Peran dibaca dari atribut data-peran pada tag guard.js di HTML
+     • admin : semua mapel, semua paket (seperti sebelumnya)
+     • guru  : hanya mapel milik guru yang login, hanya paket miliknya
    - Paket soal disimpan di [BANK_SOAL] koleksi "paket"
    - Daftar mapel dibaca dari [DAT-GURU-SISWA] dokumen Daftar/mapel
-   - Firebase hanya diimpor dari firebase-pusat.js
-   - Daftar paket real-time (onSnapshot), tanpa muat ulang manual
-   - Nama mapel otomatis berawalan huruf besar tiap kata
-   - Saat mengetik nama mapel, muncul saran mapel (datalist)
+   - Mapel milik guru dibaca dari [DAT-GURU-SISWA] dokumen guru
+     (lihat bagian PENGATURAN GURU di bawah, sesuaikan bila perlu)
+   - Daftar paket real-time (onSnapshot)
    - Kelas memakai angka romawi: VII, VII A, VII B, VIII, ... IX B
-   - Jenis ujian (SAS/UTS/dll.) disimpan terpisah di field "jenis";
-     field "nama" dan "mapel" berisi nama mapel saja
+   - Jenis ujian (SAS/UTS/dll.) disimpan terpisah di field "jenis"
 ========================================================= */
 
 import { F, dbBankSoal, KOLEKSI } from './firebase-pusat.js';
-// Diimpor sebagai namespace: kalau dbSiswaGuru belum diekspor, halaman tetap jalan
-// (tidak mati total) dan muncul peringatan kuning yang jelas.
 import * as FP from './firebase-pusat.js';
 import { $, esc, toast, konfirmasi, S } from './util.js';
 import { muatSidebar } from './sidebar.js';
 import { ambilDokumen } from './storage.js';
 import { parseSoalBaru } from './parser.js?v=6';
 import { htmlSoal } from './pratinjau.js';
+
+/* ---------- Peran halaman ---------- */
+
+const PERAN = (document.querySelector('script[data-peran]')?.dataset.peran || 'admin');
+const LAGI_GURU = PERAN === 'guru';
+
+/* =========================================================
+   PENGATURAN GURU — sesuaikan bagian ini dengan data kamu
+========================================================= */
+
+// Dokumen guru di Dat-Guru-Siswa: koleksi "Guru", dokumen berisi id guru
+const KOLEKSI_GURU = 'guru';
+
+// Field yang berisi daftar mapel di dokumen guru.
+// Boleh array (["Matematika","IPA"]) atau teks ("Matematika, IPA").
+// Isinya boleh nama mapel langsung, atau kunci dari dokumen Daftar/mapel.
+const FIELD_MAPEL_GURU = 'daftarIdMapel';
+
+// Tempat guard.js menyimpan guru yang login (dicoba berurutan)
+const KUNCI_STORAGE = ['guruLogin', 'user', 'pengguna', 'kw_user', 'sesi'];
+
+function bacaJson(teks) {
+  try { return JSON.parse(teks); } catch { return null; }
+}
+
+// Hasil: { id, nama, mapel } atau null bila tidak ditemukan
+function ambilGuruLogin() {
+  const kandidat = [S.user, S.guru, S.sesi, window.USER, window.user];
+
+  // Pindai SEMUA isi sessionStorage dan localStorage (nama kuncinya tidak perlu cocok)
+  for (const store of [sessionStorage, localStorage]) {
+    for (let i = 0; i < store.length; i++) {
+      const v = store.getItem(store.key(i));
+      if (!v) continue;
+
+      const j = bacaJson(v);
+      if (j && typeof j === 'object') {
+        kandidat.push(j);
+        // objek bersarang, misalnya { guru: {...} } atau { user: {...} }
+        Object.values(j).forEach(x => { if (x && typeof x === 'object') kandidat.push(x); });
+      } else if (/^\d{16,20}$/.test(v.trim())) {
+        kandidat.push({ id: v.trim() });                 // NIP polos
+      } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())) {
+        kandidat.push({ email: v.trim() });              // email polos
+      }
+    }
+  }
+
+  for (const u of kandidat) {
+    if (!u || typeof u !== 'object') continue;
+    const id = u.id || u.uid || u.nip || u.kode || u.username;
+    const email = u.akunEmail || u.email || '';
+    if (!id && !email) continue;
+    return {
+      id: id ? String(id) : '',
+      email: String(email),
+      nama: u.nama || u.name || '',
+      mapel: u[FIELD_MAPEL_GURU]
+    };
+  }
+  return null;
+}
+
+/* ---------- Guru yang login lewat Firebase Authentication ----------
+   Aturan Firestore memakai request.auth.token.email, jadi login guru
+   adalah Firebase Auth. Instance Auth dicari dari semua ekspor
+   firebase-pusat.js (objek yang punya currentUser + onAuthStateChanged). */
+
+function cariAuth() {
+  return Object.values(FP).filter(v =>
+    v && typeof v === 'object' && 'currentUser' in v && typeof v.onAuthStateChanged === 'function');
+}
+
+// Menunggu sampai ada pengguna yang login; hasilnya email (atau '' bila kosong/habis waktu)
+let INFO_AUTH = '';   // keterangan untuk pesan galat (project Auth cocok atau tidak)
+let INFO_SESI = '';
+
+/* guard.js menaruh hasil pemeriksaan login di window.KW_SESI dan
+   mengirim event "kw-sesi". Isinya dibaca dulu sebelum mencari Auth. */
+function tungguSesi(batasMs = 8000) {
+  return new Promise(selesai => {
+    if (window.KW_SESI) return selesai(window.KW_SESI);
+    const t = setTimeout(() => selesai(window.KW_SESI || null), batasMs);
+    document.addEventListener('kw-sesi', e => {
+      clearTimeout(t);
+      selesai(e.detail || window.KW_SESI || null);
+    }, { once: true });
+  });
+}
+
+function emailDariSesi(s) {
+  if (!s || typeof s !== 'object') return '';
+  const c = [s.email, s.akunEmail, s.user && s.user.email, s.pengguna && s.pengguna.email,
+             s.guru && (s.guru.akunEmail || s.guru.email), s.akun && s.akun.email];
+  return String(c.find(x => typeof x === 'string' && x.includes('@')) || '');
+}
+
+function nipDariSesi(s) {
+  if (!s || typeof s !== 'object') return '';
+  const c = [s.nip, s.idGuru, s.guru && (s.guru.id || s.guru.nip)];
+  return String(c.find(x => x) || '');
+}
+
+function tungguEmailLogin(batasMs = 6000) {
+  return new Promise(selesai => {
+    let daftar = cariAuth();
+    if (!daftar.length) { INFO_AUTH = 'tidak ada instance Auth di firebase-pusat.js'; return selesai(''); }
+
+    // Aturan Firestore dat-guru-siswa membaca login project ITU, jadi pilih Auth
+    // yang satu project dengan dbSiswaGuru bila ada.
+    const appTujuan = FP.dbSiswaGuru && FP.dbSiswaGuru.app;
+    const cocok = appTujuan ? daftar.filter(a => a.app === appTujuan) : [];
+    if (cocok.length) { daftar = cocok; INFO_AUTH = 'Auth satu project dengan dat-guru-siswa'; }
+    else INFO_AUTH = 'TIDAK ada Auth yang satu project dengan dat-guru-siswa';
+
+    let beres = false;
+    const akhir = email => { if (!beres) { beres = true; selesai(email || ''); } };
+
+    for (const a of daftar) {
+      if (a.currentUser && a.currentUser.email) return akhir(a.currentUser.email);
+    }
+    daftar.forEach(a => a.onAuthStateChanged(u => { if (u && u.email) akhir(u.email); }));
+    setTimeout(() => akhir(''), batasMs);
+  });
+}
+
+let GURU = null;   // diisi saat halaman mulai (lihat bagian "Mulai")
+let ADMIN = null;  // identitas admin yang login (untuk halaman admin)
 
 /* ---------- Pengaturan kelas ---------- */
 
@@ -46,14 +173,12 @@ function isiPilihanKelas() {
 
 /* ---------- Format nama mapel: Huruf Besar Di Awal Kata ---------- */
 
-// Singkatan yang tetap kapital semua
 const SINGKATAN = new Set([
   'IPA', 'IPS', 'PAS', 'PAT', 'PTS', 'UTS', 'UAS', 'SAS', 'PKN', 'PPKN', 'TIK',
   'PJOK', 'SBK', 'MTK', 'BK', 'PAI', 'LKS', 'AKM', 'ANBK',
   'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'
 ]);
 
-// Kata sambung yang tetap huruf kecil (kecuali di awal nama)
 const KATA_SAMBUNG = new Set(['dan', 'di', 'ke', 'dari', 'yang', 'untuk']);
 
 function formatNama(teks) {
@@ -68,6 +193,8 @@ function formatNama(teks) {
     });
 }
 
+const kunciBanding = t => formatNama(t).toLowerCase();
+
 /* ---------- Kotak peringatan (kuning) ---------- */
 
 function peringatan(teks) {
@@ -79,27 +206,52 @@ function peringatan(teks) {
   w.appendChild(pesan);
 }
 
-/* ---------- Saran mapel (dari Firebase Dat-Guru-Siswa: Daftar/mapel) ---------- */
+/* ---------- Saran mapel ----------
+   Admin : semua mapel dari Daftar/mapel
+   Guru  : hanya mapel milik guru yang login                      */
 
-// Cadangan: dipakai sampai data Firebase berhasil dimuat, atau bila Firebase gagal
 const MAPEL_CADANGAN = [
-  'Pendidikan Agama Islam',
-  'PPKn',
-  'Bahasa Indonesia',
-  'Matematika',
-  'IPA',
-  'IPS',
-  'Bahasa Inggris',
-  'PJOK',
-  'Informatika',
-  'Seni Budaya'
+  'Pendidikan Agama Islam', 'PPKn', 'Bahasa Indonesia', 'Matematika', 'IPA',
+  'IPS', 'Bahasa Inggris', 'PJOK', 'Informatika', 'Seni Budaya'
 ];
 
-let MAPEL_SMP = MAPEL_CADANGAN.map(m => formatNama(m));
+let MAPEL_SEKOLAH = MAPEL_CADANGAN.map(m => formatNama(m));  // semua mapel (nama)
+let PETA_MAPEL = {};          // kunci dokumen Daftar/mapel → nama
+let MAPEL_GURU_MENTAH = null; // isi field mapel guru (belum diterjemahkan)
+let MAPEL_SMP = [];           // daftar final yang dipakai sebagai saran
+
+function daftarDariMentah(mentah) {
+  if (Array.isArray(mentah)) return mentah;
+  if (typeof mentah === 'string') return mentah.split(/[,;\n]/);
+  if (mentah && typeof mentah === 'object') return Object.values(mentah);
+  return [];
+}
+
+let DAFTAR_GURU = [];   // semua guru (dipakai halaman admin)
+let GURU_PILIH = null;  // guru yang dipilih admin sebagai pemilik paket
+
+function terjemahMapel(mentah) {
+  const hasil = daftarDariMentah(mentah)
+    .map(v => String(v || '').trim())
+    .filter(Boolean)
+    .map(v => formatNama(PETA_MAPEL[v] || v));
+  return [...new Set(hasil)].sort((a, b) => a.localeCompare(b, 'id'));
+}
+
+function hitungMapel() {
+  if (!LAGI_GURU) {
+    // Admin: semua mapel sekolah, atau hanya mapel guru yang dipilih
+    MAPEL_SMP = GURU_PILIH ? terjemahMapel(GURU_PILIH.mapel) : MAPEL_SEKOLAH;
+    return;
+  }
+  MAPEL_SMP = terjemahMapel(MAPEL_GURU_MENTAH);
+}
 
 function pasangSaranMapel() {
   const input = $('pnama');
   if (!input) return;
+
+  hitungMapel();
 
   let dl = document.getElementById('dmapel');
   if (!dl) {
@@ -111,6 +263,86 @@ function pasangSaranMapel() {
 
   input.setAttribute('list', 'dmapel');
   input.setAttribute('autocomplete', 'off');
+
+  if (LAGI_GURU) {
+    if (MAPEL_SMP.length === 1) {
+      // Guru satu mapel: isi otomatis dan kunci
+      input.value = MAPEL_SMP[0];
+      input.readOnly = true;
+    } else {
+      input.readOnly = false;
+      if (MAPEL_SMP.length > 1) input.placeholder = 'Pilih salah satu mapel Anda';
+    }
+  } else if (GURU_PILIH && MAPEL_SMP.length === 1) {
+    // Admin memilih guru yang hanya punya satu mapel: isi otomatis dan kunci
+    input.value = MAPEL_SMP[0];
+    input.readOnly = true;
+  } else {
+    input.readOnly = false;
+  }
+}
+
+/* ---------- Admin: memilih guru pemilik paket (opsional) ---------- */
+
+function opsiGuruHtml() {
+  return '<option value="">Tanpa guru (atas nama admin)</option>' +
+    DAFTAR_GURU.map(g => `<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
+}
+
+function pasangPilihGuru() {
+  if (LAGI_GURU) return;
+  const mapel = $('pnama');
+  if (!mapel || $('pguru')) return;
+
+  const labelMapel = mapel.previousElementSibling && mapel.previousElementSibling.tagName === 'LABEL'
+    ? mapel.previousElementSibling : null;
+  const awal = labelMapel || mapel;
+
+  const sel = document.createElement('select');
+  sel.id = 'pguru';
+  sel.className = mapel.className;
+  sel.innerHTML = opsiGuruHtml();
+  sel.addEventListener('change', () => {
+    GURU_PILIH = DAFTAR_GURU.find(g => g.id === sel.value) || null;
+    mapel.value = '';          // mapel mengikuti guru yang dipilih
+    pasangSaranMapel();
+  });
+
+  if (labelMapel) {
+    const lb = document.createElement('label');
+    lb.className = labelMapel.className;
+    lb.htmlFor = 'pguru';
+    lb.textContent = 'Guru pengampu (opsional)';
+    awal.before(lb);
+  }
+  awal.before(sel);
+}
+
+function dengarDaftarGuru() {
+  if (LAGI_GURU || !FP.dbSiswaGuru) return;
+
+  F.onSnapshot(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU), snap => {
+    DAFTAR_GURU = snap.docs.map(d => {
+      const x = d.data();
+      return {
+        id: d.id,
+        email: String(x.akunEmail || '').toLowerCase(),
+        nama: x.nama || x.akunNama || x.akunEmail || d.id,
+        mapel: x[FIELD_MAPEL_GURU]
+      };
+    }).sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id'));
+
+    const sel = $('pguru');
+    if (sel) {
+      const sekarang = sel.value;
+      sel.innerHTML = opsiGuruHtml();
+      sel.value = sekarang;
+    }
+    if (GURU_PILIH) GURU_PILIH = DAFTAR_GURU.find(g => g.id === GURU_PILIH.id) || null;
+  }, error => {
+    console.error('Gagal memuat daftar guru:', error);
+    peringatan('Gagal memuat daftar guru (' + (error.code || error.message || error) + ').');
+  });
 }
 
 function dengarMapel() {
@@ -119,31 +351,114 @@ function dengarMapel() {
     return;
   }
 
+  // Daftar mapel seluruh sekolah (dipakai admin, dan untuk menerjemahkan kunci mapel guru)
   F.onSnapshot(F.doc(FP.dbSiswaGuru, 'Daftar', 'mapel'), snap => {
     if (!snap.exists()) {
-      peringatan('Dokumen Daftar/mapel belum ada — saran mapel memakai daftar cadangan.');
+      if (!LAGI_GURU) peringatan('Dokumen Daftar/mapel belum ada — saran mapel memakai daftar cadangan.');
       return;
     }
 
-    // Field "diperbaruiPada" otomatis terlewat karena bukan map yang punya "nama"
-    const hasil = Object.values(snap.data())
-      .filter(v => v && typeof v === 'object' && typeof v.nama === 'string' && v.nama.trim())
-      .map(v => formatNama(v.nama))
-      .sort((a, b) => a.localeCompare(b, 'id'));
+    const entri = Object.entries(snap.data())
+      .filter(([, v]) => v && typeof v === 'object' && typeof v.nama === 'string' && v.nama.trim());
 
-    if (!hasil.length) return;   // tetap pakai daftar sebelumnya
+    PETA_MAPEL = Object.fromEntries(entri.map(([k, v]) => [k, v.nama]));
 
-    MAPEL_SMP = hasil;
+    const hasil = entri.map(([, v]) => formatNama(v.nama)).sort((a, b) => a.localeCompare(b, 'id'));
+    if (hasil.length) MAPEL_SEKOLAH = hasil;
+
     pasangSaranMapel();
   }, error => {
     console.error('Gagal memuat daftar mapel:', error);
-    peringatan('Gagal memuat daftar mapel (' + (error.code || error.message || error) + ') — memakai daftar cadangan.');
+    if (!LAGI_GURU) {
+      peringatan('Gagal memuat daftar mapel (' + (error.code || error.message || error) + ') — memakai daftar cadangan.');
+    }
   });
 }
 
-/* ---------- Nama ujian (SAS / UTS / dll.) ----------
-   Kolom ini dibuat lewat JavaScript, jadi paket.html tidak perlu diubah.
-   Letaknya tepat sebelum kolom nama mapel. */
+// Khusus guru: baca mapel milik guru yang login
+function dengarMapelGuru() {
+  if (!LAGI_GURU) return;
+
+  if (!GURU) {
+    const kunciAda = ['sessionStorage', 'localStorage'].map(n => {
+      const s = window[n];
+      const daftar = Array.from({ length: s.length }, (_, i) => s.key(i));
+      return n + ': ' + (daftar.join(', ') || '(kosong)');
+    }).join(' | ');
+    peringatan('Data guru yang login tidak ditemukan. Silakan masuk ulang.');
+    peringatan('Kunci tersimpan di browser → ' + kunciAda);
+    kunciFormGuru();
+    return;
+  }
+
+  // Bila guard.js sudah menyimpan mapel guru, pakai itu dulu
+  if (GURU.mapel) {
+    MAPEL_GURU_MENTAH = GURU.mapel;
+    pasangSaranMapel();
+  }
+
+  if (!FP.dbSiswaGuru) return;
+
+  const terapkan = data => {
+    MAPEL_GURU_MENTAH = data[FIELD_MAPEL_GURU];
+    if (!GURU.nama) GURU.nama = data.nama || data.akunNama || '';
+    pasangSaranMapel();
+    drawPakets();
+
+    if (!MAPEL_SMP.length) {
+      peringatan('Anda belum memiliki mapel yang terdaftar. Hubungi admin.');
+      kunciFormGuru();
+    }
+  };
+  const gagal = error => {
+    console.error('Gagal memuat data guru:', error);
+    peringatan('Gagal memuat data guru (' + (error.code || error.message || error) + ').');
+    peringatan('Info: email login = ' + (GURU.email || '-') + '; ' + (INFO_AUTH || 'Auth tidak diperiksa') + '; ' + INFO_SESI + '.');
+    kunciFormGuru();
+  };
+
+  // Id guru (NIP) diketahui: baca dokumen guru/{NIP} langsung
+  if (GURU.id) {
+    F.onSnapshot(F.doc(FP.dbSiswaGuru, KOLEKSI_GURU, GURU.id), snap => {
+      if (!snap.exists()) {
+        if (!GURU.mapel) {
+          peringatan('Data mapel guru tidak ditemukan di ' + KOLEKSI_GURU + '/' + GURU.id + '.');
+          kunciFormGuru();
+        }
+        return;
+      }
+      terapkan(snap.data());
+    }, gagal);
+    return;
+  }
+
+  // Hanya email yang diketahui: cari dokumen guru lewat field akunEmail
+  const where = F.where || FP.where;
+  if (!GURU.email || typeof where !== 'function') {
+    peringatan('Id guru (NIP) tidak ditemukan pada data login.');
+    kunciFormGuru();
+    return;
+  }
+  F.onSnapshot(
+    F.query(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU), where('akunEmail', '==', GURU.email)),
+    snap => {
+      const d = snap.docs[0];
+      if (!d) {
+        peringatan('Akun ' + GURU.email + ' tidak ditemukan di data guru.');
+        kunciFormGuru();
+        return;
+      }
+      GURU.id = d.id;
+      terapkan(d.data());
+    }, gagal);
+}
+
+function kunciFormGuru() {
+  const tombol = $('psimpan');
+  if (tombol) tombol.disabled = true;
+}
+
+/* ---------- Nama ujian (SAS / UTS / dll.) ---------- */
 
 const JENIS_BAWAAN = 'SAS';
 const SARAN_JENIS = ['SAS', 'UTS', 'Ulangan Harian'];
@@ -181,7 +496,24 @@ function pasangInputJenis() {
   awal.before(input);
 }
 
-const daftarPaket = () => Array.isArray(S.PAKET) ? S.PAKET : [];
+/* ---------- Daftar paket (guru hanya melihat miliknya) ---------- */
+
+const semuaPaket = () => Array.isArray(S.PAKET) ? S.PAKET : [];
+
+// Satu pintu: preview, hapus, dan gambar daftar semuanya lewat fungsi ini,
+// sehingga indeks tombol selalu cocok dengan daftar yang tampil.
+// Paket milik guru: yang diberi guruId guru ini, atau paket lama (belum punya
+// guruId) yang mapelnya termasuk mapel guru ini.
+function milikGuru(p) {
+  if (p.guruId) return !!GURU.id && p.guruId === GURU.id;
+  const mapelPaket = kunciBanding(p.mapel || p.nama);
+  return MAPEL_SMP.some(m => kunciBanding(m) === mapelPaket);
+}
+
+const daftarPaket = () => {
+  if (!LAGI_GURU) return semuaPaket();
+  return GURU ? semuaPaket().filter(milikGuru) : [];
+};
 
 const LABEL_SUMBER = { lokal: 'File proyek', github: 'GitHub', drive: 'Google Drive' };
 
@@ -266,7 +598,6 @@ async function hapusPaket(i) {
   });
   if (!yakin) return;
 
-  // onSnapshot langsung memperbarui daftar; jika server menolak, daftar kembali sendiri.
   F.deleteDoc(F.doc(dbBankSoal, KOLEKSI.paket, paket.id))
     .then(() => toast('Paket soal dihapus.'))
     .catch(error => {
@@ -275,7 +606,7 @@ async function hapusPaket(i) {
     });
 }
 
-/* ---------- Daftar paket ---------- */
+/* ---------- Gambar daftar paket ---------- */
 
 function drawPakets() {
   const container = $('pakets');
@@ -293,7 +624,7 @@ function drawPakets() {
       <div class="pk">
         <div>
           <b>${esc(formatNama(p.nama) || 'Paket Tanpa Nama')}</b>
-          <small>${p.jenis ? '<b>' + esc(p.jenis) + '</b> · ' : ''}${p.kelas ? 'Kelas ' + esc(labelKelas(p.kelas)) + ' · ' : ''}${esc(LABEL_SUMBER[p.sumber || 'lokal'] || p.sumber)}</small>
+          <small>${p.jenis ? '<b>' + esc(p.jenis) + '</b> · ' : ''}${p.kelas ? 'Kelas ' + esc(labelKelas(p.kelas)) + ' · ' : ''}${esc(LABEL_SUMBER[p.sumber || 'lokal'] || p.sumber)}${!LAGI_GURU && p.guruNama ? ' · ' + esc(p.guruNama) : ''}</small>
         </div>
         <div class="acts">
           <button class="btn" type="button" data-v="${i}">Lihat soal</button>
@@ -355,13 +686,44 @@ async function simpanPaket() {
   if (!mapel) return tampilError('Nama mapel ujian wajib diisi.');
   if (!DAFTAR_KELAS.includes(kelas)) return tampilError('Kelas wajib dipilih.');
 
+  if (LAGI_GURU) {
+    if (!GURU || !GURU.id) return tampilError('Data guru yang login belum terbaca. Muat ulang halaman atau masuk ulang.');
+    const diizinkan = MAPEL_SMP.map(kunciBanding);
+    if (!diizinkan.includes(kunciBanding(mapel))) {
+      return tampilError('Mapel tersebut bukan mapel Anda. Pilih dari saran yang muncul.');
+    }
+  }
+
+  if (!LAGI_GURU && GURU_PILIH) {
+    if (!GURU_PILIH.email) return tampilError('Guru yang dipilih belum punya email akun.');
+    if (!MAPEL_SMP.map(kunciBanding).includes(kunciBanding(mapel))) {
+      return tampilError('Mapel tersebut bukan mapel guru yang dipilih. Pilih dari saran yang muncul.');
+    }
+  }
+
   const tombol = $('psimpan');
   tombol.disabled = true;
 
   try {
     const id = buatId(jenis + ' ' + mapel, kelas);
-    // nama = mapel saja; jenis ujian disimpan terpisah
     const data = { nama: mapel, jenis, mapel, kelas, sumber: 'drive', file };
+
+    // Paket guru diberi identitas pemilik supaya daftarnya bisa disaring
+    if (LAGI_GURU && GURU) {
+      data.guruId = GURU.id;
+      data.guruEmail = GURU.email;      // dipakai aturan Firestore untuk mencocokkan pemilik
+      data.guruNama = GURU.nama || '';
+    } else if (!LAGI_GURU && GURU_PILIH) {
+      // Admin membuat paket atas nama guru yang dipilih
+      data.guruId = GURU_PILIH.id;
+      data.guruEmail = GURU_PILIH.email;
+      data.guruNama = GURU_PILIH.nama;
+    } else if (!LAGI_GURU && ADMIN) {
+      // Paket buatan admin memakai susunan field yang sama dengan paket guru
+      data.guruId = '';
+      data.guruEmail = ADMIN.email;
+      data.guruNama = ADMIN.nama;
+    }
 
     await F.setDoc(
       F.doc(dbBankSoal, KOLEKSI.paket, id),
@@ -369,9 +731,10 @@ async function simpanPaket() {
     );
 
     $('pid').value = '';
-    $('pnama').value = '';
+    if (!($('pnama').readOnly)) $('pnama').value = '';
     if ($('pjenis')) $('pjenis').value = JENIS_BAWAAN;
     $('pkelas').value = '';
+    document.dispatchEvent(new Event('paket:tersimpan'));   // untuk reset pilihan kelas di halaman guru
     toast('Paket soal berhasil disimpan.');
 
   } catch (error) {
@@ -408,10 +771,10 @@ function dengarPaket() {
 S.PAKET = [];
 S.ok = false;
 
-// Pasang form dulu, sebelum ada await apa pun
 isiPilihanKelas();
-pasangSaranMapel();      // langsung berisi daftar cadangan, lalu diganti data Firebase
+pasangSaranMapel();      // admin: daftar cadangan dulu; guru: kosong sampai data guru terbaca
 pasangInputJenis();
+pasangPilihGuru();       // admin saja: pilihan guru pengampu
 
 const tombolSimpan = $('psimpan');
 if (tombolSimpan) tombolSimpan.addEventListener('click', simpanPaket);
@@ -419,17 +782,38 @@ else console.error('Tombol #psimpan tidak ditemukan');
 
 const inputNama = $('pnama');
 if (inputNama) {
-  // Rapikan otomatis saat selesai mengetik
-  inputNama.addEventListener('blur', () => { inputNama.value = formatNama(inputNama.value); });
+  inputNama.addEventListener('blur', () => {
+    if (!inputNama.readOnly) inputNama.value = formatNama(inputNama.value);
+  });
 }
 
 try {
   try { await muatSidebar(); }
   catch (error) { peringatan('Sidebar gagal dimuat: ' + (error.message || error)); }
 
+  if (LAGI_GURU) {
+    // Utamakan akun Firebase Auth yang sedang login; cadangan: data di browser
+    const sesi = await tungguSesi();
+    INFO_SESI = sesi && typeof sesi === 'object'
+      ? 'isi sesi = ' + Object.keys(sesi).join(', ')
+      : 'sesi guard.js kosong';
+    console.info('KW_SESI:', sesi);
+
+    const email = emailDariSesi(sesi) || await tungguEmailLogin();
+    GURU = email
+      ? { id: nipDariSesi(sesi), email: email.toLowerCase(), nama: (sesi && sesi.nama) || '' }
+      : ambilGuruLogin();
+  } else {
+    const sesi = await tungguSesi();
+    const email = emailDariSesi(sesi) || await tungguEmailLogin();
+    if (email) ADMIN = { email: email.toLowerCase(), nama: (sesi && sesi.nama) || 'Admin' };
+  }
+
   drawPakets();
   dengarPaket();
-  dengarMapel();         // mapel dari Firebase Dat-Guru-Siswa (Daftar/mapel)
+  dengarMapel();         // semua mapel sekolah (Daftar/mapel)
+  dengarMapelGuru();     // khusus guru: mapel milik guru yang login
+  dengarDaftarGuru();    // khusus admin: daftar guru untuk dipilih sebagai pemilik paket
 
 } catch (error) {
   console.error('Halaman paket gagal dimulai:', error);

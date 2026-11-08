@@ -56,6 +56,8 @@ font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink)
 .kw-halaman td.s{background:rgba(239,159,39,.14)}
 .kw-halaman td.e input{width:100%;min-width:30px;border:0;background:transparent;text-align:center;padding:.4rem 0;font-size:.8rem}
 .kw-halaman td.kos{outline:1px dashed var(--muted);outline-offset:-3px}
+.kw-halaman td.s.man input{text-decoration:underline;text-decoration-color:var(--kuning);text-decoration-thickness:2px;text-underline-offset:3px;font-weight:600}
+.kw-halaman td.s input::placeholder{color:var(--muted);opacity:1}
 .kw-halaman input.bad{color:var(--merah)}
 .kw-halaman .rd{color:var(--merah)}
 .kw-halaman .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;box-shadow:var(--in);white-space:nowrap}
@@ -152,7 +154,8 @@ font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink)
     <div class="legenda">
       <span>Tombol + / − di judul LM dan UH: tambah / kurangi kolom</span>
       <span>Kotak putus-putus: nilai belum ada, klik untuk mengisi</span>
-      <span>Kolom SAS: otomatis dari ujian online (jenis ujian SAS)</span>
+      <span>Kolom SAS: otomatis dari ujian online (jenis ujian SAS); bisa diisi manual bila belum ada nilai</span>
+      <span>SAS bergaris bawah kuning: nilai manual (kosongkan untuk kembali ke nilai ujian online)</span>
       <span>Kolom PTS: terisi otomatis dari ujian online (jenis PTS) bila masih kosong</span>
       <span>Angka merah: di bawah KKM</span>
       <span>Tempel dari Excel: blok nilai, klik sel pertama, lalu Ctrl+V</span>
@@ -204,8 +207,9 @@ font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink)
         </div>
         <div>
           <h3>SAS</h3>
-          <p>Tidak diisi manual. Nilainya diambil otomatis dari ujian online yang jenis ujiannya SAS (diatur di halaman Paket Soal) dan sesuai mata pelajaran. Jika siswa remedial, nilai tertinggi yang dipakai.</p>
-          <p>Tulisan "belum" berarti siswa belum mengerjakan SAS, sehingga nilai akhirnya belum bisa dihitung.</p>
+          <p>Nilai SAS diambil otomatis dari ujian online yang jenis ujiannya SAS (diatur di halaman Paket Soal) dan sesuai mata pelajaran. Jika siswa remedial, nilai tertinggi yang dipakai.</p>
+          <p>Jika siswa belum punya nilai SAS (sel kosong dengan tulisan "belum"), atau nilainya perlu dikoreksi, isi sel SAS secara manual dengan angka 0–100. Nilai manual diberi garis bawah kuning dan dipakai pada nilai akhir.</p>
+          <p>Nilai manual hanya tersimpan di rekap ini dan <b>tidak mengubah hasil ujian online yang asli</b>. Kosongkan sel SAS untuk kembali memakai nilai ujian online. Selama SAS belum ada (online maupun manual), nilai akhir belum bisa dihitung.</p>
         </div>
         <div>
           <h3>Praktik (opsional)</h3>
@@ -228,11 +232,11 @@ font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink)
         <div>
           <h3>Tempel dan impor dari Excel</h3>
           <p>Salin blok nilai dari Excel, klik sel pertama tujuan, lalu Ctrl+V. Nilai terisi ke kanan dan ke bawah.</p>
-          <p>Atau klik "Unduh Templat", isi di Excel, lalu "Impor Excel" dengan kelas dan mapel yang sama. Jumlah kolom TG dan UH di file harus sama dengan di layar, jadi atur kolomnya dulu sebelum mengunduh templat.</p>
+          <p>Atau klik "Unduh Templat", isi di Excel, lalu "Impor Excel" dengan kelas dan mapel yang sama. Jumlah kolom TG dan UH di file harus sama dengan di layar, jadi atur kolomnya dulu sebelum mengunduh templat. SAS tidak ikut diimpor dari Excel.</p>
         </div>
         <div>
           <h3>Simpan</h3>
-          <p>Tombol "Simpan" menyimpan nilai, jumlah kolom TG dan UH, KKM, serta bobot untuk kelas dan mapel yang dipilih. Perubahan yang belum disimpan hilang bila Anda pindah kelas atau mapel.</p>
+          <p>Tombol "Simpan" menyimpan nilai (termasuk SAS manual), jumlah kolom TG dan UH, KKM, serta bobot untuk kelas dan mapel yang dipilih. Perubahan yang belum disimpan hilang bila Anda pindah kelas atau mapel.</p>
         </div>
         <div>
           <h3>Pilihan unduhan</h3>
@@ -309,7 +313,8 @@ const muatLib = (url, cek) => {
     const s = document.createElement('script'); s.src = url; s.onload = ok; s.onerror = () => no(new Error('Pustaka gagal dimuat.')); document.head.appendChild(s);
   });
 };
-const kosongSt = () => ({ tg: Array(totalTg()).fill(null), uh: Array(STRUK.uh).fill(null), uts: null, pr: null });
+/* sasm = SAS manual (disimpan di dokumen nilai, TIDAK mengubah hasil ujian online di koleksi hasil) */
+const kosongSt = () => ({ tg: Array(totalTg()).fill(null), uh: Array(STRUK.uh).fill(null), uts: null, pr: null, sasm: null });
 const KB = ['tugas', 'uh', 'uts', 'sas', 'praktik'];
 const pct = k => Math.round(BOBOT[k] * 10000) / 100;
 function bacaBobot() {
@@ -324,7 +329,9 @@ function bacaBobot() {
   return tot;
 }
 const isiBobot = b => KB.forEach(k => { if (b && b[k] !== undefined) $('b-' + k).value = b[k]; });
-const sasOf = s => { const v = SAS.get(s.nis) ?? SAS.get(s.nama); return v === undefined ? null : v; };
+/* SAS dari ujian online (asli) dan SAS efektif (manual bila ada, kalau tidak: ujian online) */
+const sasOnline = s => { const v = SAS.get(s.nis) ?? SAS.get(s.nama); return v === undefined ? null : v; };
+const sasOf = s => { const m = ST[kunci(s)].sasm; return m !== null && m !== undefined ? m : sasOnline(s); };
 const hit = s => { const d = ST[kunci(s)]; return hitungSiswa({ tg: d.tg, uh: d.uh, uts: d.uts, sas: sasOf(s), praktik: d.pr }, { kkm: kkm(), bobot: BOBOT, predikat: PREDIKAT_BAWAAN }); };
 
 /* ===== Judul tabel dinamis =====
@@ -485,12 +492,13 @@ async function muatKelas() {
     STRUK = strukDariDok(dok.struktur);
     const nT = totalTg(), nU = STRUK.uh;
     const pad = (arr, n) => [...(arr || []), ...Array(n)].slice(0, n).map(v => v ?? null);
-    DAFTAR.forEach(s => { const d = (dok.siswa || {})[kunci(s)]; ST[kunci(s)] = d ? { tg: pad(d.tg, nT), uh: pad(d.uh, nU), uts: d.uts ?? null, pr: d.pr ?? null } : kosongSt(); });
+    DAFTAR.forEach(s => { const d = (dok.siswa || {})[kunci(s)]; ST[kunci(s)] = d ? { tg: pad(d.tg, nT), uh: pad(d.uh, nU), uts: d.uts ?? null, pr: d.pr ?? null, sasm: d.sasm ?? null } : kosongSt(); });
     const { rows } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat: [DAFTAR[0].tingkat] });
     if (my !== seq) return;
 
     /* Hasil ujian online: jenis (SAS/PTS) dan mapel dibaca dari dokumen paket lewat paketId.
-       SAS -> kolom SAS. PTS -> mengisi kolom PTS yang masih kosong (nilai manual tidak ditimpa).
+       SAS -> kolom SAS (nilai asli; SAS manual disimpan terpisah di sasm).
+       PTS -> mengisi kolom PTS yang masih kosong (nilai manual tidak ditimpa).
        Remedial: nilai tertinggi yang dipakai. */
     const PTS = new Map();
     const mp = mapel.trim().toLowerCase();
@@ -513,6 +521,8 @@ async function muatKelas() {
 
 const sel = (n, k, j, v) => `<td class="e${v === null ? ' kos' : ''}"><input inputmode="decimal" data-n="${esc(n)}" data-k="${k}" data-j="${j}" value="${v === null ? '' : String(v).replace('.', ',')}" aria-label="${k === 'uts' ? 'PTS' : k.toUpperCase()} ${j + 1}"></td>`;
 const hc = c => `<td class="k" data-c="${c}"></td>`;
+/* Sel SAS: bisa diketik. Kosong = pakai nilai ujian online. Isi = SAS manual (bergaris bawah kuning). */
+const selSas = n => `<td class="s e kos" data-c="sas"><input inputmode="decimal" data-n="${esc(n)}" data-k="sas" data-j="0" aria-label="SAS" title="Kosongkan untuk memakai nilai ujian online"></td>`;
 
 function gambar() {
   renderHead();
@@ -522,7 +532,7 @@ function gambar() {
     return `<tr data-n="${esc(n)}"><td>${i + 1}</td><td class="l"><b>${esc(s.nama)}</b></td><td class="k">${esc(s.nis) || '–'}</td>`
       + d.tg.map((v, j) => sel(n, 'tg', j, v)).join('') + hc('nt')
       + d.uh.map((v, j) => sel(n, 'uh', j, v)).join('') + hc('nu') + sel(n, 'uts', 0, d.uts)
-      + `<td class="s" data-c="sas"></td>` + sel(n, 'prk', 0, d.pr).replace('class="e', 'class="kolp e') + hc('ak') + hc('pr') + hc('ket') + '</tr>';
+      + selSas(n) + sel(n, 'prk', 0, d.pr).replace('class="e', 'class="kolp e') + hc('ak') + hc('pr') + hc('ket') + '</tr>';
   }).join('');
   [...$('body').rows].forEach(isi);
   ringkas();
@@ -533,7 +543,15 @@ function isi(tr) {
   const h = hit(s), c = k => tr.querySelector(`[data-c="${k}"]`);
   c('nt').textContent = fmtN(h.nilaiTugas) + (h.tugasTerisi && h.tugasTerisi < totalTg() ? ` (${h.tugasTerisi}/${totalTg()})` : '');
   c('nu').textContent = fmtN(h.nilaiUH);
-  c('sas').textContent = h.sas === null ? 'belum' : fmtN(h.sas);
+  /* SAS: tampilkan nilai manual bila ada, kalau tidak nilai ujian online. Jangan menimpa sel yang sedang diketik. */
+  const td = c('sas'), inp = td.querySelector('input'), d = ST[kunci(s)], onl = sasOnline(s);
+  td.classList.toggle('man', d.sasm !== null && d.sasm !== undefined);
+  td.classList.toggle('kos', h.sas === null);
+  if (document.activeElement !== inp) inp.value = d.sasm !== null && d.sasm !== undefined ? String(d.sasm).replace('.', ',') : (onl === null ? '' : String(onl).replace('.', ','));
+  inp.placeholder = onl === null && (d.sasm === null || d.sasm === undefined) ? 'belum' : '';
+  inp.title = d.sasm !== null && d.sasm !== undefined
+    ? 'SAS manual' + (onl !== null ? ' (nilai ujian online: ' + fmtN(onl) + '). Kosongkan untuk kembali ke nilai online.' : '. Kosongkan untuk menghapus.')
+    : (onl !== null ? 'Nilai dari ujian online. Ketik angka untuk mengganti secara manual.' : 'Belum ada nilai SAS. Ketik angka untuk mengisi manual.');
   c('ak').innerHTML = h.akhir === null ? '–' : `<b class="${h.akhir < kkm() ? 'rd' : ''}">${h.akhir}</b>`;
   c('pr').textContent = h.predikat || '–';
   c('ket').innerHTML = h.keterangan ? `<span class="badge ${h.keterangan === 'Tuntas' ? 'ok' : 'bad'}">${h.keterangan}</span>` : '–';
@@ -569,15 +587,22 @@ $('body').addEventListener('input', e => {
   if (t !== '') { v = Number(t); if (!Number.isFinite(v) || v < 0 || v > 100) { bad = true; v = null; } }
   i.classList.toggle('bad', bad); i.parentNode.classList.toggle('kos', t === '');
   const d = ST[i.dataset.n], j = Number(i.dataset.j);
-  if (i.dataset.k === 'uts') d.uts = v; else if (i.dataset.k === 'prk') d.pr = v; else d[i.dataset.k][j] = v;
+  if (i.dataset.k === 'uts') d.uts = v; else if (i.dataset.k === 'prk') d.pr = v; else if (i.dataset.k === 'sas') d.sasm = v; else d[i.dataset.k][j] = v;
   kotor = true; isi(i.closest('tr')); ringkas();
+});
+
+/* Setelah selesai mengetik di sel SAS: segarkan tampilan (mis. sel dikosongkan -> kembali ke nilai ujian online). */
+$('body').addEventListener('focusout', e => {
+  const i = e.target; if (!i.dataset || i.dataset.k !== 'sas') return;
+  i.classList.remove('bad');
+  isi(i.closest('tr'));
 });
 
 /* Tempel blok dari Excel: mulai dari sel yang sedang dipilih, isi ke kanan dan ke bawah
    sesuai ukuran blok yang disalin; yang melewati tabel diabaikan. */
 function tulis(i, v) {
   const d = ST[i.dataset.n], j = Number(i.dataset.j), k = i.dataset.k;
-  if (k === 'uts') d.uts = v; else if (k === 'prk') d.pr = v; else d[k][j] = v;
+  if (k === 'uts') d.uts = v; else if (k === 'prk') d.pr = v; else if (k === 'sas') { d.sasm = v; i.parentNode.classList.add('man'); } else d[k][j] = v;
   i.value = String(v).replace('.', ','); i.classList.remove('bad'); i.parentNode.classList.remove('kos');
 }
 
@@ -593,7 +618,7 @@ $('body').addEventListener('paste', e => {
   const kol = tr => [...tr.cells].slice(3).filter(td => !(sembunyiP && td.classList.contains('kolp')));
   const c0 = kol(rows[r0]).indexOf(i.parentNode);
   const sisa = kol(rows[r0]).slice(c0).filter(td => td.classList.contains('e')).length;
-  const ikutPosisi = W > sisa;   // blok ikut memuat kolom hitung (Nilai tugas, Nilai UH, SAS): lewati kolom itu
+  const ikutPosisi = W > sisa;   // blok ikut memuat kolom hitung (Nilai tugas, Nilai UH): lewati kolom itu
   let ok = 0, tolak = 0;
   baris.forEach((b, r) => {
     const tr = rows[r0 + r]; if (!tr) return;
@@ -625,7 +650,18 @@ async function simpan() {
   if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.');
   $('simpan').disabled = true;
   try {
-    const siswa = {}; DAFTAR.forEach(s => siswa[kunci(s)] = ST[kunci(s)]);
+    /* Tiap siswa: masukan mentah (tg, uh, uts, pr, sasm) + hasil hitung saat Simpan
+       (sas = SAS yang dipakai, nilaiTugas, nilaiUH, akhir, predikat, ket). Disimpan pada dokumen yang sama, jadi
+       edit ulang hanya memperbarui field-field ini, bukan membuat dokumen baru. */
+    const siswa = {};
+    DAFTAR.forEach(s => {
+      const d = ST[kunci(s)], h = hit(s);
+      siswa[kunci(s)] = {
+        ...d,
+        sas: h.sas ?? null, nilaiTugas: h.nilaiTugas ?? null, nilaiUH: h.nilaiUH ?? null,
+        akhir: h.akhir ?? null, predikat: h.predikat || null, ket: h.keterangan || null
+      };
+    });
     await F.setDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()), {
       kelas: $('fKelas').value, mapel: $('fMapel').value, semester: P.semester || '', tahunAjaran: P.tahunAjaran || '',
       kkm: kkm(), bobot: Object.fromEntries(KB.map(k => [k, pct(k)])), struktur: { tg: [...STRUK.tg], uh: STRUK.uh }, siswa, diubah: Date.now(), oleh: G.nama || ''
@@ -636,7 +672,7 @@ async function simpan() {
 }
 
 /* Impor: letak mapel, kelas, dan baris siswa dicari otomatis (tidak bergantung nomor baris tetap).
-   Kolom TG dan UH mengikuti struktur yang sedang tampil di layar. */
+   Kolom TG dan UH mengikuti struktur yang sedang tampil di layar. SAS tidak diimpor. */
 async function impor(file) {
   try {
     await muatLib(CFG.lib.xlsx, 'XLSX');
@@ -677,7 +713,8 @@ async function impor(file) {
 }
 
 /* ===== Unduhan =====
-   Semua unduhan: kertas Legal (21,59 x 35,56 cm), landscape. */
+   Semua unduhan: kertas Legal (21,59 x 35,56 cm), landscape.
+   Kolom SAS memakai SAS efektif (manual bila ada, kalau tidak nilai ujian online). */
 const namaBerkas = (awalan, ext) => `${awalan}Rekap_Nilai_${$('fMapel').value}_${$('fKelas').value}.${ext}`.replace(/\s+/g, '_');
 function unduhBlob(blob, nama) {
   const url = URL.createObjectURL(blob);
@@ -828,7 +865,7 @@ async function buatExcel(templat) {
         '2. Isi nilai 0–100 pada lembar "Rekap_Nilai": kolom TG di bawah setiap LM, kolom UH, dan PTS. Pakai angka, koma atau titik desimal diperbolehkan.',
         '3. Jangan menambah, menghapus, atau memindahkan baris/kolom. Jangan mengubah isi kolom No, Nama, dan NIS/NISN. Jumlah kolom TG dan UH harus sama dengan di halaman Rekap Nilai.',
         '4. Kolom otomatis (Nilai Tugas, Nilai UH, Nilai Akhir, Predikat, Keterangan) dihitung rumus; bobot dan KKM ada di lembar "Pengaturan".',
-        '5. Nilai SAS tidak diisi di sini; diambil otomatis dari ujian online (nilai tertinggi bila ada remedial).',
+        '5. Nilai SAS tidak diisi di sini; diambil otomatis dari ujian online (nilai tertinggi bila ada remedial). SAS manual diisi langsung di halaman Rekap Nilai.',
         '6. Setelah selesai: simpan .xlsx, buka halaman Rekap Nilai, pilih mapel dan kelas yang sama, klik "Impor Excel", lalu "Simpan".']
         .forEach((t, i) => { const c = pt.getCell(i + 1, 1); c.value = t; c.alignment = { wrapText: true, vertical: 'top' }; c.font = { name: 'Arial', size: 10, bold: i === 0 }; });
     }

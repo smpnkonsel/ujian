@@ -113,7 +113,7 @@
       </table></div>
       <p class="empty" id="empty">Pilih kelas untuk menampilkan rekap nilai rapor.</p>
       <p class="cnt" style="margin-top:12px">
-        Kolom mata pelajaran diambil dari Daftar mapel (Firestore: Daftar/mapel, yang terisi dari halaman Data Guru); nama kolom memakai singkatan di daftar itu, dan semua mapel agama digabung jadi satu kolom. Bila Daftar mapel belum ada, kolom mengikuti mapel yang diampu pada kelas itu di Data Guru. Nilai akhir tiap mapel diambil otomatis dari Rekap Nilai masing-masing guru (kelas dan mapel yang sama, semester dan tahun pelajaran berjalan).
+        Kolom mata pelajaran diambil dari Daftar mapel (Firestore: Daftar/mapel, yang terisi dari halaman Data Guru); nama kolom memakai singkatan di daftar itu, dan semua mapel agama digabung jadi satu kolom. Bila Daftar mapel belum ada, kolom mengikuti mapel yang diampu pada kelas itu di Data Guru. Nilai akhir tiap mapel diambil dari nilai yang disimpan guru di Rekap Nilai masing-masing (kelas dan mapel yang sama, semester dan tahun pelajaran berjalan); nilai yang terbaru adalah yang terakhir disimpan guru dengan tombol Simpan.
         KKM tiap mapel otomatis mengikuti KKM yang diisi guru di Rekap Nilai masing-masing (75 bila belum disimpan). Angka merah berarti di bawah KKM.
         Nama wali kelas dipilih dari Data Guru dan diingat di perangkat ini.
       </p>
@@ -146,22 +146,22 @@
 <script type="module">
 import { F } from '../assets/js/firebase-pusat.js';
 import * as FP from '../assets/js/firebase-pusat.js';
-import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
-import { norm, esc, fmtN, toast } from '../assets/js/util.js';
+import { urutAlfa } from '../assets/js/data.js';
+import { esc, fmtN, toast } from '../assets/js/util.js';
 import { hitungSiswa, BOBOT_BAWAAN, PREDIKAT_BAWAAN } from '../assets/js/nilai-hitung.js';
 
 /* ===== Konfigurasi =====
    siswa, guru, daftar -> Firebase Data Siswa dan Guru (dbSiswaGuru)
-   pengaturan, paket -> Firebase Bank-soal
-   nilai (rekap nilai guru), hasil (ujian online) -> Firebase tingkat kelas (VII/VIII/IX) */
+   pengaturan          -> Firebase Bank-soal
+   nilai (rekap nilai guru) -> Firebase tingkat kelas (VII/VIII/IX)
+   Nilai akhir diambil dari koleksi nilai (field akhir per siswa); hasil ujian online tidak dibaca di halaman ini. */
 const CFG = {
-  koleksi: { siswa: 'siswa', guru: 'guru', nilai: 'nilai', hasil: 'hasil', paket: 'paket', pengaturan: 'pengaturan' },
+  koleksi: { siswa: 'siswa', guru: 'guru', nilai: 'nilai', pengaturan: 'pengaturan' },
   /* Daftar mapel: dokumen Daftar/mapel, satu field per mapel -> { id, nama, singkatan } (diisi dari halaman Data Guru) */
   daftar: { koleksi: 'Daftar', dokumen: 'mapel' },
   docPengaturan: 'kop_sekolah',
   fSiswa: { nama: ['nama'], nis: ['nis', 'nisn'], kelas: ['kelas'] },
   tingkat: ['VII', 'VIII', 'IX'],
-  batasHasil: 5000,
   logoKiri: '../assets/templat/image1.png',
   logoKanan: '../assets/templat/image2.png',
   lib: {
@@ -210,41 +210,18 @@ const muatLib = (url, cek) => {
   });
 };
 
-let P = {}, SIS = [], GURU = [], NILAI = [], HASIL = [], PAKET = new Map(), DAFTAR = [], CUR = null;
+let P = {}, SIS = [], GURU = [], NILAI = [], DAFTAR = [], CUR = null;
 const aktif = () => $('fKelas').value;
 
 /* id mapel: nama huruf kecil, selain huruf/angka jadi "-" (sama dengan halaman Data Guru) */
 const idMapel = t => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
 const idxStd = t => STD.findIndex(x => x.re.test(t));
 
-/* ===== Hasil ujian online: jenis (SAS/PTS) dan mapel dari dokumen paket (sama seperti halaman guru) ===== */
-function infoHasil(r) {
-  const p = PAKET.get(r.paketId) || {};
-  const teks = String(r.paketNama || r.paket || '');
-  let jenis = String(p.jenis || '').trim().toUpperCase();
-  if (!jenis) jenis = /\bsas\b/i.test(teks) ? 'SAS' : /\b(pts|uts)\b/i.test(teks) ? 'PTS' : '';
-  if (jenis === 'UTS') jenis = 'PTS';
-  const mapel = String(p.mapel || r.mapel || p.nama || teks).trim().toLowerCase();
-  return { jenis, mapel };
-}
-const online = {};
-function onlineMap(kelas, mapel, jenis) {
-  const id = [normK(kelas), mapel.toLowerCase(), jenis].join('|');
-  if (online[id]) return online[id];
-  const mp = mapel.trim().toLowerCase(), k = normK(kelas), m = new Map();
-  HASIL.forEach(h => {
-    if (h.jenis !== jenis || h.kelas !== k || !h.mapel.includes(mp)) return;
-    if (!m.has(h.key) || h.nilai > m.get(h.key)) m.set(h.key, h.nilai);
-  });
-  return (online[id] = m);
-}
-
 /* ===== Pembacaan data ===== */
 async function muat() {
   info('');
   const pesan = [];
   const baca = async (label, fn) => { try { return await fn(); } catch (e) { console.error(label, e); pesan.push('Gagal membaca ' + label + ': ' + (e.message || e) + '.'); return null; } };
-  Object.keys(online).forEach(k => delete online[k]);
 
   await baca('pengaturan sekolah', async () => {
     const sn = await F.getDoc(F.doc(FP.dbBankSoal, CFG.koleksi.pengaturan, CFG.docPengaturan));
@@ -284,11 +261,6 @@ async function muat() {
     pesan.push('Daftar mapel (' + CFG.daftar.koleksi + '/' + CFG.daftar.dokumen + ') belum ada atau kosong; kolom mapel memakai Data Guru. Buka halaman Data Guru lalu klik Sinkron mapel.');
   }
 
-  await baca('paket soal', async () => {
-    const sp = await F.getDocs(F.collection(FP.dbBankSoal, CFG.koleksi.paket));
-    PAKET = new Map(sp.docs.map(x => { const p = x.data(); return [x.id, { jenis: p.jenis || '', mapel: p.mapel || p.nama || '', nama: p.nama || '' }]; }));
-  });
-
   /* Rekap nilai yang disimpan guru: satu dokumen per tahun_semester_mapel_kelas di tiap Firebase tingkat */
   NILAI = [];
   const gagal = [];
@@ -299,17 +271,6 @@ async function muat() {
     } catch (e) { console.error('nilai', t, e); gagal.push(t); }
   }));
   if (gagal.length) pesan.push('Rekap nilai guru gagal dibaca untuk tingkat ' + gagal.join(', ') + '.');
-
-  HASIL = [];
-  await baca('hasil ujian online', async () => {
-    const { rows, gagal: g2 } = await ambilTingkat(CFG.koleksi.hasil, { batas: CFG.batasHasil, urut: 'waktu' });
-    if (g2 && g2.length) pesan.push('Sebagian hasil ujian gagal dibaca: kelas ' + g2.map(g => g.tingkat).join(', ') + '.');
-    if (rows.length >= CFG.batasHasil) pesan.push('Hasil ujian mencapai batas ' + CFG.batasHasil + '; nilai SAS/PTS online mungkin belum lengkap.');
-    HASIL = rows.map(r => {
-      const n = norm({ id: r.id, data: () => r }), { jenis, mapel } = infoHasil(r);
-      return { kelas: normK(n.kelas), jenis, mapel, key: String(pick(r, CFG.fSiswa.nis)).trim() || n.nama.trim().toUpperCase(), nilai: n.nilai };
-    }).filter(h => h.nilai !== null && (h.jenis === 'SAS' || h.jenis === 'PTS'));
-  });
 
   const dot = $('dot'), cs = $('cs');
   if (dot) dot.classList.add('on');
@@ -416,15 +377,21 @@ function bangun(kelas) {
     const col = cariKolom(mapel);
     if (!col) { luar.add(mapel); return; }
     col.ada = true;
-    const bobot = bobotDok(dok), kkmD = Number(dok.kkm) > 0 ? Number(dok.kkm) : null;
+    const kkmD = Number(dok.kkm) > 0 ? Number(dok.kkm) : null;
     if (col.kkm === null && kkmD) col.kkm = kkmD;
-    const SAS = onlineMap(kelas, mapel, 'SAS'), PTS = onlineMap(kelas, mapel, 'PTS');
     sis.forEach(s => {
-      const d = (dok.siswa || {})[kunci(s)] || {};
-      const uts = d.uts ?? (PTS.get(s.nis) ?? PTS.get(s.nama) ?? null);
-      const sas = SAS.get(s.nis) ?? SAS.get(s.nama) ?? null;
-      const h = hitungSiswa({ tg: d.tg || [], uh: d.uh || [], uts, sas, praktik: d.pr ?? null }, { kkm: kkmD || 75, bobot, predikat: PREDIKAT_BAWAAN });
-      if (h.akhir !== null && h.akhir !== undefined && !col.nilai.has(kunci(s))) col.nilai.set(kunci(s), h.akhir);   // agama: ambil nilai guru agama siswa itu
+      const d = (dok.siswa || {})[kunci(s)];
+      if (!d) return;
+      /* Nilai akhir dibaca dari dokumen nilai guru (field akhir). Dokumen lama yang belum punya akhir
+         dihitung dari field yang tersimpan di dokumen itu saja (tanpa hasil ujian online);
+         agar lengkap, guru cukup membuka Rekap Nilai miliknya lalu menekan Simpan sekali. */
+      let akhir = d.akhir !== null && d.akhir !== undefined && d.akhir !== '' && Number.isFinite(Number(d.akhir)) ? Number(d.akhir) : null;
+      if (akhir === null) {
+        const h = hitungSiswa({ tg: d.tg || [], uh: d.uh || [], uts: d.uts ?? null, sas: d.sasm ?? d.sas ?? null, praktik: d.pr ?? null },
+                              { kkm: kkmD || 75, bobot: bobotDok(dok), predikat: PREDIKAT_BAWAAN });
+        akhir = h.akhir ?? null;
+      }
+      if (akhir !== null && !col.nilai.has(kunci(s))) col.nilai.set(kunci(s), akhir);   // agama: ambil nilai guru agama siswa itu
     });
   });
   const semua = [...cols.values()].sort((a, b) => a.idx - b.idx || urutAlfa(a.nama, b.nama));
@@ -547,7 +514,7 @@ const namaKs = () => P.ksNama ? '(' + P.ksNama + ')' : titik;
 const nipKs = () => 'NIP. ' + (P.ksNip || '......................................................');
 const namaWl = w => w.nama ? '(' + w.nama + ')' : titik;
 const nipWl = w => 'NIP. ' + (w.nip || '......................................................');
-const catatan = 'Catatan: Nilai Akhir tiap mata pelajaran diambil otomatis dari Rekap Nilai masing-masing guru. KKM tiap mapel mengikuti yang diisi guru pada Rekap Nilai; nilai di bawah KKM tampil merah.';
+const catatan = 'Catatan: Nilai Akhir tiap mata pelajaran diambil dari Rekap Nilai yang disimpan masing-masing guru. KKM tiap mapel mengikuti yang diisi guru pada Rekap Nilai; nilai di bawah KKM tampil merah.';
 
 /* Daftar singkatan mapel yang dipakai di judul kolom */
 function legenda(m) {

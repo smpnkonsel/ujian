@@ -606,6 +606,8 @@ try {
 
   /* =====================================================
      4. FIREBASE — SIMPAN BANYAK DATA
+     Memakai merge: field milik halaman lain (mis. akun)
+     di dokumen siswa yang sama tidak tertimpa.
   ===================================================== */
 
   async function simpanBanyak(daftar) {
@@ -622,7 +624,7 @@ try {
         batch.set(ref, {
           ...r,
           diperbaruiPada: F.serverTimestamp()
-        });
+        }, { merge: true });
       });
 
       await batch.commit();
@@ -631,6 +633,8 @@ try {
 
   /* =====================================================
      5. FIREBASE — UBAH DATA
+     Memakai merge. Jika NIS diganti, semua field lama
+     dibawa ke dokumen baru sebelum dokumen lama dihapus.
   ===================================================== */
 
   async function ganti(nisLama, rec) {
@@ -642,20 +646,26 @@ try {
       rec.nis
     );
 
-    if (nisLama !== rec.nis) {
-      const refLama = F.doc(
-        dbSiswaGuru,
-        NAMA_KOLEKSI,
-        nisLama
-      );
+    let dasar = {};
 
-      batch.delete(refLama);
+    if (nisLama !== rec.nis) {
+      const lama = semua.find((s) => s.nis === nisLama);
+
+      if (lama) {
+        dasar = { ...lama };
+        delete dasar.diperbaruiPada;
+      }
+
+      batch.delete(
+        F.doc(dbSiswaGuru, NAMA_KOLEKSI, nisLama)
+      );
     }
 
     batch.set(refBaru, {
+      ...dasar,
       ...rec,
       diperbaruiPada: F.serverTimestamp()
-    });
+    }, { merge: true });
 
     await batch.commit();
   }

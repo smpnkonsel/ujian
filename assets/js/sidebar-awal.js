@@ -182,7 +182,8 @@
 
     ['Data Master', [
       ['siswa', 'Data Siswa', 'Dasbor guru/siswa.html'],
-      ['kelas', 'Data Kelas', 'Dasbor guru/Kelas.html']
+      ['kelas', 'Data Kelas', 'Dasbor guru/Kelas.html'],
+      ['banksoal', 'Bank Soal', 'Dasbor guru/Tambah-paket-guru.html']
     ]],
 
     ['Monitoring', [
