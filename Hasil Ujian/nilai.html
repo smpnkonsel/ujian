@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rekap Nilai · KW Learning</title>
+<title>Rekap Nilai Rapor · KW Learning</title>
 <script>document.documentElement.style.visibility='hidden'</script>
 <script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
 <link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
@@ -13,13 +13,62 @@
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-  .tw { border: 0; box-shadow: none; background: transparent; }
-  td.n, th.n { text-align: right; }
-  .badge.ok { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
+  .tw { border: 0; box-shadow: none; background: transparent; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .badge.ok  { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
   .badge.bad { background: color-mix(in srgb, var(--nm-warn) 16%, var(--nm-bg)); color: var(--nm-warn); }
+
+  .tools { align-items: center; }
   .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
   .tools .kkm input { width: 76px; min-width: 0; flex: none; }
   .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
+  .ident { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 4px 24px; font-size: 13px; margin: 0 0 12px; }
+  .ident span { color: var(--nm-muted); }
+
+  /* Tabel mengikuti model Excel: biru tua, mapel dibaca tegak, baris KKM kuning */
+  table.rt th, table.rt td { border-radius: 0; text-transform: none; letter-spacing: normal; }
+  table.rt { border-collapse: collapse; width: 100%; min-width: 1000px; font-size: 12.5px; }
+  table.rt th, table.rt td { border: 1px solid var(--nm-garis, #9aa3b5); padding: 4px 5px; text-align: center; }
+  table.rt th { color: #fff; font-weight: 600; background: #1F3864; }
+  table.rt th.h2 { background: #2F5597; }
+  table.rt th.h3 { background: #BF8F00; }
+  table.rt th.mp { background: #DDEBF7; color: #1F3864; font-size: 11px; padding: 6px 2px; }
+  .vt { writing-mode: vertical-rl; transform: rotate(180deg); white-space: normal; height: 64px; margin: 0 auto; line-height: 1.2; }
+  table.rt td.kkl { background: #D9E1F2; color: #000; font-weight: 700; text-align: right; }
+  table.rt td.kkx { background: #D9E1F2; }
+  table.rt td.kkc { background: #FFFF99; color: #0000FF; font-weight: 700; }
+  table.rt td.l { text-align: left; white-space: nowrap; }
+  table.rt td.k { color: var(--nm-muted); }
+  table.rt td.rd { color: #C00000; font-weight: 700; }
+  table.rt td.b { font-weight: 700; }
+  table.rt td.rk { background: #FFF2CC; color: #000; font-weight: 700; }
+
+  @media (max-width: 820px) { .tools select { flex: 1 1 160px; } }
+  @media (max-width: 600px) {
+    .tools select { flex: 1 1 100%; width: 100%; }
+    .tools .kkm { flex: 1 1 100%; justify-content: space-between; }
+    .tools .kkm input { width: 90px; flex: none; }
+    .acts .btn { flex: 1 1 auto; }
+  }
+
+  /* Pratinjau: selalu putih seperti kertas cetak */
+  .kertas { background: #fff; color: #000; border-radius: 14px; padding: 1.2rem; font-family: Arial, Helvetica, sans-serif; box-shadow: 6px 6px 14px var(--nm-dark, rgba(0,0,0,.15)), -6px -6px 14px var(--nm-light, rgba(255,255,255,.6)); overflow-x: auto; }
+  .kertas .kop { display: flex; align-items: center; gap: .8rem; border-bottom: 3px double #000; padding-bottom: .6rem; min-width: 900px; }
+  .kertas .kop img { width: 76px; height: 76px; object-fit: contain; }
+  .kertas .kop div { flex: 1; text-align: center; line-height: 1.35; font-size: .82rem; }
+  .kertas .kop b { display: block; } .kertas .kop b.n { font-size: 1.05rem; }
+  .kertas .kop span { display: block; font-size: .7rem; font-style: italic; }
+  .kertas .jd { text-align: center; font-weight: 700; margin: .7rem 0 .4rem; font-size: .95rem; }
+  .kertas .idn { display: grid; grid-template-columns: 1fr 1fr; gap: .1rem 2rem; font-size: .75rem; margin-bottom: .6rem; min-width: 900px; }
+  .kertas table.rt { min-width: 900px; font-size: .66rem; }
+  .kertas table.rt th, .kertas table.rt td { border: 1px solid #666; padding: .2rem; }
+  .kertas table.rt td { color: #000; }
+  .kertas table.rt td.rd { color: #C00000; }
+  .kertas table.rt td.k { color: #000; }
+  .kertas table.rt .vt { height: 56px; }
+  .kertas .cat { font-size: .66rem; font-style: italic; color: #595959; margin-top: .6rem; }
+  .kertas .ttd { display: flex; justify-content: space-between; margin-top: 1rem; font-size: .75rem; min-width: 900px; }
+  .kertas .ttd div { text-align: center; min-width: 260px; }
+  .kertas .badge { box-shadow: none; }
 </style>
 </head>
 <body>
@@ -29,137 +78,742 @@
 <div id="mn">
   <div class="top">
     <button id="burger" type="button" aria-label="Buka menu">☰</button>
-    <h2>Rekap Nilai</h2>
+    <h2>Rekap Nilai Rapor</h2>
   </div>
-  <div class="wrap">
+  <div class="wrap penuh">
     <div id="info" class="msg warn" role="status" hidden></div>
 
-    <section class="stats" aria-label="Ringkasan">
-      <div class="st"><b id="n-peserta">0</b><span>Peserta</span></div>
-      <div class="st"><b id="n-rata">–</b><span>Rata-rata</span></div>
-      <div class="st"><b id="n-max">–</b><span>Tertinggi</span></div>
-      <div class="st"><b id="n-min">–</b><span>Terendah</span></div>
+    <section class="stats maks4" aria-label="Ringkasan kelas">
+      <div class="st"><b id="s-n">0</b><span>Peserta didik</span></div>
+      <div class="st"><b id="s-r">–</b><span>Rata-rata kelas</span></div>
+      <div class="st"><b id="s-t">0</b><span>Tuntas semua mapel</span></div>
+      <div class="st"><b id="s-m">–</b><span>Mapel sudah terisi</span></div>
     </section>
 
     <div class="card">
-      <h3>Rekap nilai per kelas</h3>
+      <h3>Rekap nilai rapor per kelas</h3>
       <div class="tools">
-        <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
-        <select id="fTingkat" aria-label="Tingkat"><option value="">Semua tingkat</option></select>
-        <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
-        <label class="kkm">Target tuntas (%) <input id="target" type="number" min="0" max="100" value="75" aria-label="Target ketuntasan klasikal dalam persen"></label>
+        <select id="fKelas" aria-label="Kelas"><option value="">Pilih kelas</option></select>
+        <select id="fWali" aria-label="Wali kelas"><option value="">Pilih wali kelas</option></select>
       </div>
       <div class="acts" style="margin-bottom:12px">
         <button id="muat" class="btn p" type="button">Muat ulang</button>
-        <button id="unduh" class="btn" type="button">Unduh CSV</button>
+        <button id="unduh" class="btn" type="button">Unduh Excel</button>
+        <button id="unduhSemua" class="btn" type="button">Unduh Excel Semua Kelas</button>
+        <button id="unduhWord" class="btn" type="button">Unduh Word</button>
+        <button id="unduhPdf" class="btn" type="button">Unduh PDF</button>
       </div>
-      <div class="tw"><table>
-        <thead><tr><th>Kelas</th><th class="n">Peserta</th><th class="n">Rata-rata</th><th class="n">Tertinggi</th>
-          <th class="n">Terendah</th><th class="n">Tuntas</th><th class="n">Belum</th><th class="n">Ketuntasan</th></tr></thead>
+
+      <div class="ident" id="ident" hidden></div>
+      <p class="cnt" id="cat" hidden></p>
+
+      <div class="tw"><table id="tabel" class="rt">
+        <thead id="head"></thead>
         <tbody id="body"></tbody>
       </table></div>
-      <p class="empty" id="empty" hidden>Belum ada nilai untuk direkap.</p>
+      <p class="empty" id="empty">Pilih kelas untuk menampilkan rekap nilai rapor.</p>
+      <p class="cnt" style="margin-top:12px">
+        Kolom mata pelajaran diambil dari Daftar mapel (Firestore: Daftar/mapel, yang terisi dari halaman Data Guru); nama kolom memakai singkatan di daftar itu, dan semua mapel agama digabung jadi satu kolom. Bila Daftar mapel belum ada, kolom mengikuti mapel yang diampu pada kelas itu di Data Guru. Nilai akhir tiap mapel diambil otomatis dari Rekap Nilai masing-masing guru (kelas dan mapel yang sama, semester dan tahun pelajaran berjalan).
+        KKM tiap mapel otomatis mengikuti KKM yang diisi guru di Rekap Nilai masing-masing (75 bila belum disimpan). Angka merah berarti di bawah KKM.
+        Nama wali kelas dipilih dari Data Guru dan diingat di perangkat ini.
+      </p>
     </div>
+
+    <section id="pv" hidden>
+    <h3 style="margin:18px 0 4px">Pratinjau hasil (sama dengan file unduhan)</h3>
+    <p class="cnt">Tampilan ini berubah otomatis mengikuti kelas, wali kelas, dan nilai guru.</p>
+    <div class="kertas">
+      <div class="kop">
+        <img src="../assets/templat/image1.png" alt="Logo kiri" onerror="this.style.visibility='hidden'">
+        <div id="pv-k"></div>
+        <img src="../assets/templat/image2.png" alt="Logo kanan" onerror="this.style.visibility='hidden'">
+      </div>
+      <p class="jd">REKAP NILAI RAPOR PESERTA DIDIK</p>
+      <div class="idn" id="pv-i"></div>
+      <table id="pv-t" class="rt"><thead id="pv-h"></thead><tbody id="pv-b"></tbody></table>
+      <p class="cat" id="pv-r"></p>
+      <div class="ttd">
+        <div>Mengetahui,<br><b id="pv-ks1"></b><br><br><br><br><b id="pv-ks2"></b><br><span id="pv-ks3"></span></div>
+        <div><span id="pv-t1"></span><br><b>Wali Kelas,</b><br><br><br><br><b id="pv-g2"></b><br><span id="pv-g3"></span></div>
+      </div>
+    </div>
+  </section>
   </div>
 </div>
 
 <div id="toast" role="status"></div>
 
 <script type="module">
+import { F } from '../assets/js/firebase-pusat.js';
+import * as FP from '../assets/js/firebase-pusat.js';
 import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
 import { norm, esc, fmtN, toast } from '../assets/js/util.js';
+import { hitungSiswa, BOBOT_BAWAAN, PREDIKAT_BAWAAN } from '../assets/js/nilai-hitung.js';
+
+/* ===== Konfigurasi =====
+   siswa, guru, daftar -> Firebase Data Siswa dan Guru (dbSiswaGuru)
+   pengaturan, paket -> Firebase Bank-soal
+   nilai (rekap nilai guru), hasil (ujian online) -> Firebase tingkat kelas (VII/VIII/IX) */
+const CFG = {
+  koleksi: { siswa: 'siswa', guru: 'guru', nilai: 'nilai', hasil: 'hasil', paket: 'paket', pengaturan: 'pengaturan' },
+  /* Daftar mapel: dokumen Daftar/mapel, satu field per mapel -> { id, nama, singkatan } (diisi dari halaman Data Guru) */
+  daftar: { koleksi: 'Daftar', dokumen: 'mapel' },
+  docPengaturan: 'kop_sekolah',
+  fSiswa: { nama: ['nama'], nis: ['nis', 'nisn'], kelas: ['kelas'] },
+  tingkat: ['VII', 'VIII', 'IX'],
+  batasHasil: 5000,
+  logoKiri: '../assets/templat/image1.png',
+  logoKanan: '../assets/templat/image2.png',
+  lib: {
+    exceljs: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
+    jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    autotable: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
+  }
+};
+
+/* Pola nama mapel: dipakai untuk mengurutkan kolom (urutan kurikulum) dan mencocokkan nama mapel
+   yang ditulis guru dengan kolom dari Daftar mapel. Mapel di luar pola diurutkan di belakang. */
+const STD = [
+  { nama: 'Pendidikan Agama dan Budi Pekerti', kode: 'PABP', re: /agama/i },
+  { nama: 'Pendidikan Pancasila', kode: 'PPKn', re: /pkn|ppkn|pancasila|kewarganegaraan/i },
+  { nama: 'Bahasa Indonesia', kode: 'B.IND', re: /indonesia/i },
+  { nama: 'Matematika', kode: 'MTK', re: /matematika|\bmtk\b/i },
+  { nama: 'Ilmu Pengetahuan Alam (IPA)', kode: 'IPA', re: /\bipa\b|ilmu pengetahuan alam/i },
+  { nama: 'Ilmu Pengetahuan Sosial (IPS)', kode: 'IPS', re: /\bips\b|ilmu pengetahuan sosial/i },
+  { nama: 'Bahasa Inggris', kode: 'B.ING', re: /inggris/i },
+  { nama: 'PJOK', kode: 'PJOK', re: /pjok|jasmani|olahraga/i },
+  { nama: 'Informatika', kode: 'INFO', re: /informatika|\btik\b/i },
+  { nama: 'Seni dan Prakarya', kode: 'SENI', re: /seni|prakarya/i },
+  { nama: 'Muatan Lokal (Bahasa Daerah)', kode: 'MULOK', re: /muatan lokal|mulok|bahasa daerah/i }
+];
+/* Agama: satu kolom untuk semua agama; singkatan mengikuti Daftar mapel (mis. PAI/PAH) */
+const AGAMA = [[/islam/i, 'PAI'], [/kristen|protestan/i, 'PAK'], [/katolik/i, 'PAKt'], [/hindu/i, 'PAH'], [/budd?ha/i, 'PAB'], [/kh?onghucu/i, 'PAKh']];
+/* Singkatan otomatis untuk mapel tanpa singkatan: huruf awal tiap kata (nama pendek dipakai apa adanya) */
+const singkat = nama => {
+  const t = String(nama).trim();
+  if (t.length <= 6) return t.toUpperCase();
+  return t.split(/\s+/).filter(x => !/^(dan|di|ke|dari|yang|untuk)$/i.test(x)).map(x => x[0]).join('').toUpperCase();
+};
+const KB = ['tugas', 'uh', 'uts', 'sas', 'praktik'];
+const KKM_AWAL = 75, KUNCI_WALI = 'kw-wali-';
 
 const $ = id => document.getElementById(id);
-const BATAS_DATA = 5000;          // batas baca per permintaan (sebelumnya 1000)
-const TARGET_AWAL = 75;           // target ketuntasan klasikal (%) bawaan
-const KUNCI_KKM = 'kw-kkm';
-const KUNCI_TARGET = 'kw-target-tuntas';
-let ROWS = [];
-
-try {
-  const v = Number(localStorage.getItem(KUNCI_KKM));
-  const app = JSON.parse(localStorage.getItem('kw_pengaturan_app') || 'null');   // KKM dari Pengaturan Aplikasi
-  const awal = v > 0 && v <= 100 ? v : Number(app && app.kkm);
-  if (awal > 0 && awal <= 100) $('kkm').value = awal;
-  const t = Number(localStorage.getItem(KUNCI_TARGET));
-  $('target').value = t > 0 && t <= 100 ? t : TARGET_AWAL;
-} catch (_) {}
-
-const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) ? v : 75; };
-const target = () => { const v = Number($('target').value); return Number.isFinite(v) && v > 0 ? v : TARGET_AWAL; };
-const maks = a => a.reduce((m, x) => (x > m ? x : m), -Infinity);   // aman untuk array besar
-const mins = a => a.reduce((m, x) => (x < m ? x : m), Infinity);
-const jumlah = a => a.reduce((s, x) => s + x, 0);
-
-function isiPilihan(sel, label, nilai) {
-  const cur = sel.value;
-  sel.innerHTML = `<option value="">${label}</option>` + nilai.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-  sel.value = nilai.includes(cur) ? cur : '';
-}
-
-function rekap() {
-  const p = $('fPaket').value, t = $('fTingkat').value;
-  const data = ROWS.filter(r => r.nilai !== null && (!p || r.paket === p) && (!t || r.tingkat === t));
-  const peta = new Map();
-  data.forEach(r => { const k = r.kelas || r.tingkat; if (!peta.has(k)) peta.set(k, []); peta.get(k).push(r.nilai); });
-  const baris = [...peta.entries()].sort((a, b) => urutAlfa(a[0], b[0])).map(([kelas, v]) => {
-    const tun = v.filter(n => n >= kkm()).length;
-    return { kelas, n: v.length, rata: jumlah(v) / v.length, max: maks(v), min: mins(v), tun, belum: v.length - tun, persen: Math.round(tun / v.length * 100) };
+const pick = (o, ks) => { for (const k of ks) if (o[k] !== undefined && o[k] !== '') return o[k]; return ''; };
+const kunci = s => s.nis || s.nama;
+const normK = v => String(v || '').toUpperCase().replace(/[\s.\-_]/g, '').replace(/^(7|8|9)/, m => ({ 7: 'VII', 8: 'VIII', 9: 'IX' })[m]);
+const info = t => { $('info').hidden = !t; $('info').textContent = t || ''; };
+const L = n => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+const muatLib = (url, cek) => {
+  const ada = typeof cek === 'function' ? !!cek() : !!window[cek];
+  return ada ? Promise.resolve() : new Promise((ok, no) => {
+    const s = document.createElement('script'); s.src = url; s.onload = ok; s.onerror = () => no(new Error('Pustaka gagal dimuat.')); document.head.appendChild(s);
   });
-  return { data, baris };
+};
+
+let P = {}, SIS = [], GURU = [], NILAI = [], HASIL = [], PAKET = new Map(), DAFTAR = [], CUR = null;
+const aktif = () => $('fKelas').value;
+
+/* id mapel: nama huruf kecil, selain huruf/angka jadi "-" (sama dengan halaman Data Guru) */
+const idMapel = t => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+const idxStd = t => STD.findIndex(x => x.re.test(t));
+
+/* ===== Hasil ujian online: jenis (SAS/PTS) dan mapel dari dokumen paket (sama seperti halaman guru) ===== */
+function infoHasil(r) {
+  const p = PAKET.get(r.paketId) || {};
+  const teks = String(r.paketNama || r.paket || '');
+  let jenis = String(p.jenis || '').trim().toUpperCase();
+  if (!jenis) jenis = /\bsas\b/i.test(teks) ? 'SAS' : /\b(pts|uts)\b/i.test(teks) ? 'PTS' : '';
+  if (jenis === 'UTS') jenis = 'PTS';
+  const mapel = String(p.mapel || r.mapel || p.nama || teks).trim().toLowerCase();
+  return { jenis, mapel };
+}
+const online = {};
+function onlineMap(kelas, mapel, jenis) {
+  const id = [normK(kelas), mapel.toLowerCase(), jenis].join('|');
+  if (online[id]) return online[id];
+  const mp = mapel.trim().toLowerCase(), k = normK(kelas), m = new Map();
+  HASIL.forEach(h => {
+    if (h.jenis !== jenis || h.kelas !== k || !h.mapel.includes(mp)) return;
+    if (!m.has(h.key) || h.nilai > m.get(h.key)) m.set(h.key, h.nilai);
+  });
+  return (online[id] = m);
 }
 
-function gambar() {
-  const { data, baris } = rekap();
-  const ns = data.map(r => r.nilai);
-  $('n-peserta').textContent = data.length;
-  $('n-rata').textContent = ns.length ? fmtN(jumlah(ns) / ns.length) : '–';
-  $('n-max').textContent = ns.length ? fmtN(maks(ns)) : '–';
-  $('n-min').textContent = ns.length ? fmtN(mins(ns)) : '–';
-  $('body').innerHTML = baris.map(b => `<tr><td><b>${esc(b.kelas)}</b></td><td class="n">${b.n}</td><td class="n">${fmtN(b.rata)}</td>
-    <td class="n">${fmtN(b.max)}</td><td class="n">${fmtN(b.min)}</td><td class="n">${b.tun}</td><td class="n">${b.belum}</td>
-    <td class="n"><span class="badge ${b.tun / b.n * 100 >= target() ? 'ok' : 'bad'}">${b.persen}%</span></td></tr>`).join('');
-  $('empty').hidden = baris.length > 0;
-}
-
+/* ===== Pembacaan data ===== */
 async function muat() {
-  const info = $('info'), dot = $('dot'), cs = $('cs');
-  info.hidden = true;
+  info('');
   const pesan = [];
-  try {
-    const { rows, gagal } = await ambilTingkat('hasil', { batas: BATAS_DATA, urut: 'waktu' });
-    ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), tingkat: r.tingkat }));
-    if (gagal.length) pesan.push('Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.');
-    if (rows.length >= BATAS_DATA) pesan.push('Jumlah data mencapai batas ' + BATAS_DATA + '; rekap mungkin belum lengkap.');
-    if (dot) dot.classList.add('on');
-    if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
-  } catch (e) {
-    console.error(e); ROWS = [];
-    pesan.push('Gagal memuat data dari Firebase: ' + (e.message || e));
+  const baca = async (label, fn) => { try { return await fn(); } catch (e) { console.error(label, e); pesan.push('Gagal membaca ' + label + ': ' + (e.message || e) + '.'); return null; } };
+  Object.keys(online).forEach(k => delete online[k]);
+
+  await baca('pengaturan sekolah', async () => {
+    const sn = await F.getDoc(F.doc(FP.dbBankSoal, CFG.koleksi.pengaturan, CFG.docPengaturan));
+    const d = sn.exists() ? sn.data() : {};
+    P = { instansi: d.kop1 || '', dinas: d.kop2 || '', sekolah: d.kop3 || '', alamat: d.kop4 || '', ksNama: d.kepsek || '', ksNip: d.nipKepsek || '', semester: d.semester || '', tahunAjaran: d.tahun || '' };
+  });
+
+  await baca('data siswa', async () => {
+    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(3000)));
+    SIS = snap.docs.map(x => {
+      const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
+      return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };
+    }).filter(s => s.kelas && s.tingkat);
+  });
+
+  await baca('data guru', async () => {
+    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.guru), F.limit(500)));
+    GURU = snap.docs.map(x => {
+      const d = x.data();
+      const pecah = t => String(t || '').split(/[,;]/).map(v => v.trim()).filter(Boolean);
+      const arr = Array.isArray(d.mengajar) ? d.mengajar : (d.mapel ? [{ mapel: d.mapel, kelas: pecah(d.kelas) }] : []);
+      const mengajar = arr.map(v => ({ mapel: String(v.mapel || '').trim(), kelas: (Array.isArray(v.kelas) ? v.kelas : pecah(v.kelas)).map(k => String(k).trim()) })).filter(v => v.mapel);
+      return { id: x.id, nama: String(d.nama || '').trim(), nip: String(d.nip || x.id || '').trim(), wali: d.waliKelas ?? d.walikelas ?? d.wali ?? '', mengajar };
+    }).filter(g => g.nama).sort((a, b) => urutAlfa(a.nama, b.nama));
+  });
+
+  /* Daftar mapel: dokumen Daftar/mapel, tiap field = satu mapel { id, nama, singkatan } */
+  DAFTAR = [];
+  await baca('daftar mapel', async () => {
+    const sn = await F.getDoc(F.doc(FP.dbSiswaGuru, CFG.daftar.koleksi, CFG.daftar.dokumen));
+    const d = sn.exists() ? sn.data() : {};
+    DAFTAR = Object.entries(d)
+      .filter(([, v]) => v && typeof v === 'object' && v.nama)
+      .map(([id, v]) => ({ id: v.id || id, nama: String(v.nama).trim(), singkatan: String(v.singkatan || '').trim() }));
+  });
+  if (!DAFTAR.length && !pesan.some(p => p.includes('daftar mapel'))) {
+    pesan.push('Daftar mapel (' + CFG.daftar.koleksi + '/' + CFG.daftar.dokumen + ') belum ada atau kosong; kolom mapel memakai Data Guru. Buka halaman Data Guru lalu klik Sinkron mapel.');
   }
-  if (pesan.length) { info.hidden = false; info.textContent = pesan.join(' '); }
-  isiPilihan($('fPaket'), 'Semua ujian', [...new Set(ROWS.map(r => r.paket).filter(x => x && x !== '-'))].sort(urutAlfa));
-  isiPilihan($('fTingkat'), 'Semua tingkat', [...new Set(ROWS.map(r => r.tingkat))].sort(urutAlfa));
+
+  await baca('paket soal', async () => {
+    const sp = await F.getDocs(F.collection(FP.dbBankSoal, CFG.koleksi.paket));
+    PAKET = new Map(sp.docs.map(x => { const p = x.data(); return [x.id, { jenis: p.jenis || '', mapel: p.mapel || p.nama || '', nama: p.nama || '' }]; }));
+  });
+
+  /* Rekap nilai yang disimpan guru: satu dokumen per tahun_semester_mapel_kelas di tiap Firebase tingkat */
+  NILAI = [];
+  const gagal = [];
+  await Promise.all(CFG.tingkat.map(async t => {
+    try {
+      const s = await F.getDocs(F.collection(FP.dbTingkat(t), CFG.koleksi.nilai));
+      s.docs.forEach(x => NILAI.push({ id: x.id, tingkat: t, ...x.data() }));
+    } catch (e) { console.error('nilai', t, e); gagal.push(t); }
+  }));
+  if (gagal.length) pesan.push('Rekap nilai guru gagal dibaca untuk tingkat ' + gagal.join(', ') + '.');
+
+  HASIL = [];
+  await baca('hasil ujian online', async () => {
+    const { rows, gagal: g2 } = await ambilTingkat(CFG.koleksi.hasil, { batas: CFG.batasHasil, urut: 'waktu' });
+    if (g2 && g2.length) pesan.push('Sebagian hasil ujian gagal dibaca: kelas ' + g2.map(g => g.tingkat).join(', ') + '.');
+    if (rows.length >= CFG.batasHasil) pesan.push('Hasil ujian mencapai batas ' + CFG.batasHasil + '; nilai SAS/PTS online mungkin belum lengkap.');
+    HASIL = rows.map(r => {
+      const n = norm({ id: r.id, data: () => r }), { jenis, mapel } = infoHasil(r);
+      return { kelas: normK(n.kelas), jenis, mapel, key: String(pick(r, CFG.fSiswa.nis)).trim() || n.nama.trim().toUpperCase(), nilai: n.nilai };
+    }).filter(h => h.nilai !== null && (h.jenis === 'SAS' || h.jenis === 'PTS'));
+  });
+
+  const dot = $('dot'), cs = $('cs');
+  if (dot) dot.classList.add('on');
+  if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
+  if (pesan.length) info(pesan.join(' '));
+
+  const cur = aktif(), daftar = [...new Set(SIS.map(s => s.kelas))].sort(urutAlfa);
+  $('fKelas').innerHTML = '<option value="">Pilih kelas</option>' + daftar.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  $('fKelas').value = daftar.includes(cur) ? cur : '';
+  $('fWali').innerHTML = '<option value="">Pilih wali kelas</option>' + GURU.map(g => `<option value="${esc(g.id)}">${esc(g.nama)}</option>`).join('');
+  pasangWali();
   gambar();
 }
 
-function unduh() {
-  const { baris } = rekap();
-  if (!baris.length) return toast('Tidak ada data untuk diunduh.');
-  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const out = [['Kelas', 'Peserta', 'Rata-rata', 'Tertinggi', 'Terendah', 'Tuntas', 'Belum tuntas', 'Ketuntasan (%)'].map(q).join(',')]
-    .concat(baris.map(b => [b.kelas, b.n, fmtN(b.rata), b.max, b.min, b.tun, b.belum, b.persen].map(q).join(',')));
-  const url = URL.createObjectURL(new Blob(['\uFEFF' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a'); a.href = url; a.download = 'Rekap_Nilai.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/* ===== Wali kelas: dipilih dari Data Guru, diingat per kelas di perangkat ini ===== */
+function waliTersimpan(kelas) {
+  try { const id = localStorage.getItem(KUNCI_WALI + normK(kelas)); if (id && GURU.some(g => g.id === id)) return id; } catch (_) {}
+  const auto = GURU.find(g => [].concat(g.wali || []).some(w => w && normK(w) === normK(kelas)));   // bila Data Guru memuat field wali kelas
+  return auto ? auto.id : '';
+}
+function pasangWali() { const k = aktif(); $('fWali').value = k ? waliTersimpan(k) : ''; }
+function getWali(kelas) { const g = GURU.find(x => x.id === waliTersimpan(kelas)); return g ? { nama: g.nama, nip: g.nip } : { nama: '', nip: '' }; }
+
+/* ===== Menyusun rekap satu kelas ===== */
+const cocokTerm = d =>
+  (!P.semester || !d.semester || String(d.semester).toLowerCase() === String(P.semester).toLowerCase()) &&
+  (!P.tahunAjaran || !d.tahunAjaran || String(d.tahunAjaran).replace(/\s/g, '') === String(P.tahunAjaran).replace(/\s/g, ''));
+
+const bobotDok = dok => {
+  const b = { ...BOBOT_BAWAAN, praktik: 0 };
+  if (dok.bobot) KB.forEach(k => { const v = Number(dok.bobot[k]); if (Number.isFinite(v)) b[k] = v / 100; });   // tersimpan dalam persen
+  return b;
+};
+
+/* Kolom mapel diambil dari Daftar mapel (Daftar/mapel): satu kolom per mapel, judul kolom = singkatan.
+   Semua mata pelajaran agama digabung menjadi satu kolom (tiap siswa hanya punya satu nilai agama); judulnya
+   gabungan singkatan agama di daftar (mis. PAI/PAH).
+   Bila Daftar mapel belum ada, kolom mengikuti mapel yang diampu guru pada kelas itu di Data Guru (cara lama).
+   Nilai dari rekap guru dicocokkan ke kolom lewat: id mapel, singkatan, atau pola nama (mis. "Pkn" = Pendidikan Pancasila).
+   Rekap nilai yang tidak cocok dengan kolom mana pun dilaporkan lewat daftar `luar`.
+   Urutan: mengikuti urutan kurikulum bila dikenali, selebihnya menurut abjad. */
+const kunciMapel = t => String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const adalahAgama = t => /agama/i.test(t);
+const urutAgama = n => { const i = AGAMA.findIndex(([re]) => re.test(n)); return i < 0 ? 99 : i; };
+function bangun(kelas) {
+  const sis = SIS.filter(s => s.kelas === kelas).sort((a, b) => urutAlfa(a.nama, b.nama));
+  const docs = NILAI.filter(d => normK(d.kelas) === normK(kelas) && cocokTerm(d));
+  const tk = (normK(kelas).match(/^(VIII|VII|IX)/) || [])[1];
+  const cocokKelas = k => { const a = normK(k); return a === normK(kelas) || (!!tk && a === tk); };
+  const dariDaftar = DAFTAR.length > 0;
+  const cols = new Map();
+
+  /* Cara lama: kolom dari Data Guru */
+  const tambah = mapel => {
+    const agama = adalahAgama(mapel), key = agama ? '__agama' : kunciMapel(mapel);
+    let col = cols.get(key);
+    if (!col) {
+      const i = STD.findIndex(x => x.re.test(mapel));
+      col = agama
+        ? { nama: STD[0].nama, kode: 'PABP', penuh: STD[0].nama, idx: 0, stdIdx: 0, rel: new Map() }
+        : { nama: mapel.trim(), kode: i >= 0 ? STD[i].kode : singkat(mapel), penuh: mapel.trim(), idx: i >= 0 ? i : 99, stdIdx: i };
+      Object.assign(col, { nilai: new Map(), kkm: null, ada: false });
+      cols.set(key, col);
+    }
+    if (col.rel) { const a = AGAMA.find(([re]) => re.test(mapel)); col.rel.set(a ? a[1] : 'PA', mapel.trim()); }
+    return col;
+  };
+
+  /* Cara baru: kolom dari Daftar mapel */
+  const tambahDaftar = m => {
+    if (adalahAgama(m.nama)) {
+      let col = cols.get('__agama');
+      if (!col) {
+        col = { nama: STD[0].nama, kode: 'PABP', penuh: STD[0].nama, idx: 0, stdIdx: 0, rel: new Map(), dariDaftar: true, nilai: new Map(), kkm: null, ada: false };
+        cols.set('__agama', col);
+      }
+      const a = AGAMA.find(([re]) => re.test(m.nama));
+      col.rel.set(m.singkatan || (a ? a[1] : 'PA'), m.nama);
+      return;
+    }
+    const i = idxStd(m.nama);
+    cols.set(m.id, { id: m.id, nama: m.nama, kode: m.singkatan || singkat(m.nama), penuh: m.nama, idx: i >= 0 ? i : 99, stdIdx: i, nilai: new Map(), kkm: null, ada: false, dariDaftar: true });
+  };
+
+  if (dariDaftar) DAFTAR.forEach(tambahDaftar);
+  else GURU.forEach(g => g.mengajar.forEach(x => { if (x.kelas.some(cocokKelas)) tambah(x.mapel); }));
+
+  /* Cari kolom untuk nama mapel dari rekap guru */
+  const cariKolom = mapel => {
+    if (adalahAgama(mapel)) return cols.get('__agama');
+    const semuaKol = [...cols.values()];
+    const id = idMapel(mapel);
+    const sg = mapel.trim().toLowerCase();
+    const i = idxStd(mapel);
+    return cols.get(kunciMapel(mapel))                                                        // cara lama
+      || semuaKol.find(c => c.id && c.id === id)                                              // id sama
+      || semuaKol.find(c => c.dariDaftar && c.kode && c.kode.toLowerCase() === sg)            // singkatan sama
+      || (i > 0 ? semuaKol.find(c => c.dariDaftar && c.stdIdx === i) : undefined);            // pola nama sama
+  };
+
+  const luar = new Set();
+  docs.forEach(dok => {
+    const mapel = String(dok.mapel || '').trim(); if (!mapel) return;
+    const col = cariKolom(mapel);
+    if (!col) { luar.add(mapel); return; }
+    col.ada = true;
+    const bobot = bobotDok(dok), kkmD = Number(dok.kkm) > 0 ? Number(dok.kkm) : null;
+    if (col.kkm === null && kkmD) col.kkm = kkmD;
+    const SAS = onlineMap(kelas, mapel, 'SAS'), PTS = onlineMap(kelas, mapel, 'PTS');
+    sis.forEach(s => {
+      const d = (dok.siswa || {})[kunci(s)] || {};
+      const uts = d.uts ?? (PTS.get(s.nis) ?? PTS.get(s.nama) ?? null);
+      const sas = SAS.get(s.nis) ?? SAS.get(s.nama) ?? null;
+      const h = hitungSiswa({ tg: d.tg || [], uh: d.uh || [], uts, sas, praktik: d.pr ?? null }, { kkm: kkmD || 75, bobot, predikat: PREDIKAT_BAWAAN });
+      if (h.akhir !== null && h.akhir !== undefined && !col.nilai.has(kunci(s))) col.nilai.set(kunci(s), h.akhir);   // agama: ambil nilai guru agama siswa itu
+    });
+  });
+  const semua = [...cols.values()].sort((a, b) => a.idx - b.idx || urutAlfa(a.nama, b.nama));
+  semua.forEach(c => {
+    if (!(c.rel && c.rel.size)) return;
+    c.kode = c.dariDaftar
+      ? [...c.rel.entries()].sort((a, b) => urutAgama(a[1]) - urutAgama(b[1])).map(e => e[0]).join('/') || 'PABP'
+      : AGAMA.map(([, k]) => k).filter(k => c.rel.has(k)).join('/') || 'PABP';
+  });
+  return { kelas, sumber: dariDaftar ? 'daftar' : 'guru', docs: docs.length, luar: [...luar], cols: semua, rows: sis.map((s, i) => ({ no: i + 1, nama: s.nama, nis: s.nis, vals: semua.map(c => c.nilai.get(kunci(s)) ?? null) })) };
 }
 
-['fPaket', 'fTingkat'].forEach(id => $(id).addEventListener('change', gambar));
-$('kkm').addEventListener('input', () => { try { localStorage.setItem(KUNCI_KKM, String(kkm())); } catch (_) {} gambar(); });
-$('target').addEventListener('input', () => { try { localStorage.setItem(KUNCI_TARGET, String(target())); } catch (_) {} gambar(); });
+/* KKM mengikuti yang diisi guru di Rekap Nilai; bila guru belum menyimpan, dipakai 75 */
+const kkmOf = (kelas, c) => c.kkm ?? KKM_AWAL;
+
+function hitungBaris(m) {
+  const kk = m.cols.map(c => kkmOf(m.kelas, c));
+  const out = m.rows.map(r => {
+    const ada = r.vals.filter(v => v !== null);
+    if (!ada.length) return { jumlah: null, rata: null, rank: null, ket: '' };
+    const jumlah = ada.reduce((a, b) => a + b, 0), rata = Math.round(jumlah / ada.length * 10) / 10;
+    const kurang = r.vals.filter((v, i) => v !== null && v < kk[i]).length;
+    return { jumlah, rata, rank: null, ket: kurang ? 'Belum Tuntas ' + kurang + ' Mapel' : 'Tuntas Semua' };
+  });
+  out.forEach(o => { if (o.rata !== null) o.rank = 1 + out.filter(p => p.rata !== null && p.rata > o.rata).length; });
+  return { kk, out };
+}
+
+/* ===== Tampilan layar ===== */
+function headHtml(m = CUR) {
+  const nm = m.cols.length;
+  return `<tr><th rowspan="2">No</th><th rowspan="2">Nama Peserta Didik</th><th rowspan="2">NIS/NISN</th>
+      <th colspan="${nm}">NILAI AKHIR MATA PELAJARAN</th><th rowspan="2" class="h2">Jumlah</th><th rowspan="2" class="h2">Rata-rata</th><th rowspan="2" class="h3">Peringkat</th><th rowspan="2">Keterangan</th></tr>
+    <tr>${m.cols.map(c => `<th class="mp" title="${esc(c.penuh || c.nama)}"><div class="vt">${esc(c.kode)}</div></th>`).join('')}</tr>
+    <tr><td class="kkl" colspan="3">KKM Mata Pelajaran</td>${m.cols.map(c => `<td class="kkc">${kkmOf(m.kelas, c)}</td>`).join('')}<td class="kkx" colspan="4"></td></tr>`;
+}
+
+function gambar() {
+  const kelas = aktif();
+  $('empty').hidden = !!kelas && SIS.some(s => s.kelas === kelas);
+  $('ident').hidden = !kelas; $('cat').hidden = true;
+  if (!kelas) { CUR = null; $('head').innerHTML = ''; $('body').innerHTML = ''; stat(null); pratinjau(); return; }
+  CUR = bangun(kelas);
+  const w = getWali(kelas);
+  $('ident').innerHTML = `<div><span>Kelas :</span> <b>${esc(kelas)}</b></div><div><span>Semester :</span> <b>${esc(P.semester || '–')}</b></div>
+    <div><span>Wali Kelas :</span> <b>${esc(w.nama || '–')}</b></div><div><span>Tahun Pelajaran :</span> <b>${esc(P.tahunAjaran || '–')}</b></div>`;
+  const cat = [], dar = CUR.sumber === 'daftar';
+  if (!CUR.cols.length) cat.push(dar ? 'Daftar mapel tidak berisi mata pelajaran.' : 'Belum ada mata pelajaran untuk kelas ini di Data Guru (periksa nama kelas pada data mengajar guru).');
+  else if (!CUR.docs) cat.push('Belum ada rekap nilai yang disimpan guru untuk kelas ini pada semester dan tahun pelajaran berjalan.');
+  if (CUR.luar.length) cat.push('Rekap nilai untuk mapel berikut tidak ditampilkan karena tidak cocok dengan ' + (dar ? 'Daftar mapel' : 'Data Guru kelas ini') + ': ' + CUR.luar.join(', ') + '.');
+  if (cat.length) { $('cat').hidden = false; $('cat').textContent = cat.join(' '); }
+  $('head').innerHTML = headHtml();
+  isiBody();
+}
+
+function barisHtml(m, hb) {
+  const { kk, out } = hb;
+  return m.rows.map((r, i) => {
+    const o = out[i];
+    return `<tr><td>${r.no}</td><td class="l"><b>${esc(r.nama)}</b></td><td class="k">${esc(r.nis) || '–'}</td>`
+      + r.vals.map((v, j) => `<td${v !== null && v < kk[j] ? ' class="rd"' : ''}>${v === null ? '' : v}</td>`).join('')
+      + `<td class="b">${o.jumlah === null ? '' : o.jumlah}</td><td class="b">${o.rata === null ? '' : fmtN(o.rata)}</td><td class="rk">${o.rank ?? ''}</td>`
+      + `<td>${o.ket ? `<span class="badge ${o.ket === 'Tuntas Semua' ? 'ok' : 'bad'}">${o.ket}</span>` : ''}</td></tr>`;
+  }).join('');
+}
+
+function isiBody() {
+  if (!CUR) return;
+  const hb = hitungBaris(CUR);
+  $('body').innerHTML = barisHtml(CUR, hb);
+  stat({ m: CUR, out: hb.out });
+  pratinjau();
+}
+
+/* Pratinjau seperti kertas cetak (sama dengan isi file unduhan) */
+function pratinjau() {
+  $('pv').hidden = !CUR; if (!CUR) return;
+  const w = getWali(CUR.kelas);
+  $('pv-k').innerHTML = [P.instansi, P.dinas, P.sekolah].map((t, i) => t ? `<b${i === 2 ? ' class="n"' : ''}>${esc(t)}</b>` : '').join('') + (P.alamat ? `<span>${esc(P.alamat)}</span>` : '');
+  $('pv-i').innerHTML = `<div><b>Kelas :</b> ${esc(CUR.kelas)}</div><div><b>Semester :</b> ${esc(P.semester || '')}</div><div><b>Wali Kelas :</b> ${esc(w.nama)}</div><div><b>Tahun Pelajaran :</b> ${esc(P.tahunAjaran || '')}</div>`;
+  const mc = bangun(CUR.kelas);   // sama dengan file unduhan
+  $('pv-h').innerHTML = headHtml(mc);
+  $('pv-b').innerHTML = barisHtml(mc, hitungBaris(mc));
+  $('pv-r').textContent = catatanLengkap(mc);
+  $('pv-ks1').textContent = 'Kepala ' + (P.sekolah || 'Sekolah') + ',';
+  $('pv-ks2').textContent = namaKs(); $('pv-ks3').textContent = nipKs();
+  $('pv-t1').textContent = tglTtd();
+  $('pv-g2').textContent = namaWl(w); $('pv-g3').textContent = nipWl(w);
+}
+
+function stat(x) {
+  if (!x) { ['s-n', 's-t'].forEach(i => $(i).textContent = '0'); $('s-r').textContent = '–'; $('s-m').textContent = '–'; return; }
+  const rt = x.out.filter(o => o.rata !== null);
+  $('s-n').textContent = x.m.rows.length;
+  $('s-r').textContent = rt.length ? fmtN(rt.reduce((a, o) => a + o.rata, 0) / rt.length) : '–';
+  $('s-t').textContent = x.out.filter(o => o.ket === 'Tuntas Semua').length;
+  $('s-m').textContent = x.m.cols.filter(c => c.ada).length + ' dari ' + x.m.cols.length;
+}
+
+/* ===== Unduhan ===== */
+const nmBerkas = (a, ext) => (a + '.' + ext).replace(/\s+/g, '_');
+function unduhBlob(blob, nama) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = nama;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const logoData = async f => {
+  try {
+    const r = await fetch(f); if (!r.ok) return '';
+    const b = await r.blob();
+    return await new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => ok(''); fr.readAsDataURL(b); });
+  } catch (_) { return ''; }
+};
+/* Tempat penandatanganan (ubah di sini bila berpindah) */
+const TEMPAT_TTD = 'Sabulakoa';
+const tempat = () => TEMPAT_TTD;
+const tglTtd = () => (tempat() ? tempat() + ', ' : '') + '....................... 20....';
+const titik = '(........................................................)', nipTitik = 'NIP. ......................................................';
+const namaKs = () => P.ksNama ? '(' + P.ksNama + ')' : titik;
+const nipKs = () => 'NIP. ' + (P.ksNip || '......................................................');
+const namaWl = w => w.nama ? '(' + w.nama + ')' : titik;
+const nipWl = w => 'NIP. ' + (w.nip || '......................................................');
+const catatan = 'Catatan: Nilai Akhir tiap mata pelajaran diambil otomatis dari Rekap Nilai masing-masing guru. KKM tiap mapel mengikuti yang diisi guru pada Rekap Nilai; nilai di bawah KKM tampil merah.';
+
+/* Daftar singkatan mapel yang dipakai di judul kolom */
+function legenda(m) {
+  const it = [];
+  m.cols.forEach(c => {
+    if (c.rel && c.rel.size) { const pa = [...c.rel.entries()].filter(([k]) => k !== 'PA'); if (pa.length) pa.forEach(([k, mp]) => it.push(k + ' = ' + mp)); else it.push(c.kode + ' = ' + c.penuh); }
+    else if (c.kode.toLowerCase() !== String(c.penuh).toLowerCase()) it.push(c.kode + ' = ' + c.penuh);
+  });
+  return it.length ? 'Singkatan: ' + it.join('; ') + '.' : '';
+}
+const catatanLengkap = m => catatan + (legenda(m) ? ' ' + legenda(m) : '');
+
+/* Lembar Excel satu kelas: tata letak, warna, rumus, dan kertas sama dengan model Rekap_Nilai_Rapor.xlsx */
+function sheetKelas(wb, kelas, idL, idR) {
+  const m = bangun(kelas), { kk, out } = hitungBaris(m), wali = getWali(kelas);
+  const n = m.rows.length, nm = m.cols.length;
+  const cLast = 3 + nm, cJ = cLast + 1, cR = cJ + 1, cRk = cR + 1, cK = cRk + 1, NC = cK;
+  const LC = L(NC), LL = L(cLast), LR = L(cR), LK = L(cK), akhir = 13 + n;
+  const ws = wb.addWorksheet(('Kelas_' + kelas.replace(/[\s\\\/?*\[\]:]+/g, '_')).slice(0, 31), { views: [{ state: 'frozen', xSplit: 3, ySplit: 12, showGridLines: false }] });
+
+  const tp = { style: 'thin', color: { argb: 'FF808080' } }, bd = { top: tp, left: tp, bottom: tp, right: tp };
+  const mid = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  const put = (r, c, v, o = {}) => {
+    const x = ws.getCell(r, c);
+    if (v !== undefined) x.value = v;
+    if (o.font !== undefined) x.font = { name: 'Arial', size: 10, ...o.font };
+    if (o.fill) x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: o.fill } };
+    if (o.al) x.alignment = o.al;
+    if (o.border) x.border = bd;
+    if (o.nf) x.numFmt = o.nf;
+  };
+  const area = (r1, c1, r2, c2, o) => { for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) put(r, c, undefined, o); };
+  const merge = (r1, c1, r2, c2) => ws.mergeCells(r1, c1, r2, c2);
+  const wh = { color: { argb: 'FFFFFFFF' }, bold: true }, hitam = { color: { argb: 'FF000000' } };
+
+  [5, 30, 17, ...Array(nm).fill(7.5), 9, 9, 10.5, 20].forEach((w, i) => ws.getColumn(i + 1).width = w);
+  const tinggi = { 1: 15.75, 2: 15.75, 3: 24, 4: 13.5, 5: 3.75, 6: 21.75, 7: 3.75, 8: 15, 9: 15, 10: 6, 11: 19.5, 12: 62, 13: 15 };
+  Object.entries(tinggi).forEach(([r, h]) => ws.getRow(Number(r)).height = h);
+
+  /* Kop */
+  [[P.instansi, 12, true, false], [P.dinas, 12, true, false], [P.sekolah, 16, true, false], [P.alamat, 9, false, true]].forEach(([t, sz, b, it], i) => {
+    merge(i + 1, 1, i + 1, NC); put(i + 1, 1, t || '', { font: { size: sz, bold: b, italic: it }, al: mid });
+  });
+  merge(6, 1, 6, NC); put(6, 1, 'REKAP NILAI RAPOR PESERTA DIDIK', { font: { size: 13, bold: true }, al: mid });
+
+  /* Identitas */
+  const kiri = { vertical: 'middle', horizontal: 'left' };
+  /* Letak blok identitas kanan menyesuaikan jumlah kolom (model: label K–N, isi O–S untuk 19 kolom) */
+  const tgh = Math.ceil(NC / 2), kEnd = Math.min(7, tgh - 2), rLab = Math.max(kEnd + 2, NC - 8), rLabEnd = Math.min(rLab + 3, NC - 1), rVal = rLabEnd + 1;
+  put(8, 2, 'Kelas :', { font: { bold: true }, al: kiri });        merge(8, 3, 8, kEnd);   put(8, 3, kelas, { font: hitam, al: kiri });
+  put(9, 2, 'Wali Kelas :', { font: { bold: true }, al: kiri });   merge(9, 3, 9, kEnd);   put(9, 3, wali.nama || '', { font: hitam, al: kiri });
+  merge(8, rLab, 8, rLabEnd); put(8, rLab, 'Semester :', { font: { bold: true }, al: kiri });          merge(8, rVal, 8, NC); put(8, rVal, P.semester || '', { font: hitam, al: kiri });
+  merge(9, rLab, 9, rLabEnd); put(9, rLab, 'Tahun Pelajaran :', { font: { bold: true }, al: kiri });   merge(9, rVal, 9, NC); put(9, rVal, P.tahunAjaran || '', { font: hitam, al: kiri });
+
+  /* Judul tabel */
+  area(11, 1, 12, cLast, { fill: 'FF1F3864', font: wh, al: mid, border: true });
+  area(11, cJ, 12, cR, { fill: 'FF2F5597', font: wh, al: mid, border: true });
+  area(11, cRk, 12, cRk, { fill: 'FFBF8F00', font: wh, al: mid, border: true });
+  area(11, cK, 12, cK, { fill: 'FF1F3864', font: wh, al: mid, border: true });
+  [[1, 'No'], [2, 'Nama Peserta Didik'], [3, 'NIS/NISN'], [cJ, 'Jumlah'], [cR, 'Rata-rata'], [cRk, 'Peringkat'], [cK, 'Keterangan']].forEach(([c, t]) => { merge(11, c, 12, c); ws.getCell(11, c).value = t; });
+  if (cLast > 4) merge(11, 4, 11, cLast);
+  ws.getCell(11, 4).value = 'NILAI AKHIR MATA PELAJARAN';
+  m.cols.forEach((c, i) => put(12, 4 + i, c.kode, { fill: 'FFDDEBF7', font: { size: 9, bold: true, color: { argb: 'FF1F3864' } }, al: { vertical: 'middle', horizontal: 'center', wrapText: true, textRotation: 90 }, border: true }));
+
+  /* Baris KKM */
+  merge(13, 1, 13, 3); put(13, 1, 'KKM Mata Pelajaran', { fill: 'FFD9E1F2', font: { bold: true, ...hitam }, al: { vertical: 'middle', horizontal: 'right' }, border: true });
+  area(13, 2, 13, 3, { fill: 'FFD9E1F2', border: true });
+  m.cols.forEach((c, i) => put(13, 4 + i, kk[i], { fill: 'FFFFFF99', font: { bold: true, color: { argb: 'FF0000FF' } }, al: mid, border: true }));
+  area(13, cJ, 13, cK, { fill: 'FFD9E1F2', border: true });
+
+  /* Data siswa */
+  const rank = `$${LR}$14:$${LR}$${akhir}`;
+  m.rows.forEach((r, i) => {
+    const x = 14 + i, o = out[i], rg = `D${x}:${LL}${x}`, kg = `D$13:${LL}$13`, base = { font: hitam, al: mid, border: true };
+    ws.getRow(x).height = 18;
+    put(x, 1, { formula: `IF(B${x}="","",ROW()-13)`, result: r.no }, base);
+    put(x, 2, r.nama, { font: hitam, al: { vertical: 'middle', horizontal: 'left' }, border: true });
+    put(x, 3, r.nis, { ...base, nf: '@' });
+    r.vals.forEach((v, j) => put(x, 4 + j, v, base));
+    put(x, cJ, { formula: `IF(COUNT(${rg})=0,"",SUM(${rg}))`, result: o.jumlah ?? '' }, { font: { bold: true, ...hitam }, al: mid, border: true, nf: '0' });
+    put(x, cR, { formula: `IF(COUNT(${rg})=0,"",ROUND(AVERAGE(${rg}),1))`, result: o.rata ?? '' }, { font: { bold: true, ...hitam }, al: mid, border: true, nf: '0.0' });
+    put(x, cRk, { formula: `IF(${LR}${x}="","",RANK(${LR}${x},${rank}))`, result: o.rank ?? '' }, { fill: 'FFFFF2CC', font: { bold: true, ...hitam }, al: mid, border: true });
+    put(x, cK, { formula: `IF(COUNT(${rg})=0,"",IF(SUMPRODUCT(ISNUMBER(${rg})*(${rg}<${kg}))=0,"Tuntas Semua","Belum Tuntas "&SUMPRODUCT(ISNUMBER(${rg})*(${rg}<${kg}))&" Mapel"))`, result: o.ket }, { font: { bold: true, ...hitam }, al: mid, border: true });
+  });
+
+  /* Angka di bawah KKM merah; keterangan hijau/merah */
+  if (n) {
+    ws.addConditionalFormatting({ ref: `D14:${LL}${akhir}`, rules: [{ type: 'expression', formulae: ['AND(ISNUMBER(D14),D14<D$13)'], style: { font: { color: { argb: 'FFC00000' }, bold: true } } }] });
+    ws.addConditionalFormatting({ ref: `${LK}14:${LK}${akhir}`, rules: [
+      { type: 'expression', formulae: [`${LK}14="Tuntas Semua"`], style: { font: { color: { argb: 'FF006100' }, bold: true }, fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFC6EFCE' } } } },
+      { type: 'expression', formulae: [`LEFT(${LK}14,5)="Belum"`], style: { font: { color: { argb: 'FF9C0006' }, bold: true }, fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFFC7CE' } } } }
+    ] });
+  }
+
+  /* Catatan dan tanda tangan */
+  const cn = akhir + 2, t = akhir + 4, tengah = { vertical: 'middle', horizontal: 'center' };
+  const cEnd = Math.max(3, NC - 5), teksCat = catatanLengkap(m);
+  const lebar = [5, 30, 17, ...Array(nm).fill(7.5), 9, 9, 10.5, 20].slice(1, cEnd).reduce((a, b) => a + b, 0);
+  merge(cn, 2, cn, cEnd); ws.getRow(cn).height = Math.max(25.5, Math.ceil(teksCat.length / (lebar * 1.1)) * 12 + 4);
+  put(cn, 2, teksCat, { font: { size: 9, italic: true, color: { argb: 'FF595959' } }, al: { vertical: 'middle', horizontal: 'left', wrapText: true } });
+  const blok = (r, c1, c2, txt, bold) => { merge(r, c1, r, c2); put(r, c1, txt, { font: { bold, ...hitam }, al: tengah }); };
+  [t, t + 1, t + 5, t + 6].forEach(r => ws.getRow(r).height = 15);
+  blok(t, 2, 3, 'Mengetahui,', false);              blok(t, cJ - 0, NC, tglTtd(), false);
+  blok(t + 1, 2, 3, 'Kepala ' + (P.sekolah || 'Sekolah') + ',', true);   blok(t + 1, cJ, NC, 'Wali Kelas,', true);
+  blok(t + 5, 2, 3, namaKs(), true);                blok(t + 5, cJ, NC, namaWl(wali), true);
+  blok(t + 6, 2, 3, nipKs(), false);                blok(t + 6, cJ, NC, nipWl(wali), false);
+
+  ws.pageSetup = { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true, printArea: `A1:${LC}${t + 6}`, printTitlesRow: '11:13',
+    margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.51, footer: 0.51 } };
+
+  /* Logo: image1 kiri, image2 kanan (84 px, sama dengan model) */
+  if (idL !== null) ws.addImage(idL, { tl: { col: 1.1, row: 0.05 }, ext: { width: 84, height: 84 } });
+  if (idR !== null) ws.addImage(idR, { tl: { col: NC - 1 + 0.2, row: 0.05 }, ext: { width: 84, height: 84 } });
+}
+
+async function buatExcel(semua) {
+  const daftar = semua ? [...new Set(SIS.map(s => s.kelas))].sort(urutAlfa) : (aktif() ? [aktif()] : []);
+  if (!daftar.length) return toast('Pilih kelas dulu.');
+  try {
+    await muatLib(CFG.lib.exceljs, 'ExcelJS');
+    const wb = new ExcelJS.Workbook();
+    const logo = async f => { try { const r = await fetch(f); if (!r.ok) return null; return wb.addImage({ buffer: await r.arrayBuffer(), extension: 'png' }); } catch (_) { return null; } };
+    const idL = await logo(CFG.logoKiri), idR = await logo(CFG.logoKanan);
+    const ada = daftar.filter(k => bangun(k).cols.length);
+    if (!ada.length) return toast('Belum ada mata pelajaran (Daftar mapel atau Data Guru) untuk kelas ini.');
+    ada.forEach(k => sheetKelas(wb, k, idL, idR));
+    const out = await wb.xlsx.writeBuffer();
+    unduhBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nmBerkas('Rekap_Nilai_Rapor_' + (semua ? 'Semua_Kelas' : daftar[0]), 'xlsx'));
+  } catch (e) { console.error(e); toast('Gagal membuat Excel: ' + (e.message || e)); }
+}
+
+/* PDF: A4 landscape */
+async function buatPdf() {
+  const kelas = aktif(); if (!kelas) return toast('Pilih kelas dulu.');
+  try {
+    await muatLib(CFG.lib.jspdf, 'jspdf');
+    await muatLib(CFG.lib.autotable, () => window.jspdf && window.jspdf.jsPDF.API.autoTable);
+    const m = bangun(kelas), { kk, out } = hitungBaris(m), wali = getWali(kelas), nm = m.cols.length;
+    if (!nm) return toast('Belum ada mata pelajaran (Daftar mapel atau Data Guru) untuk kelas ini.');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+    const [lk, lr] = await Promise.all([logoData(CFG.logoKiri), logoData(CFG.logoKanan)]);
+    if (lk) doc.addImage(lk, 'PNG', M, 8, 20, 20);
+    if (lr) doc.addImage(lr, 'PNG', W - M - 20, 8, 20, 20);
+    let y = 11;
+    doc.setFont('helvetica', 'bold');
+    [P.instansi, P.dinas, P.sekolah].forEach((t, i) => { if (!t) return; doc.setFontSize(i === 2 ? 14 : 11); doc.text(t, W / 2, y, { align: 'center' }); y += i === 2 ? 6 : 5; });
+    if (P.alamat) { doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.text(P.alamat, W / 2, y, { align: 'center' }); y += 4; }
+    y = Math.max(y, 30);
+    doc.setLineWidth(.7); doc.line(M, y, W - M, y); doc.setLineWidth(.2); doc.line(M, y + 1.3, W - M, y + 1.3);
+    y += 7; doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text('REKAP NILAI RAPOR PESERTA DIDIK', W / 2, y, { align: 'center' });
+    y += 6; doc.setFontSize(9);
+    const kv = (x, yy, k, v) => { doc.setFont('helvetica', 'bold'); doc.text(k + ' :', x, yy); doc.setFont('helvetica', 'normal'); doc.text(String(v || ''), x + 32, yy); };
+    kv(M, y, 'Kelas', kelas); kv(W / 2, y, 'Semester', P.semester);
+    kv(M, y + 5, 'Wali Kelas', wali.nama); kv(W / 2, y + 5, 'Tahun Pelajaran', P.tahunAjaran);
+
+    const biru = [31, 56, 100], biru2 = [47, 85, 151], emas = [191, 143, 0], putih = 255;
+    const h = (content, extra, fill) => ({ content, ...extra, styles: { fillColor: fill || biru, textColor: putih, fontStyle: 'bold' } });
+    const head = [
+      [h('No', { rowSpan: 2 }), h('Nama Peserta Didik', { rowSpan: 2 }), h('NIS/NISN', { rowSpan: 2 }), h('NILAI AKHIR MATA PELAJARAN', { colSpan: nm }),
+        h('Jumlah', { rowSpan: 2 }, biru2), h('Rata-rata', { rowSpan: 2 }, biru2), h('Peringkat', { rowSpan: 2 }, emas), h('Keterangan', { rowSpan: 2 })],
+      m.cols.map(() => ({ content: '', styles: { fillColor: [221, 235, 247], minCellHeight: 22 } })),
+      [{ content: 'KKM Mata Pelajaran', colSpan: 3, styles: { halign: 'right', fillColor: [217, 225, 242], textColor: 0, fontStyle: 'bold' } },
+        ...kk.map(v => ({ content: String(v), styles: { fillColor: [255, 255, 153], textColor: [0, 0, 255], fontStyle: 'bold' } })),
+        { content: '', colSpan: 4, styles: { fillColor: [217, 225, 242] } }]
+    ];
+    const body = m.rows.map((r, i) => [String(r.no), r.nama, r.nis, ...r.vals.map(v => v === null ? '' : String(v)),
+      out[i].jumlah === null ? '' : String(out[i].jumlah), out[i].rata === null ? '' : fmtN(out[i].rata), out[i].rank === null ? '' : String(out[i].rank), out[i].ket]);
+    const iJ = 3 + nm, iRk = iJ + 2, iK = iJ + 3;
+    doc.autoTable({
+      startY: y + 9, head, body, theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 7.5, cellPadding: 1, halign: 'center', valign: 'middle', lineColor: [128, 128, 128], lineWidth: .15, textColor: 0 },
+      columnStyles: { 0: { cellWidth: 8 }, 1: { halign: 'left', cellWidth: 46 }, 2: { cellWidth: 24 }, [iK]: { cellWidth: 30 } },
+      margin: { left: M, right: M, bottom: 10 },
+      didParseCell: d => {
+        if (d.section !== 'body') return;
+        const c = d.column.index, r = d.row.index;
+        if (c >= 3 && c < iJ) { const v = m.rows[r].vals[c - 3]; if (v !== null && v < kk[c - 3]) { d.cell.styles.textColor = [192, 0, 0]; d.cell.styles.fontStyle = 'bold'; } }
+        else if (c >= iJ && c < iK) { d.cell.styles.fontStyle = 'bold'; if (c === iRk) d.cell.styles.fillColor = [255, 242, 204]; }
+        else if (c === iK && out[r].ket) { d.cell.styles.fontStyle = 'bold'; d.cell.styles.textColor = out[r].ket === 'Tuntas Semua' ? [0, 97, 0] : [156, 0, 6]; }
+      },
+      /* Nama mapel dibaca tegak (dari bawah ke atas) di judul kolom */
+      didDrawCell: d => {
+        if (d.section !== 'head' || d.row.index !== 1 || d.column.index < 3 || d.column.index >= iJ) return;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(31, 56, 100);
+        const baris = doc.splitTextToSize(m.cols[d.column.index - 3].kode, d.cell.height - 4), lh = 2.8;
+        const x0 = d.cell.x + (d.cell.width - baris.length * lh) / 2 + lh * 0.75;
+        baris.forEach((t, i) => doc.text(t, x0 + i * lh, d.cell.y + d.cell.height - 2, { angle: 90 }));
+        doc.setTextColor(0);
+      }
+    });
+    y = doc.lastAutoTable.finalY + 5;
+    if (y + 60 > H) { doc.addPage(); y = 18; }
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(89, 89, 89);
+    const cat = doc.splitTextToSize(catatanLengkap(m), W - 2 * M); doc.text(cat, M, y); doc.setTextColor(0);
+    y += cat.length * 3.3 + 6; const xk = W * 0.2, xg = W * 0.8;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.text('Mengetahui,', xk, y, { align: 'center' }); doc.text(tglTtd(), xg, y, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Kepala ' + (P.sekolah || 'Sekolah') + ',', xk, y + 5, { align: 'center' }); doc.text('Wali Kelas,', xg, y + 5, { align: 'center' });
+    doc.text(namaKs(), xk, y + 25, { align: 'center' }); doc.text(namaWl(wali), xg, y + 25, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(nipKs(), xk, y + 30, { align: 'center' }); doc.text(nipWl(wali), xg, y + 30, { align: 'center' });
+    doc.save(nmBerkas('Rekap_Nilai_Rapor_' + kelas, 'pdf'));
+  } catch (e) { console.error(e); toast('Gagal membuat PDF: ' + (e.message || e)); }
+}
+
+/* Word: dokumen HTML berformat Word (.doc), A4 landscape */
+async function buatWord() {
+  const kelas = aktif(); if (!kelas) return toast('Pilih kelas dulu.');
+  try {
+    const [lk, lr] = await Promise.all([logoData(CFG.logoKiri), logoData(CFG.logoKanan)]);
+    const m = bangun(kelas), { kk, out } = hitungBaris(m), wali = getWali(kelas), nm = m.cols.length;
+    if (!nm) return toast('Belum ada mata pelajaran (Daftar mapel atau Data Guru) untuk kelas ini.');
+    const th = (t, bg, a = '', st = '') => `<th bgcolor="${bg}" ${a} style="color:${bg === '#DDEBF7' || bg === '#D9E1F2' ? '#1F3864' : '#FFFFFF'};${st}">${esc(t)}</th>`;
+    const head = `<tr>${th('No', '#1F3864', 'rowspan="2"')}${th('Nama Peserta Didik', '#1F3864', 'rowspan="2"')}${th('NIS/NISN', '#1F3864', 'rowspan="2"')}${th('NILAI AKHIR MATA PELAJARAN', '#1F3864', `colspan="${nm}"`)}${th('Jumlah', '#2F5597', 'rowspan="2"')}${th('Rata-rata', '#2F5597', 'rowspan="2"')}${th('Peringkat', '#BF8F00', 'rowspan="2"')}${th('Keterangan', '#1F3864', 'rowspan="2"')}</tr>`
+      + `<tr>${m.cols.map(c => th(c.kode, '#DDEBF7', '', 'writing-mode:tb-rl;height:2.2cm;font-size:8pt')).join('')}</tr>`
+      + `<tr><td colspan="3" align="right" bgcolor="#D9E1F2"><b>KKM Mata Pelajaran</b></td>${kk.map(v => `<td bgcolor="#FFFF99"><b style="color:#0000FF">${v}</b></td>`).join('')}<td colspan="4" bgcolor="#D9E1F2"></td></tr>`;
+    const body = m.rows.map((r, i) => {
+      const o = out[i];
+      return `<tr><td>${r.no}</td><td align="left">${esc(r.nama)}</td><td>${esc(r.nis)}</td>`
+        + r.vals.map((v, j) => `<td${v !== null && v < kk[j] ? ' style="color:#C00000"' : ''}>${v === null ? '' : (v < kk[j] ? '<b>' + v + '</b>' : v)}</td>`).join('')
+        + `<td><b>${o.jumlah ?? ''}</b></td><td><b>${o.rata === null ? '' : fmtN(o.rata)}</b></td><td bgcolor="#FFF2CC"><b>${o.rank ?? ''}</b></td>`
+        + `<td><b style="color:${o.ket === 'Tuntas Semua' ? '#006100' : '#9C0006'}">${esc(o.ket)}</b></td></tr>`;
+    }).join('');
+    const kopTeks = [P.instansi, P.dinas, P.sekolah].map((t, i) => t ? `<p style="margin:0;font-size:${i === 2 ? 15 : 12}pt"><b>${esc(t)}</b></p>` : '').join('') + (P.alamat ? `<p style="margin:0;font-size:9pt"><i>${esc(P.alamat)}</i></p>` : '');
+    const img = d => d ? `<img src="${d}" width="84" height="84">` : '';
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Rekap Nilai Rapor</title>
+<!${'-'}-[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-${'-'}>
+<style>
+@page Section1{size:29.7cm 21cm;mso-page-orientation:landscape;margin:1cm 1cm 1cm 1cm}
+div.Section1{page:Section1}
+body{font-family:Arial,Helvetica,sans-serif}
+table.data{border-collapse:collapse;width:100%}
+table.data th,table.data td{border:1px solid #808080;font-size:8pt;padding:2px 3px;text-align:center}
+table.kop,table.idn,table.ttd{border-collapse:collapse;width:100%}
+table.kop td,table.idn td,table.ttd td{border:none;font-size:10pt}
+</style><\/head><body><div class="Section1">
+<table class="kop"><tr><td width="12%" align="center">${img(lk)}</td><td align="center">${kopTeks}</td><td width="12%" align="center">${img(lr)}</td></tr></table>
+<hr style="border:0;border-top:3px double #000;margin:4px 0 8px">
+<p align="center" style="margin:0 0 6px;font-size:13pt"><b>REKAP NILAI RAPOR PESERTA DIDIK</b></p>
+<table class="idn"><tr><td width="50%"><b>Kelas :</b> ${esc(kelas)}</td><td><b>Semester :</b> ${esc(P.semester || '')}</td></tr><tr><td><b>Wali Kelas :</b> ${esc(wali.nama)}</td><td><b>Tahun Pelajaran :</b> ${esc(P.tahunAjaran || '')}</td></tr></table>
+<p style="margin:4px 0"></p>
+<table class="data"><thead>${head}</thead><tbody>${body}</tbody></table>
+<p style="font-size:8pt;margin:8px 0;color:#595959"><i>${esc(catatanLengkap(m))}</i></p>
+<table class="ttd"><tr>
+<td align="center" width="50%">Mengetahui,<br><b>Kepala ${esc(P.sekolah || 'Sekolah')},</b><br><br><br><br><br><b>${esc(namaKs())}</b><br>${esc(nipKs())}</td>
+<td align="center">${esc(tglTtd())}<br><b>Wali Kelas,</b><br><br><br><br><br><b>${esc(namaWl(wali))}</b><br>${esc(nipWl(wali))}</td>
+</tr></table></div><\/body><\/html>`;
+    unduhBlob(new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' }), nmBerkas('Rekap_Nilai_Rapor_' + kelas, 'doc'));
+  } catch (e) { console.error(e); toast('Gagal membuat Word: ' + (e.message || e)); }
+}
+
+/* ===== Kejadian ===== */
+$('fKelas').addEventListener('change', () => { pasangWali(); gambar(); });
+$('fWali').addEventListener('change', () => {
+  const k = aktif(); if (!k) return;
+  try { const v = $('fWali').value; if (v) localStorage.setItem(KUNCI_WALI + normK(k), v); else localStorage.removeItem(KUNCI_WALI + normK(k)); } catch (_) {}
+  gambar();
+});
 $('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
-$('unduh').onclick = unduh;
+$('unduh').onclick = () => buatExcel(false);
+$('unduhSemua').onclick = () => buatExcel(true);
+$('unduhWord').onclick = buatWord;
+$('unduhPdf').onclick = buatPdf;
 muat();
 </script>
 </body>

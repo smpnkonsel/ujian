@@ -9,7 +9,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pengaturan Aplikasi · KW Learning</title>
+<title>Pengaturan Kop & Kepala Sekolah · KW Learning</title>
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
   :root{
@@ -30,27 +30,19 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px}
   .penuh{grid-column:1/-1}
   label.f{display:block;font-size:.78rem;color:var(--redup);margin:10px 0 4px}
-  input[type=text],input[type=number],input[type=email],input[type=tel],select,textarea{width:100%;border:1px solid var(--garis);border-radius:10px;padding:10px 12px;font:inherit;font-size:.92rem;background:#fff;color:var(--teks)}
+  input[type=text],select,textarea{width:100%;border:1px solid var(--garis);border-radius:10px;padding:10px 12px;font:inherit;font-size:.92rem;background:#fff;color:var(--teks)}
   textarea{resize:vertical;min-height:70px}
   input:focus,select:focus,textarea:focus{outline:2px solid rgba(64,86,201,.3);border-color:var(--utama2)}
-  .logo{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .pratinjau{width:96px;height:96px;border-radius:16px;border:1px dashed var(--garis);background:#fafbfe center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:var(--redup);font-size:.72rem;text-align:center}
   .btn{border:0;border-radius:10px;padding:10px 16px;font:600 .88rem inherit;font-family:inherit;cursor:pointer;transition:.15s}
   .btn.utama{background:linear-gradient(135deg,var(--utama),var(--utama2));color:#fff;box-shadow:0 4px 14px rgba(43,58,140,.25)}
-  .btn.polos{background:#eef0f7;color:var(--teks)}
   .btn.bahaya{background:#fbe5e2;color:var(--bahaya)}
-  .btn.kecil{padding:7px 12px;font-size:.8rem}
+  .btn:disabled{opacity:.6;cursor:wait}
   .bantu{font-size:.76rem;color:var(--redup);margin-top:6px}
-  .sakelar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--garis)}
-  .sakelar:last-child{border-bottom:0}
-  .sakelar b{display:block;font-size:.92rem;font-weight:600}
-  .sakelar span{font-size:.8rem;color:var(--redup)}
-  .sw{position:relative;flex:none;width:44px;height:24px}
-  .sw input{opacity:0;width:100%;height:100%;position:absolute;margin:0;cursor:pointer;z-index:2}
-  .sw i{position:absolute;inset:0;background:#cfd4e4;border-radius:99px;transition:.2s}
-  .sw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-  .sw input:checked+i{background:var(--utama2)}
-  .sw input:checked+i::after{transform:translateX(20px)}
+  .kop{text-align:center;background:#fff;color:#111;border:1px dashed var(--garis);border-radius:12px;padding:16px 12px;line-height:1.4}
+  .kop .k1,.kop .k2{font-weight:600;text-transform:uppercase;font-size:.9rem}
+  .kop .k3{font-weight:700;text-transform:uppercase;font-size:1.05rem}
+  .kop .k4{font-size:.8rem}
+  .status{font-size:.78rem;color:var(--redup);margin:-10px 0 16px}
   .pbar{position:fixed;left:var(--sw,260px);right:0;bottom:0;background:var(--nm-bg);backdrop-filter:blur(8px);border-top:1px solid var(--garis);padding:12px 32px;display:flex;justify-content:flex-end;gap:10px;z-index:50}
   @media (max-width:900px){.pbar{left:0;padding:12px 16px}}
   .toast{position:fixed;bottom:76px;right:22px;background:var(--teks);color:#fff;padding:11px 16px;border-radius:10px;font-size:.88rem;opacity:0;transform:translateY(8px);transition:.25s;z-index:1100;pointer-events:none}
@@ -65,97 +57,59 @@
 <div id="mn">
 <div class="top">
   <button id="burger" type="button" aria-label="Buka menu">☰</button>
-  <h2>Pengaturan Aplikasi</h2>
+  <h2>Pengaturan Kop & Kepala Sekolah</h2>
 </div>
-
 
 <main class="konten">
   <div class="judul">
-    <h2>Pengaturan Aplikasi</h2>
-    <p>Atur identitas aplikasi, data sekolah, dan perilaku ujian secara umum.</p>
+    <h2>Pengaturan Kop & Kepala Sekolah</h2>
+    <p>Dipakai pada kop laporan dan cetak nilai. Data disimpan di Firebase bank soal.</p>
   </div>
+  <div class="status" id="status">Memuat data dari Firebase…</div>
 
   <section class="kartu">
-    <h3>Identitas aplikasi</h3>
-    <p class="sub">Nama dan logo yang tampil di aplikasi.</p>
+    <h3>Kop surat</h3>
+    <p class="sub">Isi per baris sesuai urutan kop.</p>
     <div class="grid">
-      <div>
-        <label class="f" for="namaApp">Nama aplikasi</label>
-        <input type="text" id="namaApp" data-k="namaApp" maxlength="40">
-      </div>
-      <div>
-        <label class="f" for="slogan">Slogan</label>
-        <input type="text" id="slogan" data-k="slogan" maxlength="80" placeholder="contoh: Ujian digital yang jujur">
-      </div>
+      <div class="penuh"><label class="f" for="kop1">Baris 1 (Pemerintah)</label>
+        <input type="text" id="kop1" data-k="kop1"></div>
+      <div class="penuh"><label class="f" for="kop2">Baris 2 (Dinas)</label>
+        <input type="text" id="kop2" data-k="kop2"></div>
+      <div class="penuh"><label class="f" for="kop3">Baris 3 (Nama sekolah)</label>
+        <input type="text" id="kop3" data-k="kop3"></div>
+      <div class="penuh"><label class="f" for="kop4">Baris 4 (Alamat)</label>
+        <textarea id="kop4" data-k="kop4"></textarea></div>
       <div class="penuh">
-        <label class="f">Logo</label>
-        <div class="logo">
-          <div class="pratinjau" id="logoPrev">Belum ada logo</div>
-          <div>
-            <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden>
-            <button class="btn polos kecil" id="logoPilih" type="button">Pilih gambar</button>
-            <button class="btn bahaya kecil" id="logoHapus" type="button">Hapus</button>
-            <div class="bantu">PNG, JPG, atau WebP. Otomatis diperkecil menjadi maksimal 256 px.</div>
-          </div>
+        <label class="f">Pratinjau kop</label>
+        <div class="kop">
+          <div class="k1" id="pv1"></div>
+          <div class="k2" id="pv2"></div>
+          <div class="k3" id="pv3"></div>
+          <div class="k4" id="pv4"></div>
         </div>
       </div>
     </div>
   </section>
 
   <section class="kartu">
-    <h3>Identitas sekolah</h3>
-    <p class="sub">Dipakai pada kop laporan dan cetak nilai.</p>
+    <h3>Tahun ajaran</h3>
+    <p class="sub">Tampil pada laporan dan cetak nilai.</p>
     <div class="grid">
-      <div class="penuh"><label class="f" for="sekolah">Nama sekolah</label>
-        <input type="text" id="sekolah" data-k="sekolah"></div>
-      <div><label class="f" for="npsn">NPSN</label>
-        <input type="text" id="npsn" data-k="npsn" inputmode="numeric" maxlength="8"></div>
-      <div><label class="f" for="kota">Kabupaten / Kota</label>
-        <input type="text" id="kota" data-k="kota"></div>
-      <div class="penuh"><label class="f" for="alamat">Alamat</label>
-        <textarea id="alamat" data-k="alamat"></textarea></div>
-      <div><label class="f" for="telp">Telepon</label>
-        <input type="tel" id="telp" data-k="telp"></div>
-      <div><label class="f" for="surel">Email</label>
-        <input type="email" id="surel" data-k="surel"></div>
-      <div><label class="f" for="kepsek">Kepala sekolah</label>
-        <input type="text" id="kepsek" data-k="kepsek"></div>
-      <div><label class="f" for="nipKepsek">NIP kepala sekolah</label>
-        <input type="text" id="nipKepsek" data-k="nipKepsek" inputmode="numeric"></div>
+      <div><label class="f" for="tahun">Tahun ajaran</label>
+        <input type="text" id="tahun" data-k="tahun" placeholder="2026/2027" maxlength="9"></div>
+      <div><label class="f" for="semester">Semester</label>
+        <select id="semester" data-k="semester"><option>Ganjil</option><option>Genap</option></select></div>
     </div>
   </section>
 
   <section class="kartu">
-    <h3>Pengaturan umum</h3>
-    <p class="sub">Nilai bawaan untuk ujian baru.</p>
+    <h3>Kepala sekolah</h3>
+    <p class="sub">Tampil pada tanda tangan laporan.</p>
     <div class="grid">
-      <div><label class="f" for="tahun">Tahun ajaran</label>
-        <input type="text" id="tahun" data-k="tahun" placeholder="2026/2027"></div>
-      <div><label class="f" for="semester">Semester</label>
-        <select id="semester" data-k="semester"><option>Ganjil</option><option>Genap</option></select></div>
-      <div><label class="f" for="zona">Zona waktu</label>
-        <select id="zona" data-k="zona">
-          <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
-          <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
-          <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
-        </select></div>
-      <div><label class="f" for="durasi">Durasi ujian bawaan (menit)</label>
-        <input type="number" id="durasi" data-k="durasi" min="5" max="300"></div>
-      <div><label class="f" for="kkm">KKM</label>
-        <input type="number" id="kkm" data-k="kkm" min="0" max="100"></div>
-      <div><label class="f" for="batasKeluar">Batas keluar layar (kali)</label>
-        <input type="number" id="batasKeluar" data-k="batasKeluar" min="0" max="20">
-        <div class="bantu">0 berarti tidak dibatasi.</div></div>
-    </div>
-    <div style="margin-top:8px">
-      <div class="sakelar"><div><b>Acak urutan soal</b><span>Setiap siswa mendapat urutan soal berbeda.</span></div>
-        <label class="sw"><input type="checkbox" data-k="acakSoal"><i></i></label></div>
-      <div class="sakelar"><div><b>Acak urutan pilihan jawaban</b><span>Pilihan A–E diacak untuk tiap siswa.</span></div>
-        <label class="sw"><input type="checkbox" data-k="acakOpsi"><i></i></label></div>
-      <div class="sakelar"><div><b>Tampilkan nilai ke siswa setelah selesai</b><span>Jika mati, siswa hanya melihat pesan selesai.</span></div>
-        <label class="sw"><input type="checkbox" data-k="tampilNilai"><i></i></label></div>
-      <div class="sakelar"><div><b>Wajib layar penuh</b><span>Ujian berjalan dalam mode layar penuh.</span></div>
-        <label class="sw"><input type="checkbox" data-k="layarPenuh"><i></i></label></div>
+      <div><label class="f" for="kepsek">Nama kepala sekolah</label>
+        <input type="text" id="kepsek" data-k="kepsek"></div>
+      <div><label class="f" for="nipKepsek">NIP kepala sekolah</label>
+        <input type="text" id="nipKepsek" data-k="nipKepsek" inputmode="numeric"></div>
     </div>
   </section>
 </main>
@@ -166,102 +120,109 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script>
-(function () {
-  'use strict';
+<script type="module">
+const $ = id => document.getElementById(id);
+let ttm;
+function toast(t) {
+  const el = $("toast"); el.textContent = t; el.classList.add("tampil");
+  clearTimeout(ttm); ttm = setTimeout(() => el.classList.remove("tampil"), 2600);
+}
 
-  var KUNCI = 'kw_pengaturan_app';
-  var BAWAAN = {
-    namaApp: 'KW Learning', slogan: '', logo: '',
-    sekolah: 'SMPN 20 Konawe Selatan', npsn: '', kota: '', alamat: '', telp: '', surel: '',
-    kepsek: '', nipKepsek: '',
-    tahun: '', semester: 'Ganjil', zona: 'Asia/Makassar',
-    durasi: 60, kkm: 75, batasKeluar: 3,
-    acakSoal: true, acakOpsi: false, tampilNilai: false, layarPenuh: true
-  };
+/* Firebase diambil dari file pusat (jangan initializeApp ulang di sini).
+   Beberapa nama file dicoba otomatis. Jika file Anda bernama lain,
+   tambahkan di daftar KANDIDAT. */
+const KANDIDAT = [
+  "../assets/js/firebase-pusat.js",
+  "../assets/js/firebase.js",
+  "../assets/js/firebase-config.js",
+  "../assets/js/firebase-init.js",
+  "../assets/js/firebasePusat.js"
+];
 
-  function $(id) { return document.getElementById(id); }
-  var ttm;
-  function toast(t) {
-    var el = $('toast'); el.textContent = t; el.classList.add('tampil');
-    clearTimeout(ttm); ttm = setTimeout(function () { el.classList.remove('tampil'); }, 2200);
-  }
+let dbBankSoal, F, KOLEKSI, REF, getDoc, setDoc, serverTimestamp;
 
-  function muat() {
-    var s = {};
-    try { s = JSON.parse(localStorage.getItem(KUNCI) || '{}') || {}; } catch (e) {}
-    return Object.assign({}, BAWAAN, s);
-  }
+for (const jalur of KANDIDAT) {
+  try {
+    const m = await import(jalur);
+    if (!m.dbBankSoal || !m.F) continue;
+    dbBankSoal = m.dbBankSoal; F = m.F; KOLEKSI = m.KOLEKSI || { pengaturan: "pengaturan" };
+    ({ getDoc, setDoc, serverTimestamp } = F);
+    REF = F.doc(dbBankSoal, KOLEKSI.pengaturan, "kop_sekolah");
+    console.info("Firebase pusat dimuat dari", jalur);
+    break;
+  } catch (e) { /* coba kandidat berikutnya */ }
+}
 
-  var nilai = muat();
-  var logoData = nilai.logo || '';
+if (!REF) {
+  $("status").textContent = "Gagal memuat file Firebase pusat. Cek nama file di daftar KANDIDAT (lihat Console F12).";
+  console.error("Tidak ada file Firebase pusat yang cocok. Dicoba:", KANDIDAT);
+}
 
-  function tampilLogo() {
-    var p = $('logoPrev');
-    if (logoData) { p.style.backgroundImage = 'url("' + logoData + '")'; p.textContent = ''; }
-    else { p.style.backgroundImage = ''; p.textContent = 'Belum ada logo'; }
-  }
+const BAWAAN = {
+  kop1: "PEMERINTAH KABUPATEN KONAWE SELATAN",
+  kop2: "DINAS PENDIDIKAN DAN KEBUDAYAAN",
+  kop3: "SMP NEGERI 20 KONAWE SELATAN",
+  kop4: "Jl. Sabulakoa - Landono Desa Sabulakoa Kec. Sabulakoa, Kode Pos 93373",
+  tahun: "2026/2027",
+  semester: "Ganjil",
+  kepsek: "",
+  nipKepsek: ""
+};
 
-  function isiForm(o) {
-    document.querySelectorAll('[data-k]').forEach(function (el) {
-      var v = o[el.dataset.k];
-      if (el.type === 'checkbox') el.checked = !!v; else el.value = v == null ? '' : v;
-    });
-    logoData = o.logo || '';
-    tampilLogo();
-  }
+function isiForm(o) {
+  document.querySelectorAll("[data-k]").forEach(el => { el.value = o[el.dataset.k] ?? ""; });
+  pratinjau();
+}
+function bacaForm() {
+  const o = {};
+  document.querySelectorAll("[data-k]").forEach(el => { o[el.dataset.k] = el.value.trim(); });
+  return o;
+}
+function pratinjau() {
+  ["1","2","3","4"].forEach(n => { $("pv" + n).textContent = $("kop" + n).value; });
+}
+document.querySelectorAll("[id^=kop]").forEach(el => el.addEventListener("input", pratinjau));
 
-  function bacaForm() {
-    var o = { logo: logoData };
-    document.querySelectorAll('[data-k]').forEach(function (el) {
-      var k = el.dataset.k;
-      if (el.type === 'checkbox') o[k] = el.checked;
-      else if (el.type === 'number') o[k] = el.value === '' ? BAWAAN[k] : Number(el.value);
-      else o[k] = el.value.trim();
-    });
-    return o;
-  }
-
-  /* Logo: perkecil lewat canvas agar muat di penyimpanan browser. */
-  $('logoPilih').addEventListener('click', function () { $('logoFile').click(); });
-  $('logoFile').addEventListener('change', function () {
-    var f = this.files[0]; this.value = '';
-    if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { toast('Ukuran gambar maksimal 5 MB'); return; }
-    var url = URL.createObjectURL(f), img = new Image();
-    img.onload = function () {
-      var m = 256, r = Math.min(1, m / Math.max(img.width, img.height));
-      var c = document.createElement('canvas');
-      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      logoData = c.toDataURL(f.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9);
-      URL.revokeObjectURL(url); tampilLogo();
-    };
-    img.onerror = function () { URL.revokeObjectURL(url); toast('Gambar tidak dapat dibaca'); };
-    img.src = url;
-  });
-  $('logoHapus').addEventListener('click', function () { logoData = ''; tampilLogo(); });
-
-  $('btnSimpan').addEventListener('click', function () {
-    var o = bacaForm();
-    if (!o.namaApp) { toast('Nama aplikasi wajib diisi'); return; }
-    if (o.durasi < 5) { toast('Durasi minimal 5 menit'); return; }
-    if (o.kkm < 0 || o.kkm > 100) { toast('KKM harus 0–100'); return; }
-    try { localStorage.setItem(KUNCI, JSON.stringify(o)); }
-    catch (e) { toast('Gagal menyimpan (penyimpanan penuh?)'); return; }
-    document.title = 'Pengaturan Aplikasi · ' + o.namaApp;
-    toast('Pengaturan disimpan');
-  });
-
-  $('btnReset').addEventListener('click', function () {
-    if (!window.confirm('Kembalikan semua pengaturan ke nilai bawaan? Logo juga dihapus.')) return;
-    try { localStorage.removeItem(KUNCI); } catch (e) {}
+async function muat() {
+  if (!REF) { isiForm(BAWAAN); return; }
+  try {
+    const snap = await getDoc(REF);
+    isiForm({ ...BAWAAN, ...(snap.exists() ? snap.data() : {}) });
+    $("status").textContent = snap.exists()
+      ? "Data dimuat dari Firebase."
+      : "Belum ada data di Firebase. Menampilkan nilai bawaan, klik Simpan untuk menyimpan.";
+  } catch (e) {
+    console.error(e);
     isiForm(BAWAAN);
-    toast('Pengaturan dikembalikan');
-  });
+    $("status").textContent = "Gagal memuat dari Firebase. Periksa config dan aturan Firestore.";
+  }
+}
 
-  isiForm(nilai);
-})();
+$("btnSimpan").addEventListener("click", async () => {
+  if (!REF) { toast("Firebase belum termuat, cek nama file import"); return; }
+  const o = bacaForm();
+  if (!o.kop1 || !o.kop2 || !o.kop3 || !o.kop4) { toast("Semua baris kop wajib diisi"); return; }
+  if (!/^\d{4}\/\d{4}$/.test(o.tahun)) { toast("Tahun ajaran harus berformat 2026/2027"); return; }
+  const b = $("btnSimpan"); b.disabled = true;
+  try {
+    await setDoc(REF, { ...o, diperbarui: serverTimestamp() }, { merge: true });
+    toast("Tersimpan di Firebase");
+    $("status").textContent = "Terakhir disimpan: sekarang.";
+  } catch (e) {
+    console.error(e);
+    toast(e && e.code === "permission-denied"
+      ? "Ditolak aturan Firestore / belum login admin"
+      : "Gagal menyimpan: " + (e && (e.code || e.message) || "tidak diketahui"));
+  } finally { b.disabled = false; }
+});
+
+$("btnReset").addEventListener("click", () => {
+  if (!window.confirm("Kembalikan isian ke nilai bawaan? Klik Simpan agar berlaku di Firebase.")) return;
+  isiForm(BAWAAN);
+  toast("Isian dikembalikan, jangan lupa Simpan");
+});
+
+muat();
 </script>
 </div>
 </body>

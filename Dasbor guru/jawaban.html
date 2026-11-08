@@ -1,84 +1,146 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<meta charset="utf-8">
 <script>document.documentElement.style.visibility='hidden'</script>
 <script type="module" src="../assets/js/guard.js" data-peran="guru"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
 
-<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jawaban Siswa · KW Learning</title>
 <link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-:root{--bg:var(--nm-bg);--card:var(--nm-bg);--ink:var(--nm-text);--muted:var(--nm-muted);--line:var(--nm-garis);--head:var(--nm-bg);--headtxt:var(--nm-muted);--focus:var(--nm-accent)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.hidden{display:none!important}
-.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
-header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
-h1{margin:0;font-size:24px}.sub{margin:4px 0 0;color:var(--muted)}
-.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit}
-button{cursor:pointer}button.primary{background:var(--head);color:var(--headtxt);border-color:var(--head)}
-button.small{padding:4px 10px}
-:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
-th{background:var(--head);color:var(--headtxt);font-weight:600;white-space:nowrap}
-td small{display:block;color:var(--muted)}
-td.n,th.n{text-align:right}
-tbody tr:last-child td{border-bottom:0}
-.empty{padding:22px;text-align:center;color:var(--muted)}
-.count{color:var(--muted);margin:8px 2px}
-dialog{border:1px solid var(--line);border-radius:12px;padding:18px;width:min(640px,94vw);background:var(--card);color:var(--ink)}
-dialog::backdrop{background:rgba(0,0,0,.4)}
-dialog h2{margin:0 0 4px;font-size:18px}
-#dInfo{color:var(--muted);margin:0 0 12px}
-#dGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-height:50vh;overflow:auto}
-#dGrid .sel{border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center;background:#fff}
-#dGrid .sel span{display:block;font-size:11px;color:var(--muted)}
-#dGrid .sel b{font-size:15px;word-break:break-all}
-#dGrid .sel.kosong{background:#fdecea}
-.btns{display:flex;justify-content:flex-end;margin-top:14px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--head);color:var(--headtxt);padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
-#toast.on{opacity:1}
+.kw-halaman{
+  --bg:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --hi:var(--nm-light); --lo:var(--nm-dark);
+  --biru:var(--nm-accent); --hijau:var(--nm-ok); --kuning:var(--nm-kuning); --merah:var(--nm-warn); --abu:var(--nm-muted);
+  --garis:var(--nm-garis);
+  --out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+  --in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
+  font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+}
+.kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
+.kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
+.kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:3px;border-radius:14px}
+.kw-halaman .hidden{display:none!important}
+
+/* Mepet sidebar, jarak kanan kecil */
+.kw-halaman .wrap{width:auto;max-width:none;margin:0;padding-inline:24px;animation:none}
+.kw-halaman main.wrap{padding-block:0 1rem}
+.kw-halaman > header{padding-block:1.6rem .8rem;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:flex-end}
+.kw-halaman h1{font-size:clamp(1.6rem,3.5vw,2.2rem);line-height:1.2}
+.kw-halaman > header p{color:var(--muted);margin-top:.3rem}
+.kw-halaman .aksi{display:flex;gap:.8rem;flex-wrap:wrap}
+
+/* Tombol */
+.kw-halaman .muat{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.7rem 1.1rem;font-size:.86rem;font-weight:600;color:var(--biru);cursor:pointer}
+.kw-halaman .muat:active{box-shadow:var(--in)}
+.kw-halaman .muat:disabled{opacity:.55;cursor:default;box-shadow:var(--in)}
+.kw-halaman .kecil{border:0;background:var(--bg);box-shadow:var(--out);border-radius:12px;padding:.35rem .9rem;font-size:.8rem;font-weight:600;color:var(--biru);cursor:pointer;white-space:nowrap}
+.kw-halaman .kecil:active{box-shadow:var(--in)}
+
+/* Peringatan */
+.kw-halaman #cfgwarn{background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem;margin:0 0 1rem;color:var(--kuning);font-size:.86rem;font-weight:500}
+
+/* Alat dan filter */
+.kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:.6rem}
+.kw-halaman .cari,.kw-halaman select{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem;min-width:0}
+.kw-halaman .cari{flex:1;min-width:200px}
+.kw-halaman select{cursor:pointer;max-width:100%;flex:1;min-width:160px}
+.kw-halaman .lingkup{color:var(--muted);font-size:.84rem;margin-bottom:1.4rem}
+
+/* Panel dan tabel */
+.kw-halaman .panel{background:var(--bg);box-shadow:var(--out);border-radius:24px;padding:.6rem 1.2rem 1.2rem;overflow:hidden}
+.kw-halaman table{width:100%;border-collapse:collapse;font-size:.88rem}
+.kw-halaman th{text-align:left;font-weight:600;color:var(--muted);font-size:.8rem;padding:.9rem .6rem;white-space:nowrap}
+.kw-halaman td{padding:.8rem .6rem;border-top:1px solid var(--garis);vertical-align:middle}
+.kw-halaman td small{display:block;color:var(--muted);font-size:.76rem}
+.kw-halaman td.n,.kw-halaman th.n{text-align:right}
+
+.kw-halaman .empty{text-align:center;color:var(--muted);padding:2rem 1rem}
+.kw-halaman .count{margin:1rem 0 2rem;font-size:.8rem;color:var(--muted)}
+.kw-halaman > footer{margin-top:auto;padding:1.4rem;text-align:center;font-size:.8rem;color:var(--muted)}
+
+/* Dialog detail jawaban */
+.kw-halaman dialog{border:0;border-radius:24px;padding:1.4rem;width:min(640px,94vw);background:var(--bg);color:var(--ink);box-shadow:var(--out)}
+.kw-halaman dialog::backdrop{background:rgba(0,0,0,.4)}
+.kw-halaman dialog h2{font-size:1.15rem;margin-bottom:.3rem}
+.kw-halaman #dInfo{color:var(--muted);font-size:.84rem;margin-bottom:1rem}
+.kw-halaman #dGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:.7rem;max-height:50vh;overflow:auto;padding:.4rem}
+.kw-halaman #dGrid .sel{border-radius:14px;padding:.45rem .5rem;text-align:center;background:var(--bg);box-shadow:var(--in)}
+.kw-halaman #dGrid .sel span{display:block;font-size:.7rem;color:var(--muted)}
+.kw-halaman #dGrid .sel b{font-size:.95rem;word-break:break-all}
+.kw-halaman #dGrid .sel.kosong b{color:var(--merah)}
+.kw-halaman .btns{display:flex;justify-content:flex-end;margin-top:1.2rem}
+
+/* Toast */
+.kw-halaman #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bg);color:var(--ink);box-shadow:var(--out);font-size:.84rem;font-weight:500;padding:.6rem 1.2rem;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.kw-halaman #toast.on{opacity:1}
+
+/* Tablet */
+@media (max-width:820px){
+  .kw-halaman .wrap{padding-inline:14px}
+}
+
+/* HP: tabel jadi kartu */
+@media (max-width:760px){
+  .kw-halaman .cari,.kw-halaman select{font-size:16px;min-height:42px;flex:1 1 100%;width:100%}
+  .kw-halaman .aksi{width:100%}
+  .kw-halaman .aksi .muat{flex:1;min-height:42px}
+  .kw-halaman .panel{padding:.4rem 1rem 1rem}
+
+  .kw-halaman thead{position:absolute;left:-9999px}
+  .kw-halaman table,.kw-halaman tbody,.kw-halaman tr,.kw-halaman td{display:block;width:100%}
+  .kw-halaman tr{padding:.8rem 0;border-top:1px solid var(--garis)}
+  .kw-halaman td,.kw-halaman td.n{border:0;padding:.25rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;overflow-wrap:anywhere;text-align:right}
+  .kw-halaman td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;flex:none;text-align:left}
+  .kw-halaman td small{display:inline;margin-left:.4rem}
+  .kw-halaman td.aksi-baris::before{content:none}
+  .kw-halaman td.aksi-baris .kecil{width:100%;min-height:40px}
+}
+
+/* HP kecil */
+@media (max-width:380px){
+  .kw-halaman .wrap{padding-inline:10px}
+}
 </style>
-<link rel="stylesheet" href="../assets/css/neumorph.css">
 </head>
 <body>
 <div id="sidebar-slot" data-peran="guru" data-mode="halaman" data-aktif="jawaban"></div>
 <script src="../assets/js/sidebar-awal.js"></script>
-<div id="mn">
+<div id="mn" class="kw-halaman">
 <div class="top">
   <button id="burger" type="button" aria-label="Buka menu">☰</button>
   <h2>Jawaban Siswa</h2>
 </div>
 
-<div class="wrap">
-  <div id="cfgwarn" class="hidden" style="background:#fff4c2;color:#5a4600;border:1px solid #e6cf6a;border-radius:9px;padding:8px 12px;margin-bottom:12px"></div>
-
-  <header>
-    <div>
-      <h1>Jawaban Siswa</h1>
-      <p class="sub">Kode jawaban yang dikirim siswa saat mengumpulkan ujian</p>
-    </div>
-    <div>
-      <button id="btnMuat" type="button">Muat ulang</button>
-      <button id="btnCsv" type="button" class="primary">Unduh CSV</button>
-    </div>
-  </header>
-
-  <div class="tools">
-    <input type="search" id="q" placeholder="Cari nama atau NIS" aria-label="Cari siswa">
-    <select id="fUjian" aria-label="Filter ujian"></select>
-    <select id="fKelas" aria-label="Filter kelas"></select>
+<header class="wrap">
+  <div>
+    <h1>Jawaban Siswa</h1>
+    <p id="ident">Kode jawaban siswa pada ujian kelas yang Anda ajar</p>
   </div>
+  <div class="aksi">
+    <button id="btnMuat" type="button" class="muat">Muat ulang</button>
+    <button id="btnCsv" type="button" class="muat">Unduh CSV</button>
+  </div>
+</header>
 
-  <div class="scroll">
+<main class="wrap">
+  <div id="cfgwarn" class="hidden" role="alert"></div>
+
+  <div class="alat">
+    <input type="search" id="q" class="cari" placeholder="Cari nama atau NIS" aria-label="Cari siswa">
+    <select id="fKelas" aria-label="Filter kelas"><option value="">Semua kelas saya</option></select>
+    <select id="fMapel" aria-label="Filter mata pelajaran"><option value="">Semua mapel saya</option></select>
+    <select id="fUjian" aria-label="Filter ujian"><option value="">Semua ujian</option></select>
+  </div>
+  <p class="lingkup" id="lingkup"></p>
+
+  <div class="panel">
     <table>
       <thead><tr><th>Siswa</th><th>Kelas</th><th>Ujian</th><th class="n">Benar / Salah / Kosong</th><th class="n">Nilai</th><th></th></tr></thead>
       <tbody id="isi"></tbody>
@@ -86,21 +148,25 @@ dialog h2{margin:0 0 4px;font-size:18px}
     <div class="empty" id="kosong">Memuat…</div>
   </div>
   <p class="count" id="jml"></p>
-</div>
+</main>
+
+<footer>KW Learning</footer>
 
 <dialog id="dlg">
   <h2 id="dJudul"></h2>
   <p id="dInfo"></p>
   <div id="dGrid"></div>
-  <div class="btns"><button type="button" id="tutup" class="primary">Tutup</button></div>
+  <div class="btns"><button type="button" id="tutup" class="muat">Tutup</button></div>
 </dialog>
 <div id="toast" role="status"></div>
 
 <script type="module">
 /* =========================================================
    Jawaban Siswa — data dari ../assets/js/firebase-pusat.js
-   Menampilkan kode jawaban tiap siswa dari koleksi "hasil"
-   (tiga Firebase tingkat VII/VIII/IX).
+   Menampilkan kode jawaban siswa dari koleksi "hasil"
+   (tiga Firebase tingkat VII/VIII/IX), hanya untuk kelas dan
+   mata pelajaran yang diajar guru yang sedang login
+   (data mengajar dari koleksi "guru" di Firebase Siswa dan Guru).
    Kode: pg/bs = huruf (bs: A=Benar, B=Salah), pgk = huruf-huruf,
    jodoh = nomor pasangan dipisah koma, "-" = tidak dijawab.
 ========================================================= */
@@ -111,6 +177,17 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const urutAlfa = (a, b) => String(a).localeCompare(String(b), 'id', {numeric:true});
 const ms = v => !v ? 0 : typeof v === 'number' ? v : v.toMillis ? v.toMillis() : (v.toDate ? v.toDate().getTime() : (new Date(v).getTime() || 0));
+
+/* Kelas dan mapel milik guru (sama dengan halaman Nilai Ujian) */
+const normK = v => String(v || '').toUpperCase().replace(/[\s.\-_]/g, '').replace(/^(7|8|9)/, m => ({7:'VII', 8:'VIII', 9:'IX'})[m]);
+const paketCocok = (paket, mapel) => String(paket || '').toLowerCase().includes(String(mapel).toLowerCase());
+let G = {nama:'', nip:'', mengajar:[]};
+const kelasMilik = kelas => G.mengajar.filter(x => x.kelas.some(k => normK(k) === normK(kelas)));
+const milikGuru = r => kelasMilik(r.kelas).some(x => paketCocok(r.paket, x.mapel));
+let SIS = [];   // siswa dari kelas yang diajar guru (Data Siswa)
+const pick = (o, ks) => { for (const k of ks) if (o[k] !== undefined && o[k] !== '') return o[k]; return ''; };
+const kelasGuru = () => [...new Set(SIS.map(s => s.kelas))].sort(urutAlfa);
+const mapelUntuk = kelas => [...new Set(G.mengajar.filter(x => !kelas || x.kelas.some(k => normK(k) === normK(kelas))).map(x => x.mapel))].sort(urutAlfa);
 
 function peringatan(teks){
   const w = $('cfgwarn');
@@ -151,6 +228,25 @@ function norm(id, x, tingkat){
   };
 }
 
+/* Data mengajar guru yang sedang login */
+async function dataGuru(FP){
+  const kosong = {nama:'', nip:'', mengajar:[]};
+  try {
+    const auth = FP.FIREBASE_PUSAT.SISWA_GURU.auth;
+    await auth.authStateReady();
+    const u = auth.currentUser;
+    if(!u || !u.email) return kosong;
+    const kolGuru = (FP.KOLEKSI && FP.KOLEKSI.guru) || 'guru';
+    const q = await FP.F.getDocs(FP.F.query(FP.F.collection(FP.dbSiswaGuru, kolGuru), FP.F.where('akunEmail', '==', u.email.toLowerCase()), FP.F.limit(1)));
+    if(!q.docs[0]) return {...kosong, nama: u.displayName || ''};
+    const dok = q.docs[0].data(), id = q.docs[0].id;
+    const pecahT = t => String(t || '').split(/[,;]/).map(x => x.trim()).filter(Boolean);
+    const arr = Array.isArray(dok.mengajar) ? dok.mengajar : (dok.mapel ? [{mapel: dok.mapel, kelas: pecahT(dok.kelas)}] : []);
+    const mengajar = arr.map(x => ({mapel: String(x.mapel || '').trim(), kelas: (Array.isArray(x.kelas) ? x.kelas : pecahT(x.kelas)).map(k => String(k).trim())})).filter(x => x.mapel);
+    return {nama: dok.nama || u.displayName || '', nip: dok.nip || id, mengajar};
+  } catch(e){ console.warn('data guru gagal dibaca', e); return kosong; }
+}
+
 let rows = [];
 
 function pecah(r){
@@ -164,27 +260,45 @@ function fillSelect(sel, label, values){
   sel.value = values.includes(cur) ? cur : '';
 }
 
+const cocokKelas = (r, k) => !k || normK(r.kelas) === normK(k);
+
 function saring(){
-  const u = $('fUjian').value, k = $('fKelas').value, q = $('q').value.trim().toLowerCase();
-  return rows.filter(r => (!u || r.paket === u) && (!k || r.kelas === k) &&
+  const u = $('fUjian').value, k = $('fKelas').value, m = $('fMapel').value, q = $('q').value.trim().toLowerCase();
+  return rows.filter(r => (!u || r.paket === u) && cocokKelas(r, k) && (!m || paketCocok(r.paket, m)) &&
     (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)))
     .sort((a, b) => urutAlfa(a.paket, b.paket) || urutAlfa(a.kelas, b.kelas) || urutAlfa(a.nama, b.nama));
 }
 
+/* Isi pilihan kelas dan mapel milik guru; bila hanya satu, langsung terpilih */
+function isiKelasMapel(){
+  const kl = kelasGuru();
+  fillSelect($('fKelas'), 'Semua kelas saya', kl);
+  if(!$('fKelas').value && kl.length === 1) $('fKelas').value = kl[0];
+  isiMapel();
+}
+function isiMapel(){
+  const mp = mapelUntuk($('fKelas').value);
+  fillSelect($('fMapel'), 'Semua mapel saya', mp);
+  if(!$('fMapel').value && mp.length === 1) $('fMapel').value = mp[0];
+}
+
 function render(){
-  fillSelect($('fUjian'), 'Semua ujian', [...new Set(rows.map(r => r.paket))].sort(urutAlfa));
-  fillSelect($('fKelas'), 'Semua kelas', [...new Set(rows.map(r => r.kelas).filter(Boolean))].sort(urutAlfa));
+  const k = $('fKelas').value, m = $('fMapel').value;
+  fillSelect($('fUjian'), 'Semua ujian', [...new Set(rows.filter(r => cocokKelas(r, k) && (!m || paketCocok(r.paket, m))).map(r => r.paket))].sort(urutAlfa));
   const list = saring();
 
-  $('isi').innerHTML = list.map(r => `<tr data-id="${esc(r.id)}" data-t="${esc(r.tingkat)}">
-      <td>${esc(r.nama)}<small>NIS ${esc(r.nis || '–')}</small></td>
-      <td>${esc(r.kelas)}</td><td>${esc(r.paket)}</td>
-      <td class="n">${r.benar ?? '–'} / ${r.salah ?? '–'} / ${r.kosong ?? '–'}</td>
-      <td class="n"><b>${r.nilai ?? '–'}</b></td>
-      <td><button type="button" class="small">Lihat jawaban</button></td></tr>`).join('');
+  $('lingkup').textContent = 'Menampilkan ' + (k ? 'kelas ' + k : 'semua kelas yang Anda ajar') + ' · ' + (m ? m : 'semua mapel yang Anda ajar') + '.';
 
-  $('kosong').hidden = list.length > 0;
-  $('kosong').textContent = rows.length ? 'Tidak ada data yang cocok.' : 'Belum ada siswa yang mengumpulkan ujian.';
+  $('isi').innerHTML = list.map(r => `<tr data-id="${esc(r.id)}" data-t="${esc(r.tingkat)}">
+      <td data-l="Siswa"><span>${esc(r.nama)}<small>NIS ${esc(r.nis || '–')}</small></span></td>
+      <td data-l="Kelas">${esc(r.kelas)}</td>
+      <td data-l="Ujian">${esc(r.paket)}</td>
+      <td class="n" data-l="Benar / Salah / Kosong">${r.benar ?? '–'} / ${r.salah ?? '–'} / ${r.kosong ?? '–'}</td>
+      <td class="n" data-l="Nilai"><b>${r.nilai ?? '–'}</b></td>
+      <td class="aksi-baris"><button type="button" class="kecil" aria-label="Lihat jawaban ${esc(r.nama)}">Lihat jawaban</button></td></tr>`).join('');
+
+  $('kosong').classList.toggle('hidden', list.length > 0);
+  $('kosong').textContent = rows.length ? 'Tidak ada data yang cocok.' : 'Belum ada siswa yang mengumpulkan ujian pada kelas dan mapel Anda.';
   $('jml').textContent = list.length + ' dari ' + rows.length + ' pengumpulan';
 }
 
@@ -200,20 +314,43 @@ function detail(r){
 }
 
 async function muat(){
-  const {F, dbTingkat, TINGKAT, KOLEKSI} = await import(LOKASI_FIREBASE);
-  const kol = KOLEKSI.hasil || 'hasil';
-  const hasil = await Promise.allSettled(TINGKAT.map(t =>
+  const FP = await import(LOKASI_FIREBASE);
+  const {F, dbTingkat, TINGKAT, KOLEKSI} = FP;
+  const kol = (KOLEKSI && KOLEKSI.hasil) || 'hasil';
+
+  G = await dataGuru(FP);
+  if(!G.mengajar.length){
+    SIS = []; rows = []; isiKelasMapel(); render();
+    throw new Error('Data mengajar untuk akun guru ini tidak ditemukan di Data Guru.');
+  }
+
+  // daftar kelas dari Data Siswa: hanya kelas yang diajar guru dan ada siswanya
+  const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
+  const snapS = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, (KOLEKSI && KOLEKSI.siswa) || 'siswa'), F.limit(2000)));
+  SIS = snapS.docs.map(x => {
+    const r = x.data(), kelas = String(pick(r, ['kelas'])).trim();
+    return {kelas, tingkat: FP.tingkatDariKelas(kelas)};
+  }).filter(s => s.kelas && s.tingkat && boleh.has(normK(s.kelas)));
+  isiKelasMapel();
+
+  // baca hanya tingkat (VII/VIII/IX) dari kelas yang ada siswanya
+  const tg = new Set(SIS.map(s => String(s.tingkat)));
+  const target = TINGKAT.filter(t => tg.has(String(t)));
+  if(!target.length){ rows = []; render(); return; }
+
+  const hasil = await Promise.allSettled(target.map(t =>
     F.getDocs(F.query(F.collection(dbTingkat(t), kol), F.limit(BATAS_PER_TINGKAT)))));
 
   const baru = [], gagal = [];
   hasil.forEach((h, i) => {
-    if(h.status === 'fulfilled') h.value.docs.forEach(d => baru.push(norm(d.id, d.data(), TINGKAT[i])));
-    else { gagal.push(TINGKAT[i]); console.warn(kol, TINGKAT[i], h.reason); }
+    if(h.status === 'fulfilled') h.value.docs.forEach(d => baru.push(norm(d.id, d.data(), target[i])));
+    else { gagal.push(target[i]); console.warn(kol, target[i], h.reason); }
   });
-  if(gagal.length === TINGKAT.length) throw new Error('semua tingkat gagal dimuat. Periksa aturan Firestore atau koneksi.');
+  if(gagal.length === target.length) throw new Error('semua tingkat gagal dimuat. Periksa aturan Firestore atau koneksi.');
   if(gagal.length) peringatan('Koleksi "' + kol + '" tingkat ' + gagal.join(', ') + ' gagal dimuat. Periksa aturan Firestore atau koneksi.');
 
-  rows = baru.sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
+  // hanya kelas milik guru, dengan ujian yang namanya memuat mapel yang ia ajar di kelas itu
+  rows = baru.filter(milikGuru).sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
   render();
 }
 
@@ -223,11 +360,14 @@ $('isi').onclick = e => {
   if(r) detail(r);
 };
 $('tutup').onclick = () => $('dlg').close();
-['fUjian', 'fKelas'].forEach(id => $(id).addEventListener('change', render));
+$('fKelas').addEventListener('change', () => { isiMapel(); render(); });
+['fMapel', 'fUjian'].forEach(id => $(id).addEventListener('change', render));
 $('q').addEventListener('input', render);
 $('btnMuat').onclick = () => {
+  const b = $('btnMuat');
+  b.disabled = true;
   $('cfgwarn').innerHTML = ''; $('cfgwarn').classList.add('hidden');
-  muat().then(() => toast('Data dimuat ulang.')).catch(e => peringatan(String(e.message || e)));
+  muat().then(() => toast('Data dimuat ulang.')).catch(e => peringatan(String(e.message || e))).finally(() => { b.disabled = false; });
 };
 $('btnCsv').onclick = () => unduhCsv('jawaban-siswa.csv', [
   ['NIS', 'Nama', 'Kelas', 'Ujian', 'Nilai', 'Jawaban'],

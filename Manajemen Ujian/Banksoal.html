@@ -15,9 +15,336 @@
 <link rel="apple-touch-icon" href="../assets/templat/logo.jpeg">
 <!-- css/paket.css = isi file tambah-paket-neumorphism.css -->
 <link rel="stylesheet" href="../assets/css/neumorph.css">
-<link rel="stylesheet" href="../assets/css/paket.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+/* Halaman Bank Soal · KW Learning
+   Desain dasar ada di neumorph.css (dimuat lebih dulu). */
 
+:root {
+  --nm-base: var(--nm-bg);
+  --nm-hi:   var(--nm-light);
+  --nm-lo:   var(--nm-dark);
+  --nm-ink:  var(--nm-text);
+  --nm-soft: var(--nm-muted);
+  --nm-line: var(--nm-garis);
+  --nm-tint: color-mix(in srgb, var(--nm-text) 6%, var(--nm-bg));
+
+  /* Jarak tepi kiri-kanan: mengecil otomatis di layar sempit */
+  --gutter: clamp(10px, 2.2vw, 24px);
+}
+
+/* Neumorphism hanya di dalam #mn dan #toast */
+#mn, #toast {
+  --base: var(--nm-base);
+  --hi: var(--nm-hi);
+  --lo: var(--nm-lo);
+  --card: var(--nm-base);
+  --ink: var(--nm-ink);
+  --soft: var(--nm-soft);
+  --muted: var(--nm-soft);
+  --navy: var(--nm-accent);
+  --gold: var(--nm-accent);
+  --line: var(--nm-line);
+  --tint: var(--nm-tint);
+
+  --out:    8px 8px 18px var(--lo), -8px -8px 18px var(--hi);
+  --out-sm: 4px 4px 10px var(--lo), -4px -4px 10px var(--hi);
+  --out-xs: 3px 3px 6px var(--lo),  -3px -3px 6px var(--hi);
+  --in:     inset 5px 5px 10px var(--lo), inset -5px -5px 10px var(--hi);
+  --in-sm:  inset 3px 3px 6px var(--lo),  inset -3px -3px 6px var(--hi);
+  --shadow: var(--out);
+  --shadow-lg: 12px 12px 26px var(--lo), -12px -12px 26px var(--hi);
+
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+#mn {
+  margin-left: var(--sw);
+  min-height: 100%;
+  min-width: 0;
+  max-width: calc(100% - var(--sw));
+  font-size: clamp(13.5px, 1.6vw, 14.5px);
+  line-height: 1.6;
+  color: var(--ink);
+  overflow-x: hidden;
+}
+#mn *, #mn *::before, #mn *::after { box-sizing: border-box; }
+#mn h1, #mn h2, #mn h3 { font-family: 'Poppins', system-ui, sans-serif; font-weight: 600; }
+
+/* ---------- Layout ---------- */
+#mn .top {
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) var(--gutter) 14px;
+  background: var(--base);
+  box-shadow: 0 6px 14px -8px var(--lo);
+  position: sticky; top: 0; z-index: 20;
+}
+#mn .top h2 {
+  font-size: clamp(17px, 2.4vw, 21px); color: var(--ink);
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+}
+#mn #burger {
+  display: none; border: 0; background: var(--base); border-radius: 12px;
+  width: 44px; height: 44px; flex: none; font-size: 18px; color: var(--navy);
+  box-shadow: var(--out-sm);
+}
+#mn #burger:active { box-shadow: var(--in-sm); }
+
+/* Mepet sidebar, jarak kanan kecil */
+#mn .wrap {
+  max-width: none;
+  margin: 0;
+  padding: clamp(14px, 2.5vw, 26px) var(--gutter) 70px;
+  animation: naik .35s ease both;
+}
+
+/* ---------- Kartu ---------- */
+#mn .card {
+  background: var(--base); border: 0; border-radius: 24px;
+  padding: clamp(16px, 2.2vw, 22px) clamp(14px, 2.4vw, 24px);
+  margin-bottom: clamp(14px, 2vw, 22px);
+  box-shadow: var(--out); min-width: 0;
+}
+#mn .card h3 {
+  font-size: 17px; margin-bottom: 16px; color: var(--ink);
+  display: flex; align-items: center; gap: 12px;
+}
+#mn .card h3::before {
+  content: ""; width: 26px; height: 26px; border-radius: 50%;
+  background: radial-gradient(circle, var(--navy) 0 28%, transparent 30%), var(--base);
+  box-shadow: var(--out-xs); flex: none;
+}
+
+/* ---------- Statistik: maksimal 4 kolom, turun otomatis ---------- */
+#mn .stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(160px, calc((100% - 3 * 20px) / 4))), 1fr));
+  gap: clamp(12px, 1.8vw, 20px);
+  margin-bottom: clamp(14px, 2vw, 22px);
+}
+#mn .st {
+  background: var(--base); border-radius: 20px; padding: 16px 18px;
+  box-shadow: var(--out); min-width: 0;
+}
+#mn .st b {
+  display: block; font: 600 clamp(22px, 3vw, 30px)/1.15 'Poppins', sans-serif;
+  color: var(--navy);
+}
+#mn .st span { color: var(--soft); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
+
+/* ---------- Tombol ---------- */
+#mn .btn {
+  color: var(--navy); border: 0; background: var(--base); border-radius: 16px;
+  padding: 11px 20px; font-weight: 600; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--out-sm); transition: box-shadow .18s, transform .18s;
+}
+#mn .btn:hover { transform: translateY(-1px); box-shadow: var(--out); }
+#mn .btn:active { transform: none; box-shadow: var(--in-sm); }
+#mn .btn.p, #mn .btn.g { color: var(--navy); background: var(--base); }
+#mn .btn.d { color: var(--no); }
+#mn .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: var(--out-xs); }
+
+#mn .acts { display: flex; gap: 12px; flex-wrap: wrap; }
+#mn .card > .acts { margin-top: 20px; }
+
+/* ---------- Tabel ---------- */
+#mn .tw {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: 20px; background: var(--base); box-shadow: var(--out); max-width: 100%;
+}
+#mn table { width: 100%; border-collapse: collapse; font-size: 14px; }
+#mn th, #mn td {
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
+  text-align: left; white-space: nowrap;
+}
+#mn th {
+  background: transparent; color: var(--navy); font-size: 12px;
+  letter-spacing: .06em; text-transform: uppercase; border-bottom: 2px solid var(--line);
+}
+#mn tbody tr:hover { background: color-mix(in srgb, var(--tint) 60%, transparent); }
+#mn tr:last-child td { border-bottom: 0; }
+#mn .tk { font-family: ui-monospace, Consolas, monospace; font-weight: 700; letter-spacing: 2px; color: var(--navy); }
+
+#mn .badge {
+  padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700;
+  background: var(--base); box-shadow: var(--in-sm);
+}
+#mn .badge.on  { color: var(--ok); }
+#mn .badge.off { color: var(--no); }
+
+/* ---------- Cari dan filter ---------- */
+#mn .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+#mn .tools input, #mn .tools select {
+  padding: 13px 18px; border: 0; border-radius: 16px; background: var(--base);
+  color: var(--ink); flex: 1 1 150px; min-width: 0; box-shadow: var(--in);
+}
+#mn .tools input:focus, #mn .tools select:focus {
+  outline: none; box-shadow: var(--in), 0 0 0 2px color-mix(in srgb, var(--navy) 45%, transparent);
+}
+#mn .empty { padding: 28px; text-align: center; color: var(--soft); }
+
+/* ---------- Pesan ---------- */
+#mn .msg {
+  border-radius: 16px; padding: 13px 18px; font-size: 14px; margin-bottom: 14px;
+  background: var(--base); box-shadow: var(--in-sm); overflow-wrap: anywhere;
+}
+#mn .msg.err  { color: var(--no); border-left: 4px solid var(--no); }
+#mn .msg.warn { color: var(--nm-warn); border-left: 4px solid #D9A21B; }
+
+/* ---------- Toast ---------- */
+#toast {
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%); background: var(--base); color: var(--navy);
+  font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 16px;
+  z-index: 120; opacity: 0; pointer-events: none; transition: opacity .2s;
+  max-width: calc(100% - 24px); text-align: center; box-shadow: var(--shadow-lg);
+}
+#toast.on { opacity: 1; }
+
+/* ---------- Daftar paket dan pratinjau soal ---------- */
+#mn .pk { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+#mn .pk > div:first-child { min-width: 0; flex: 1 1 220px; }
+#mn .pk b { color: var(--ink); font-size: 15.5px; overflow-wrap: anywhere; }
+#mn .pk small { color: var(--soft); display: block; word-break: break-all; }
+
+#mn .prev { margin-top: 20px; padding: 6px 6px 6px 2px; max-height: 560px; overflow: auto; }
+#mn .prev-sum { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
+
+#mn .chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+  border-radius: 99px; font-size: 12.5px; font-weight: 700;
+  background: var(--base); color: var(--navy); box-shadow: var(--out-xs);
+}
+#mn .chip.ok   { color: var(--ok); }
+#mn .chip.warn { color: var(--nm-warn); }
+
+#mn .q {
+  position: relative; padding: 16px 16px 16px 60px; margin-bottom: 14px;
+  border-radius: 18px; background: var(--base); box-shadow: var(--out-sm);
+  font-size: inherit; overflow-wrap: anywhere;
+}
+#mn .q .qn {
+  position: absolute; left: 14px; top: 16px; width: 34px; height: 34px;
+  border-radius: 50%; display: grid; place-items: center;
+  font: 600 13.5px 'Poppins', sans-serif; color: var(--navy);
+  background: var(--base); box-shadow: var(--in-sm);
+}
+#mn .q img { max-width: min(240px, 100%); height: auto; border-radius: 12px; }
+#mn .q ol {
+  list-style: none; margin: 10px 0 0; padding: 0; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 6px 14px; color: var(--soft);
+}
+#mn .q ol li { padding: 5px 10px; border-radius: 10px; min-width: 0; }
+#mn .q ol li.ok { box-shadow: var(--in-sm); color: var(--ok); font-weight: 700; }
+
+#mn .kunci {
+  margin-top: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 9px 14px; border-radius: 14px; background: var(--base);
+  box-shadow: var(--in-sm); font-size: 13.5px; color: var(--soft);
+}
+#mn .kunci b.huruf {
+  display: inline-grid; place-items: center; min-width: 30px; height: 30px;
+  padding: 0 6px; border-radius: 50%; background: var(--base);
+  box-shadow: var(--out-xs); color: var(--navy); font-size: 14px;
+}
+#mn .kunci.kosong { color: var(--no); }
+
+/* ---------- Pratinjau soal: jendela tengah layar ---------- */
+#mn .pmodal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: rgba(20, 26, 35, .5); backdrop-filter: blur(3px);
+  animation: naik .2s ease both;
+}
+#mn .pbox {
+  width: min(820px, 100%); max-height: 88vh; max-height: 88dvh;
+  display: flex; flex-direction: column; background: var(--base);
+  border-radius: 24px; padding: 18px 20px; box-shadow: var(--shadow-lg);
+}
+#mn .phead { display: flex; align-items: center; gap: 12px; }
+#mn .phead h3 { flex: 1; min-width: 0; font-size: 17px; color: var(--ink); overflow-wrap: anywhere; }
+#mn .phead .btn { width: 42px; height: 42px; padding: 0; border-radius: 50%; flex: none; }
+#mn .pbox .prev { margin-top: 16px; max-height: none; flex: 1; min-height: 0; overflow: auto; }
+
+/* ---------- Form tambah paket ---------- */
+#mn .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+#mn .field label, #mn .source-panel label {
+  display: block; font-size: 12px; font-weight: 600; color: var(--soft);
+  margin: 0; letter-spacing: .05em; text-transform: uppercase;
+}
+#mn .field input, #mn .field select, #mn .source-panel input, #mn .source-panel select {
+  width: 100%; min-width: 0; padding: 14px 18px; border: 0; border-radius: 16px;
+  background: var(--base); color: var(--ink); font: inherit; font-size: 14px;
+  box-shadow: var(--in);
+}
+#mn .field input:focus, #mn .field select:focus, #mn .source-panel input:focus {
+  outline: none; box-shadow: var(--in), 0 0 0 2px color-mix(in srgb, var(--navy) 45%, transparent);
+}
+#mn .field input::placeholder, #mn .source-panel input::placeholder { color: var(--soft); opacity: .75; }
+
+#mn .source-panel { margin-top: 14px; }
+#mn .source-panel small { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+#mn .source-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px;
+  border-radius: 20px; font-size: 11px; font-weight: 700;
+  background: var(--base); color: var(--navy); box-shadow: var(--out-xs);
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+/* Tablet: sidebar tersembunyi, konten selebar layar */
+@media (max-width: 820px) {
+  #mn { margin-left: 0; max-width: 100%; }
+  #mn #burger { display: inline-flex; align-items: center; justify-content: center; }
+  #mn .pbox { padding: 16px; }
+}
+
+/* Ponsel */
+@media (max-width: 600px) {
+  :root { --gutter: 10px; }
+
+  #mn .wrap { padding-bottom: 60px; }
+  #mn .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #mn .st { padding: 12px; border-radius: 16px; }
+  #mn .st span { font-size: 11px; }
+  #mn .card { padding: 14px 12px; border-radius: 20px; }
+  #mn .card h3 { font-size: 16px; margin-bottom: 12px; gap: 10px; }
+  #mn .card h3::before { width: 22px; height: 22px; }
+  #mn .acts { gap: 10px; }
+  #mn .acts .btn { min-height: 44px; }
+  #mn .tools { gap: 10px; }
+  #mn .tools input, #mn .tools select { font-size: 16px; flex-basis: 100%; }
+  #mn .field input, #mn .field select, #mn .source-panel input, #mn .source-panel select { font-size: 16px; }
+  #mn th, #mn td { padding: 10px 12px; font-size: 13px; }
+  #mn .pk { align-items: flex-start; }
+  #mn .pk .acts { width: 100%; }
+  #mn .pk .btn { flex: 1; }
+  #mn .q ol { grid-template-columns: 1fr; }
+  #mn .q { padding: 12px; }
+  #mn .q .qn { position: static; margin-bottom: 10px; }
+  #mn .pmodal { padding-left: 6px; padding-right: 6px; }
+  #mn .pbox { padding: 14px 12px; border-radius: 20px; max-height: 92dvh; }
+}
+
+/* Ponsel kecil */
+@media (max-width: 380px) {
+  #mn .top { gap: 8px; }
+  #mn .btn { padding: 10px 14px; }
+  #mn .st b { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 
@@ -59,19 +386,18 @@
     </small>
    </div>
 
+   <!-- Kolom "Nama ujian" (SAS/UTS) disisipkan otomatis oleh paket.js tepat sebelum kolom ini -->
    <div class="field">
     <label for="pnama">Nama mapel ujian</label>
     <input id="pnama" type="text" autocomplete="off"
-     placeholder="Contoh: Matematika — PAS Semester 1">
+     placeholder="Contoh: Matematika">
    </div>
 
    <div class="field">
     <label for="pkelas">Kelas</label>
+    <!-- Pilihan kelas diisi otomatis oleh paket.js (VII, VII A, VII B, ... IX B) -->
     <select id="pkelas">
      <option value="">Pilih kelas</option>
-     <option value="7">Kelas 7</option>
-     <option value="8">Kelas 8</option>
-     <option value="9">Kelas 9</option>
     </select>
    </div>
 
@@ -95,7 +421,8 @@
  </div>
 </div>
 
-<script type="module" src="../assets/js/paket.js"></script>
+<!-- ?v=2 supaya browser tidak memakai paket.js lama dari cache; naikkan angkanya tiap kali file diubah -->
+<script type="module" src="../assets/js/paket.js?v=2"></script>
 
 </body>
 </html>

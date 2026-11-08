@@ -30,6 +30,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto; /* posisi scroll dipulihkan langsung, bukan menggulir pelan */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -278,4 +279,28 @@
 
 @media (prefers-reduced-motion: reduce) {
   #sb, #scrim, #sb nav a { transition: none !important; }
+}
+
+/* =====================================================
+   ANTI-KEDIP ANTAR HALAMAN
+   Chrome/Edge terbaru: sidebar dianggap elemen yang sama
+   di halaman lama dan baru, jadi tidak terlihat hilang
+   lalu muncul lagi. Browser lain mengabaikan blok ini.
+===================================================== */
+
+@view-transition { navigation: auto; }
+
+#sb { view-transition-name: sidebar; }
+
+::view-transition-group(sidebar) { animation: none; }
+::view-transition-old(sidebar)   { display: none; }
+::view-transition-new(sidebar)   { animation: none; }
+
+/* Hanya area konten yang berganti, singkat */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: .12s; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
 }

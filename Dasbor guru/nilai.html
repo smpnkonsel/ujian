@@ -2,150 +2,918 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rekap Nilai · KW Learning</title>
 <script>document.documentElement.style.visibility='hidden'</script>
 <script type="module" src="../assets/js/guard.js" data-peran="guru"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rekap Nilai · KW Learning</title>
 <link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-  .tw { border: 0; box-shadow: none; background: transparent; }
-  td.n, th.n { text-align: right; }
-  .badge.ok { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
-  .badge.bad { background: color-mix(in srgb, var(--nm-warn) 16%, var(--nm-bg)); color: var(--nm-warn); }
-  .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
-  .tools .kkm input { width: 76px; min-width: 0; flex: none; }
-  .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
-  th button { all: unset; cursor: pointer; font-weight: 600; }
+.kw-halaman{--bg:var(--nm-bg);--ink:var(--nm-text);--muted:var(--nm-muted);--hi:var(--nm-light);--lo:var(--nm-dark);--biru:var(--nm-accent);--hijau:var(--nm-ok);--kuning:var(--nm-kuning);--merah:var(--nm-warn);--garis:var(--nm-garis);
+--out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);--in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
+font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
+.kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
+.kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:2px;border-radius:10px}
+.kw-halaman [hidden]{display:none!important}
+.kw-halaman .wrap{width:auto;max-width:none;margin:0;padding-inline:24px;animation:none}
+.kw-halaman main.wrap{padding-block:0 1rem}
+.kw-halaman>header{padding-block:1.6rem .8rem;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:flex-end}
+.kw-halaman h1{font-size:clamp(1.5rem,3.5vw,2.1rem);line-height:1.2}
+.kw-halaman h2.jdl{font-size:1.05rem;margin:1.6rem 0 .3rem}
+.kw-halaman>header p,.kw-halaman p.sub{color:var(--muted);margin-top:.3rem;font-size:.86rem}
+.kw-halaman .aksi{display:flex;gap:.7rem;flex-wrap:wrap}
+.kw-halaman .muat{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.7rem 1.1rem;font-size:.84rem;font-weight:600;color:var(--biru);cursor:pointer}
+.kw-halaman .muat:active{box-shadow:var(--in)}
+.kw-halaman .muat:disabled{opacity:.55;cursor:default;box-shadow:var(--in)}
+.kw-halaman #info{background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem;margin:0 0 1rem;color:var(--kuning);font-size:.86rem;font-weight:500}
+.kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:1rem 0}
+.kw-halaman select,.kw-halaman .kkm input,.kw-halaman .bobot input{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.75rem 1.1rem;min-width:0}
+.kw-halaman select{cursor:pointer;flex:1 1 150px;min-width:130px}
+.kw-halaman .kkm{display:flex;align-items:center;gap:.6rem;color:var(--muted);font-size:.86rem;font-weight:500}
+.kw-halaman .kkm input{width:88px;color:var(--ink)}
+.kw-halaman .bobot{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;color:var(--muted);font-size:.8rem;font-weight:500}
+.kw-halaman .bobot label{display:flex;align-items:center;gap:.35rem}
+.kw-halaman .bobot input{width:64px;padding:.6rem .5rem;color:var(--ink);text-align:center}
+.kw-halaman #b-tot{font-weight:600}.kw-halaman #b-tot.bad{color:var(--merah)}
+.kw-halaman table.tp .kolp{display:none}
+.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin:1rem 0}
+.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:18px;padding:.8rem 1rem}
+.kw-halaman .ringkas b{display:block;font-size:1.6rem;line-height:1.1}
+.kw-halaman .ringkas span{font-size:.78rem;color:var(--muted)}
+.kw-halaman .panel{background:var(--bg);box-shadow:var(--out);border-radius:22px;padding:.8rem;overflow:hidden}
+.kw-halaman .sc{overflow-x:auto}
+.kw-halaman table{width:100%;min-width:960px;border-collapse:collapse;font-size:.8rem}
+.kw-halaman th,.kw-halaman td{border:1px solid var(--garis);padding:.3rem .25rem;text-align:center}
+.kw-halaman th{font-weight:600;font-size:.74rem}
+.kw-halaman .g1{background:rgba(55,138,221,.14)}.kw-halaman .g2{background:rgba(99,153,34,.16)}.kw-halaman .g3{background:rgba(239,159,39,.2)}
+.kw-halaman td.l{text-align:left;padding-inline:.5rem;white-space:nowrap}
+.kw-halaman td.k{color:var(--muted)}
+.kw-halaman td.s{background:rgba(239,159,39,.14)}
+.kw-halaman td.e input{width:100%;min-width:30px;border:0;background:transparent;text-align:center;padding:.4rem 0;font-size:.8rem}
+.kw-halaman td.kos{outline:1px dashed var(--muted);outline-offset:-3px}
+.kw-halaman input.bad{color:var(--merah)}
+.kw-halaman .rd{color:var(--merah)}
+.kw-halaman .badge{display:inline-block;font-size:.72rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;box-shadow:var(--in);white-space:nowrap}
+.kw-halaman .badge.ok{color:var(--hijau)}.kw-halaman .badge.bad{color:var(--merah)}
+.kw-halaman .legenda{display:flex;flex-wrap:wrap;gap:1rem;font-size:.74rem;color:var(--muted);margin:.7rem .2rem 0}
+.kw-halaman .empty{text-align:center;color:var(--muted);padding:2rem 1rem}
+/* Tombol tambah/kurangi kolom di judul tabel */
+.kw-halaman .kt{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:4px}
+.kw-halaman .mini{border:0;background:var(--bg);box-shadow:var(--out);border-radius:8px;min-width:22px;height:22px;padding:0 .35rem;font-size:.78rem;font-weight:700;line-height:1;color:var(--biru);cursor:pointer}
+.kw-halaman .mini:active{box-shadow:var(--in)}
+.kw-halaman .mini[data-act$="-"]{color:var(--merah)}
+/* Panduan pengisian */
+.kw-halaman .panduan{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem;margin-top:.8rem}
+.kw-halaman .panduan div{background:var(--bg);box-shadow:var(--out);border-radius:18px;padding:1rem 1.1rem}
+.kw-halaman .panduan h3{font-size:.88rem;margin-bottom:.4rem}
+.kw-halaman .panduan p{font-size:.78rem;color:var(--muted);line-height:1.6}
+.kw-halaman .panduan p+p{margin-top:.4rem}
+.kw-halaman>footer{margin-top:auto;padding:1.4rem;text-align:center;font-size:.8rem;color:var(--muted)}
+/* Pratinjau: selalu putih seperti kertas cetak */
+.kw-halaman .kertas{background:#fff;color:#000;border-radius:14px;padding:1.2rem;font-family:Arial,Helvetica,sans-serif;box-shadow:var(--out);overflow-x:auto}
+.kw-halaman .kop{display:flex;align-items:center;gap:.8rem;border-bottom:3px double #000;padding-bottom:.6rem;min-width:900px}
+.kw-halaman .kop img{width:76px;height:76px;object-fit:contain}
+.kw-halaman .kop div{flex:1;text-align:center;line-height:1.35;font-size:.82rem}
+.kw-halaman .kop b{display:block}.kw-halaman .kop b.n{font-size:1.05rem}
+.kw-halaman .kop span{display:block;font-size:.7rem}
+.kw-halaman .jd{text-align:center;font-weight:700;margin:.7rem 0 .4rem;font-size:.95rem}
+.kw-halaman .idn{display:grid;grid-template-columns:1fr 1fr;gap:.1rem 2rem;font-size:.75rem;margin-bottom:.6rem;min-width:900px}
+.kw-halaman .kertas table{min-width:900px;font-size:.66rem}
+.kw-halaman .kertas th,.kw-halaman .kertas td{border:1px solid #444;color:#000;padding:.2rem}
+.kw-halaman .kertas td.nm{text-align:left;white-space:nowrap}
+.kw-halaman .ttd{display:flex;justify-content:space-between;margin-top:1rem;font-size:.75rem;min-width:900px}
+.kw-halaman .ttd div{text-align:center;min-width:220px}
+@media (max-width:820px){.kw-halaman .wrap{padding-inline:12px}.kw-halaman select{flex:1 1 100%;font-size:16px}}
 </style>
 </head>
 <body>
 <div id="sidebar-slot" data-mode="halaman" data-peran="guru" data-aktif="rekap"></div>
 <script src="../assets/js/sidebar-awal.js"></script>
 
-<div id="mn">
-  <div class="top">
-    <button id="burger" type="button" aria-label="Buka menu">☰</button>
-    <h2>Rekap Nilai</h2>
-  </div>
-  <div class="wrap">
-    <div id="info" class="msg warn" role="status" hidden></div>
+<div id="mn" class="kw-halaman">
+  <div class="top"><button id="burger" type="button" aria-label="Buka menu">☰</button><h2>Rekap Nilai</h2></div>
 
-    <section class="stats" aria-label="Ringkasan">
-      <div class="st"><b id="n-peserta">0</b><span>Peserta</span></div>
-      <div class="st"><b id="n-rata">–</b><span>Rata-rata</span></div>
-      <div class="st"><b id="n-max">–</b><span>Tertinggi</span></div>
-      <div class="st"><b id="n-min">–</b><span>Terendah</span></div>
+  <header class="wrap">
+    <div>
+      <h1>Rekap Nilai Peserta Didik</h1>
+      <p id="ident">Pilih kelas dan mata pelajaran.</p>
+    </div>
+    <div class="aksi">
+      <button id="muat" class="muat" type="button">Muat ulang</button>
+      <button id="templat" class="muat" type="button">Unduh Templat</button>
+      <button id="impor" class="muat" type="button">Impor Excel</button>
+      <button id="unduh" class="muat" type="button">Unduh Excel</button>
+      <button id="unduhWord" class="muat" type="button">Unduh Word</button>
+      <button id="unduhPdf" class="muat" type="button">Unduh PDF</button>
+      <button id="simpan" class="muat" type="button">Simpan</button>
+      <input id="berkas" type="file" accept=".xlsx" hidden>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="info" role="status" hidden></div>
+
+    <div class="alat">
+      <select id="fKelas" aria-label="Kelas"><option value="">Pilih kelas</option></select>
+      <select id="fMapel" aria-label="Mata pelajaran"><option value="">Pilih mata pelajaran</option></select>
+      <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
+      <div class="bobot" role="group" aria-label="Bobot nilai dalam persen">
+        <label>Tugas <input id="b-tugas" type="number" min="0" max="100" value="20" aria-label="Bobot tugas (%)">%</label>
+        <label>UH <input id="b-uh" type="number" min="0" max="100" value="30" aria-label="Bobot UH (%)">%</label>
+        <label>PTS <input id="b-uts" type="number" min="0" max="100" value="20" aria-label="Bobot PTS (%)">%</label>
+        <label>SAS <input id="b-sas" type="number" min="0" max="100" value="30" aria-label="Bobot SAS (%)">%</label>
+        <label>Praktik <input id="b-praktik" type="number" min="0" max="100" value="0" aria-label="Bobot praktik (%)">%</label>
+        <span id="b-tot" role="status">Total 100%</span>
+      </div>
+    </div>
+
+    <section class="ringkas" aria-label="Ringkasan ketuntasan">
+      <div><b id="r-n">0</b><span>Jumlah peserta didik</span></div>
+      <div><b id="r-t">0</b><span>Tuntas</span></div>
+      <div><b id="r-b">0</b><span>Belum tuntas</span></div>
+      <div><b id="r-l">0</b><span>Nilai belum lengkap</span></div>
+      <div><b id="r-p">0%</b><span>Persentase ketuntasan</span></div>
     </section>
 
-    <div class="card">
-      <h3>Rekap nilai per kelas</h3>
-      <div class="tools">
-        <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
-        <select id="fTingkat" aria-label="Tingkat"><option value="">Semua tingkat</option></select>
-        <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
+    <div class="panel">
+      <div class="sc">
+        <table id="tabel" class="tp">
+          <thead></thead>
+          <tbody id="body"></tbody>
+        </table>
       </div>
-      <div class="acts" style="margin-bottom:12px">
-        <button id="muat" class="btn p" type="button">Muat ulang</button>
-        <button id="unduh" class="btn" type="button">Unduh CSV</button>
-      </div>
-      <div class="tw"><table>
-        <thead><tr><th>Kelas</th><th class="n">Peserta</th><th class="n">Rata-rata</th><th class="n">Tertinggi</th>
-          <th class="n">Terendah</th><th class="n">Tuntas</th><th class="n">Belum</th><th class="n">Ketuntasan</th></tr></thead>
-        <tbody id="body"></tbody>
-      </table></div>
-      <p class="empty" id="empty" hidden>Belum ada nilai untuk direkap.</p>
+      <p class="empty" id="empty">Pilih kelas dan mata pelajaran untuk menampilkan nilai.</p>
     </div>
-  </div>
+    <div class="legenda">
+      <span>Tombol + / − di judul LM dan UH: tambah / kurangi kolom</span>
+      <span>Kotak putus-putus: nilai belum ada, klik untuk mengisi</span>
+      <span>Kolom SAS: otomatis dari ujian online (jenis ujian SAS)</span>
+      <span>Kolom PTS: terisi otomatis dari ujian online (jenis PTS) bila masih kosong</span>
+      <span>Angka merah: di bawah KKM</span>
+      <span>Tempel dari Excel: blok nilai, klik sel pertama, lalu Ctrl+V</span>
+    </div>
+
+    <section id="pv" hidden>
+      <h2 class="jdl">Pratinjau hasil (sama dengan file unduhan)</h2>
+      <p class="sub">Tampilan ini berubah otomatis mengikuti nilai yang Anda isi.</p>
+      <div class="kertas" style="margin-top:.8rem">
+        <div class="kop">
+          <img src="../assets/templat/image1.png" alt="Logo kiri" onerror="this.style.visibility='hidden'">
+          <div id="pv-k"></div>
+          <img src="../assets/templat/image2.png" alt="Logo kanan" onerror="this.style.visibility='hidden'">
+        </div>
+        <p class="jd">REKAP NILAI PESERTA DIDIK</p>
+        <div class="idn" id="pv-i"></div>
+        <table id="pv-t" class="tp"><thead id="pv-h"></thead><tbody id="pv-b"></tbody></table>
+        <p id="pv-r" style="font-size:.72rem;margin-top:.6rem"></p>
+        <div class="ttd">
+          <div>Mengetahui,<br><span id="pv-ks1"></span><br><br><br><br><b id="pv-ks2"></b><br><span id="pv-ks3"></span></div>
+          <div><br>Guru Mata Pelajaran,<br><br><br><br><b id="pv-g2"></b><br><span id="pv-g3"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panduan" aria-label="Panduan pengisian">
+      <h2 class="jdl">Panduan pengisian</h2>
+      <p class="sub">Penjelasan setiap bagian yang perlu diisi atau dihitung di halaman ini.</p>
+      <div class="panduan">
+        <div>
+          <h3>Nilai tugas (TG)</h3>
+          <p>Isi angka 0–100 pada kolom TG di bawah masing-masing Lingkup Materi (LM). Kolom yang dikosongkan tidak dihitung.</p>
+          <p>Kolom "Nilai tugas" adalah rata-rata semua TG yang sudah terisi. Tanda (4/7) berarti baru 4 dari 7 kolom tugas yang terisi.</p>
+        </div>
+        <div>
+          <h3>Tambah / kurangi kolom tugas</h3>
+          <p>Tekan <b>+</b> di judul LM untuk menambah kolom tugas pada LM itu. Nama kolom otomatis melanjutkan urutan, misalnya LM 1 sudah punya TG 1 dan TG 2, maka kolom baru menjadi TG 3.</p>
+          <p>Tekan <b>−</b> untuk menghapus kolom tugas terakhir di LM itu (minimal 1, maksimal 10 per LM). Jika kolom berisi nilai, Anda diminta konfirmasi dulu.</p>
+          <p>Untuk menambah LM baru, tekan <b>+ LM</b> di judul "Nilai tugas (formatif)". LM baru otomatis punya jumlah kolom TG yang sama dengan LM sebelumnya (misalnya LM 3 punya 3 TG, maka LM 4 juga 3 TG). Tombol <b>−</b> di sebelahnya menghapus LM terakhir (minimal 1, maksimal 10 LM).</p>
+        </div>
+        <div>
+          <h3>Ulangan harian (UH)</h3>
+          <p>Isi nilai UH 0–100. "Nilai UH" adalah rata-rata UH yang sudah terisi.</p>
+          <p>Tekan <b>+</b> di judul "Ulangan harian (UH)" untuk menambah kolom. Penamaan otomatis berlanjut, misalnya UH 1 dan UH 2 sudah ada, maka kolom baru menjadi UH 3. Tombol <b>−</b> menghapus UH terakhir (minimal 1, maksimal 10).</p>
+        </div>
+        <div>
+          <h3>PTS</h3>
+          <p>Isi nilai Penilaian Tengah Semester 0–100, atau biarkan terisi otomatis dari ujian online yang jenis ujiannya PTS (sesuai mata pelajaran dan kelas). Nilai yang sudah ada tidak ditimpa. Untuk mengambil ulang dari ujian online, kosongkan selnya lalu klik "Muat ulang". Nilai ini dikali bobot PTS pada perhitungan nilai akhir.</p>
+        </div>
+        <div>
+          <h3>SAS</h3>
+          <p>Tidak diisi manual. Nilainya diambil otomatis dari ujian online yang jenis ujiannya SAS (diatur di halaman Paket Soal) dan sesuai mata pelajaran. Jika siswa remedial, nilai tertinggi yang dipakai.</p>
+          <p>Tulisan "belum" berarti siswa belum mengerjakan SAS, sehingga nilai akhirnya belum bisa dihitung.</p>
+        </div>
+        <div>
+          <h3>Praktik (opsional)</h3>
+          <p>Kolom Praktik muncul hanya bila bobot Praktik diisi lebih dari 0%. Isi nilai praktik 0–100 untuk tiap siswa.</p>
+        </div>
+        <div>
+          <h3>KKM dan bobot</h3>
+          <p>KKM adalah batas ketuntasan. Bobot Tugas, UH, PTS, SAS, dan Praktik diisi dalam persen dan totalnya harus 100%. Bila belum 100%, tulisan total berubah merah dan unduhan Excel, Word, serta PDF ditolak.</p>
+        </div>
+        <div>
+          <h3>Nilai akhir</h3>
+          <p>Nilai akhir = (Nilai tugas × bobot tugas) + (Nilai UH × bobot UH) + (PTS × bobot PTS) + (SAS × bobot SAS) + (Praktik × bobot praktik), dibulatkan.</p>
+          <p>Nilai akhir tampil "–" selama ada komponen berbobot yang belum terisi. Angka merah berarti di bawah KKM.</p>
+        </div>
+        <div>
+          <h3>Predikat dan keterangan</h3>
+          <p>Predikat A bila nilai akhir ≥ <span id="pdA">90</span>, B bila ≥ <span id="pdB">80</span>, C bila ≥ KKM, dan D bila di bawah KKM.</p>
+          <p>Keterangan "Tuntas" bila nilai akhir ≥ KKM, selain itu "Belum Tuntas".</p>
+        </div>
+        <div>
+          <h3>Tempel dan impor dari Excel</h3>
+          <p>Salin blok nilai dari Excel, klik sel pertama tujuan, lalu Ctrl+V. Nilai terisi ke kanan dan ke bawah.</p>
+          <p>Atau klik "Unduh Templat", isi di Excel, lalu "Impor Excel" dengan kelas dan mapel yang sama. Jumlah kolom TG dan UH di file harus sama dengan di layar, jadi atur kolomnya dulu sebelum mengunduh templat.</p>
+        </div>
+        <div>
+          <h3>Simpan</h3>
+          <p>Tombol "Simpan" menyimpan nilai, jumlah kolom TG dan UH, KKM, serta bobot untuk kelas dan mapel yang dipilih. Perubahan yang belum disimpan hilang bila Anda pindah kelas atau mapel.</p>
+        </div>
+        <div>
+          <h3>Pilihan unduhan</h3>
+          <p><b>Excel</b> (.xlsx, memakai rumus), <b>Word</b> (.doc), dan <b>PDF</b>. Ketiganya memakai kertas Legal (21,59 × 35,56 cm) dengan orientasi landscape. Templat kosong hanya tersedia dalam Excel.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>KW Learning</footer>
 </div>
 
-<div id="toast" role="status"></div>
-
 <script type="module">
-import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
-import { norm, esc, fmtN, toast } from '../assets/js/util.js';
+import { F } from '../assets/js/firebase-pusat.js';
+import * as FP from '../assets/js/firebase-pusat.js';
+import { urutAlfa } from '../assets/js/data.js';
+import { norm, esc, fmtN, toast, konfirmasi } from '../assets/js/util.js';
+import { ambilTingkat } from '../assets/js/data.js';
+import { hitungSiswa, ringkasan, BOBOT_BAWAAN, PREDIKAT_BAWAAN } from '../assets/js/nilai-hitung.js';
+
+/* ===== Konfigurasi =====
+   siswa      -> Firebase Data Siswa dan Guru (dbSiswaGuru)
+   pengaturan -> Firebase Bank-soal, dokumen pengaturan/kop_sekolah
+   paket      -> Firebase Bank-soal, koleksi "paket" (field jenis dan mapel)
+   nilai      -> Firebase tingkat kelas (VII/VIII/IX), koleksi "nilai"
+   hasil      -> Firebase tingkat kelas (hasil ujian online: SAS dan PTS) */
+const CFG = {
+  koleksi: { siswa: 'siswa', hasil: 'hasil', nilai: 'nilai', pengaturan: 'pengaturan', paket: 'paket', guru: 'guru' },
+  docPengaturan: 'kop_sekolah',
+  fSiswa: { nama: ['nama'], nis: ['nis', 'nisn'], kelas: ['kelas'] },
+  logoKiri: '../assets/templat/image1.png',
+  logoKanan: '../assets/templat/image2.png',
+  lib: {
+    xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    exceljs: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
+    jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    autotable: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
+  }
+};
 
 const $ = id => document.getElementById(id);
-let ROWS = [];
-const KUNCI_KKM = 'kw-kkm';
-try {
-  const v = Number(localStorage.getItem(KUNCI_KKM));
-  const app = JSON.parse(localStorage.getItem('kw_pengaturan_app') || 'null');   // KKM dari Pengaturan Aplikasi
-  const awal = v > 0 && v <= 100 ? v : Number(app && app.kkm);
-  if (awal > 0 && awal <= 100) $('kkm').value = awal;
-} catch (_) {}
-const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) ? v : 75; };
+const pick = (o, ks) => { for (const k of ks) if (o[k] !== undefined && o[k] !== '') return o[k]; return ''; };
+const BOBOT = { ...BOBOT_BAWAAN, praktik: 0 };
+const MAXK = 10, MAXLM = 10;                                   // batas kolom TG per LM dan kolom UH
+const strukBawaan = () => ({ tg: [2, 2, 2], uh: 3 }); // tg = jumlah kolom tugas tiap LM 1-3
+let P = {}, G = { nama: '', nip: '' }, SIS = [], DAFTAR = [], ST = {}, SAS = new Map(), kotor = false, seq = 0, sebelum = { kelas: '', mapel: '' };
+let PAKET = new Map();   // paketId -> { jenis, mapel, nama }
+let STRUK = strukBawaan();
 
-function isiPilihan(sel, label, nilai) {
+/* Jenis ujian (SAS/PTS) dan mapel sebuah hasil ujian.
+   Utama: dari dokumen paket lewat paketId (field jenis dan mapel).
+   Cadangan (paket lama tanpa field jenis): dari teks nama paket. */
+function infoHasil(r) {
+  const p = PAKET.get(r.paketId) || {};
+  const teks = String(r.paketNama || r.paket || '');
+  let jenis = String(p.jenis || '').trim().toUpperCase();
+  if (!jenis) jenis = /\bsas\b/i.test(teks) ? 'SAS' : /\b(pts|uts)\b/i.test(teks) ? 'PTS' : '';
+  if (jenis === 'UTS') jenis = 'PTS';   // paket lama bernama UTS tetap terbaca sebagai PTS
+  const mapel = String(p.mapel || r.mapel || p.nama || teks).trim().toLowerCase();
+  return { jenis, mapel };
+}
+
+const totalTg = () => STRUK.tg.reduce((a, b) => a + b, 0);
+const awalLm = lm => STRUK.tg.slice(0, lm).reduce((a, b) => a + b, 0);
+const dbNilai = () => FP.dbTingkat(DAFTAR[0].tingkat);
+const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) && v > 0 ? v : 75; };
+const kunci = s => s.nis || s.nama;
+const idDok = () => [P.tahunAjaran, P.semester, $('fMapel').value, $('fKelas').value].join('_').replace(/[\s\/.#\[\]]+/g, '-');
+const info = t => { $('info').hidden = !t; $('info').textContent = t || ''; };
+const muatLib = (url, cek) => {
+  const ada = typeof cek === 'function' ? !!cek() : !!window[cek];
+  return ada ? Promise.resolve() : new Promise((ok, no) => {
+    const s = document.createElement('script'); s.src = url; s.onload = ok; s.onerror = () => no(new Error('Pustaka gagal dimuat.')); document.head.appendChild(s);
+  });
+};
+const kosongSt = () => ({ tg: Array(totalTg()).fill(null), uh: Array(STRUK.uh).fill(null), uts: null, pr: null });
+const KB = ['tugas', 'uh', 'uts', 'sas', 'praktik'];
+const pct = k => Math.round(BOBOT[k] * 10000) / 100;
+function bacaBobot() {
+  let tot = 0;
+  KB.forEach(k => { const v = Number($('b-' + k).value), p = Number.isFinite(v) && v > 0 ? Math.min(v, 100) : 0; BOBOT[k] = p / 100; tot += p; });
+  tot = Math.round(tot * 100) / 100;
+  const adaP = BOBOT.praktik > 0;
+  $('b-tot').textContent = 'Total ' + tot + '%' + (tot === 100 ? '' : ' (harus 100%)');
+  $('b-tot').classList.toggle('bad', tot !== 100);
+  document.querySelectorAll('[data-b]').forEach(e => e.textContent = pct(e.dataset.b));
+  $('tabel').classList.toggle('tp', !adaP); $('pv-t').classList.toggle('tp', !adaP);
+  return tot;
+}
+const isiBobot = b => KB.forEach(k => { if (b && b[k] !== undefined) $('b-' + k).value = b[k]; });
+const sasOf = s => { const v = SAS.get(s.nis) ?? SAS.get(s.nama); return v === undefined ? null : v; };
+const hit = s => { const d = ST[kunci(s)]; return hitungSiswa({ tg: d.tg, uh: d.uh, uts: d.uts, sas: sasOf(s), praktik: d.pr }, { kkm: kkm(), bobot: BOBOT, predikat: PREDIKAT_BAWAAN }); };
+
+/* ===== Judul tabel dinamis =====
+   Satu sumber (headSpec) dipakai untuk layar, pratinjau, Word, dan PDF. */
+function headSpec(dom) {
+  const adaP = BOBOT.praktik > 0, nT = totalTg(), nU = STRUK.uh;
+  const r1 = [
+    { a: 'No', rs: 3 }, { a: 'Nama peserta didik', rs: 3 }, { a: 'NIS/NISN', rs: 3 },
+    { a: 'Nilai tugas (formatif)', cs: nT, g: 1, grp: 'lm' }, { a: 'Nilai tugas', b: 'tugas', rs: 3, g: 1 },
+    { a: 'Ulangan harian (UH)', cs: nU, g: 2, grp: 'uh' }, { a: 'Nilai UH', b: 'uh', rs: 3, g: 2 },
+    { a: 'PTS', b: 'uts', rs: 3 }, { a: 'SAS', b: 'sas', rs: 3, g: 3 }, { a: 'Praktik', b: 'praktik', rs: 3, g: 3, kolp: 1 },
+    { a: 'Nilai akhir', rs: 3 }, { a: 'Predikat', rs: 3 }, { a: 'Keterangan', rs: 3 }
+  ].filter(c => dom || !(c.kolp && !adaP));
+  const r2 = [
+    ...STRUK.tg.map((n, i) => ({ a: 'LM ' + (i + 1), cs: n, g: 1, lm: i })),
+    ...Array.from({ length: nU }, (_, j) => ({ a: 'UH ' + (j + 1), rs: 2, g: 2 }))
+  ];
+  const r3 = STRUK.tg.flatMap(n => Array.from({ length: n }, (_, k) => ({ a: 'TG ' + (k + 1), g: 1 })));
+  return [r1, r2, r3];
+}
+const teksHead = c => c.b ? `${c.a}\n(${pct(c.b)}%)` : c.a;
+function htmlHead(ctl) {
+  return headSpec(true).map(r => '<tr>' + r.map(c => {
+    let x = esc(c.a);
+    if (c.b) x += `<br>(<span data-b="${c.b}">${pct(c.b)}</span>%)`;
+    if (ctl && c.lm !== undefined) x += `<span class="kt"><button type="button" class="mini" data-act="tg+" data-lm="${c.lm}" title="Tambah kolom tugas LM ${c.lm + 1}" aria-label="Tambah kolom tugas LM ${c.lm + 1}">+</button><button type="button" class="mini" data-act="tg-" data-lm="${c.lm}" title="Kurangi kolom tugas LM ${c.lm + 1}" aria-label="Kurangi kolom tugas LM ${c.lm + 1}">−</button></span>`;
+    if (ctl && c.grp === 'lm') x += `<span class="kt"><button type="button" class="mini" data-act="lm+" title="Tambah LM baru (jumlah TG mengikuti LM sebelumnya)" aria-label="Tambah LM">+ LM</button><button type="button" class="mini" data-act="lm-" title="Kurangi LM terakhir" aria-label="Kurangi LM terakhir">−</button></span>`;
+    if (ctl && c.grp === 'uh') x += `<span class="kt"><button type="button" class="mini" data-act="uh+" title="Tambah kolom UH" aria-label="Tambah kolom UH">+ UH</button><button type="button" class="mini" data-act="uh-" title="Kurangi kolom UH" aria-label="Kurangi kolom UH">−</button></span>`;
+    return `<th class="${c.g ? 'g' + c.g : ''}${c.kolp ? ' kolp' : ''}"${c.cs > 1 ? ` colspan="${c.cs}"` : ''}${c.rs ? ` rowspan="${c.rs}"` : ''}>${x}</th>`;
+  }).join('') + '</tr>').join('');
+}
+function renderHead() {
+  $('tabel').tHead.innerHTML = htmlHead(DAFTAR.length > 0);
+  $('pv-h').innerHTML = htmlHead(false);
+  bacaBobot();
+}
+
+async function ubahStruk(act, lm) {
+  if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.');
+  const s = STRUK;
+  if (act === 'lm+') {
+    if (s.tg.length >= MAXLM) return toast(`Maksimal ${MAXLM} LM.`);
+    const n = s.tg[s.tg.length - 1];   // jumlah TG mengikuti LM sebelumnya
+    DAFTAR.forEach(x => ST[kunci(x)].tg.push(...Array(n).fill(null)));
+    s.tg.push(n);
+  } else if (act === 'lm-') {
+    if (s.tg.length <= 1) return toast('Minimal 1 LM.');
+    const n = s.tg[s.tg.length - 1], idx = totalTg() - n;
+    if (DAFTAR.some(x => ST[kunci(x)].tg.slice(idx).some(v => v !== null)) && !(await konfirmasi({ judul: 'Hapus LM berisi nilai', pesan: `LM ${s.tg.length} sudah berisi nilai. Hapus LM ini beserta kolom tugasnya?`, ya: 'Hapus' }))) return;
+    DAFTAR.forEach(x => ST[kunci(x)].tg.splice(idx, n));
+    s.tg.pop();
+  } else if (act === 'tg+') {
+    if (s.tg[lm] >= MAXK) return toast(`Maksimal ${MAXK} kolom tugas per LM.`);
+    const idx = awalLm(lm) + s.tg[lm];
+    DAFTAR.forEach(x => ST[kunci(x)].tg.splice(idx, 0, null));
+    s.tg[lm]++;
+  } else if (act === 'tg-') {
+    if (s.tg[lm] <= 1) return toast('Minimal 1 kolom tugas per LM.');
+    const idx = awalLm(lm) + s.tg[lm] - 1;
+    if (DAFTAR.some(x => ST[kunci(x)].tg[idx] !== null) && !(await konfirmasi({ judul: 'Hapus kolom berisi nilai', pesan: `Kolom TG ${s.tg[lm]} pada LM ${lm + 1} sudah berisi nilai. Hapus kolom ini?`, ya: 'Hapus' }))) return;
+    DAFTAR.forEach(x => ST[kunci(x)].tg.splice(idx, 1));
+    s.tg[lm]--;
+  } else if (act === 'uh+') {
+    if (s.uh >= MAXK) return toast(`Maksimal ${MAXK} kolom UH.`);
+    DAFTAR.forEach(x => ST[kunci(x)].uh.push(null));
+    s.uh++;
+  } else if (act === 'uh-') {
+    if (s.uh <= 1) return toast('Minimal 1 kolom UH.');
+    if (DAFTAR.some(x => ST[kunci(x)].uh[s.uh - 1] !== null) && !(await konfirmasi({ judul: 'Hapus kolom berisi nilai', pesan: `Kolom UH ${s.uh} sudah berisi nilai. Hapus kolom ini?`, ya: 'Hapus' }))) return;
+    DAFTAR.forEach(x => ST[kunci(x)].uh.pop());
+    s.uh--;
+  } else return;
+  kotor = true; gambar();
+}
+$('tabel').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  ubahStruk(b.dataset.act, Number(b.dataset.lm));
+});
+
+function pilihan(sel, label, nilai) {
   const cur = sel.value;
   sel.innerHTML = `<option value="">${label}</option>` + nilai.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
   sel.value = nilai.includes(cur) ? cur : '';
 }
 
-function rekap() {
-  const p = $('fPaket').value, t = $('fTingkat').value;
-  const data = ROWS.filter(r => r.nilai !== null && (!p || r.paket === p) && (!t || r.tingkat === t));
-  const peta = new Map();
-  data.forEach(r => { const k = r.kelas || r.tingkat; if (!peta.has(k)) peta.set(k, []); peta.get(k).push(r.nilai); });
-  const baris = [...peta.entries()].sort((a, b) => urutAlfa(a[0], b[0])).map(([kelas, v]) => {
-    const tun = v.filter(n => n >= kkm()).length;
-    return { kelas, n: v.length, rata: v.reduce((a, x) => a + x, 0) / v.length, max: Math.max(...v), min: Math.min(...v), tun, belum: v.length - tun };
-  });
-  return { data, baris };
+const normK = v => String(v || '').toUpperCase().replace(/[\s.\-_]/g, '').replace(/^(7|8|9)/, m => ({ 7: 'VII', 8: 'VIII', 9: 'IX' })[m]);
+
+async function dataGuru() {
+  const kosong = { nama: '', nip: '', mengajar: [] };
+  try {
+    const auth = FP.FIREBASE_PUSAT.SISWA_GURU.auth;
+    await auth.authStateReady();
+    const u = auth.currentUser;
+    if (!u || !u.email) return kosong;
+    // Sama seperti auth.js: dokumen guru dicari lewat field akunEmail
+    const q = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.guru), F.where('akunEmail', '==', u.email.toLowerCase()), F.limit(1)));
+    if (!q.docs[0]) return { ...kosong, nama: u.displayName || '' };
+    const dok = q.docs[0].data(), id = q.docs[0].id;
+    const pecah = t => String(t || '').split(/[,;]/).map(x => x.trim()).filter(Boolean);
+    let arr = Array.isArray(dok.mengajar) ? dok.mengajar : (dok.mapel ? [{ mapel: dok.mapel, kelas: pecah(dok.kelas) }] : []);
+    const mengajar = arr.map(x => ({ mapel: String(x.mapel || '').trim(), kelas: (Array.isArray(x.kelas) ? x.kelas : pecah(x.kelas)).map(k => String(k).trim()) })).filter(x => x.mapel);
+    return { nama: dok.nama || u.displayName || '', nip: dok.nip || id, mengajar };
+  } catch (e) { console.warn('data guru gagal dibaca', e); return kosong; }
 }
+
+const mapelUntuk = kelas => [...new Set(G.mengajar.filter(x => !kelas || x.kelas.some(k => normK(k) === normK(kelas))).map(x => x.mapel))].sort(urutAlfa);
+
+async function muatDasar() {
+  info('');
+  try {
+    const sn = await F.getDoc(F.doc(FP.dbBankSoal, CFG.koleksi.pengaturan, CFG.docPengaturan));
+    const d = sn.exists() ? sn.data() : {};
+    P = { instansi: d.kop1 || '', dinas: d.kop2 || '', sekolah: d.kop3 || '', alamat: d.kop4 || '', ksNama: d.kepsek || '', ksNip: d.nipKepsek || '', semester: d.semester || '', tahunAjaran: d.tahun || '' };
+
+    // Daftar paket soal: dipakai untuk mengenali jenis ujian (SAS/PTS) dan mapel dari paketId.
+    // Gagal dibaca tidak menghentikan halaman (ada cadangan lewat nama paket).
+    try {
+      const sp = await F.getDocs(F.collection(FP.dbBankSoal, CFG.koleksi.paket));
+      PAKET = new Map(sp.docs.map(x => { const p = x.data(); return [x.id, { jenis: p.jenis || '', mapel: p.mapel || p.nama || '', nama: p.nama || '' }]; }));
+    } catch (e) { console.warn('paket gagal dibaca', e); PAKET = new Map(); }
+
+    G = await dataGuru();
+    if (!G.mengajar.length) info('Data mengajar untuk akun guru ini tidak ditemukan di Data Guru.');
+    const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
+
+    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)));
+    SIS = snap.docs.map(x => {
+      const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
+      return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };
+    }).filter(s => s.kelas && s.tingkat && boleh.has(normK(s.kelas)));
+
+    pilihan($('fKelas'), 'Pilih kelas', [...new Set(SIS.map(s => s.kelas))].sort(urutAlfa));
+    pilihan($('fMapel'), 'Pilih mata pelajaran', mapelUntuk($('fKelas').value));
+    $('ident').textContent = [P.semester && 'Semester ' + P.semester, P.tahunAjaran && 'Tahun pelajaran ' + P.tahunAjaran].filter(Boolean).join(' · ') || 'Pilih kelas dan mata pelajaran.';
+  } catch (e) { console.error(e); info('Gagal memuat data: ' + (e.message || e)); }
+}
+
+/* Struktur kolom dari dokumen tersimpan; dokumen lama (6 TG + 3 UH) memakai bawaan 2-2-2 dan 3. */
+function strukDariDok(s) {
+  const ok = n => Number.isInteger(n) && n >= 1 && n <= MAXK;
+  if (s && Array.isArray(s.tg) && s.tg.length >= 1 && s.tg.length <= MAXLM && s.tg.every(ok) && ok(s.uh)) return { tg: [...s.tg], uh: s.uh };
+  return strukBawaan();
+}
+
+async function muatKelas() {
+  const kelas = $('fKelas').value, mapel = $('fMapel').value, my = ++seq;
+  sebelum = { kelas, mapel };
+  ST = {}; SAS = new Map(); DAFTAR = []; kotor = false; STRUK = strukBawaan();
+  if (!kelas || !mapel) return gambar();
+  DAFTAR = SIS.filter(s => s.kelas === kelas).sort((a, b) => urutAlfa(a.nama, b.nama));
+  if (!DAFTAR.length) return gambar();
+  try {
+    const sn = await F.getDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()));
+    const dok = sn.exists() ? sn.data() : { siswa: {} };
+    if (dok.kkm) $('kkm').value = dok.kkm;
+    if (dok.bobot) isiBobot(dok.bobot);
+    bacaBobot();
+    STRUK = strukDariDok(dok.struktur);
+    const nT = totalTg(), nU = STRUK.uh;
+    const pad = (arr, n) => [...(arr || []), ...Array(n)].slice(0, n).map(v => v ?? null);
+    DAFTAR.forEach(s => { const d = (dok.siswa || {})[kunci(s)]; ST[kunci(s)] = d ? { tg: pad(d.tg, nT), uh: pad(d.uh, nU), uts: d.uts ?? null, pr: d.pr ?? null } : kosongSt(); });
+    const { rows } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat: [DAFTAR[0].tingkat] });
+    if (my !== seq) return;
+
+    /* Hasil ujian online: jenis (SAS/PTS) dan mapel dibaca dari dokumen paket lewat paketId.
+       SAS -> kolom SAS. PTS -> mengisi kolom PTS yang masih kosong (nilai manual tidak ditimpa).
+       Remedial: nilai tertinggi yang dipakai. */
+    const PTS = new Map();
+    const mp = mapel.trim().toLowerCase();
+    rows.forEach(r => {
+      const n = norm({ id: r.id, data: () => r });
+      if (n.kelas !== kelas || n.nilai === null) return;
+      const { jenis, mapel: mr } = infoHasil(r);
+      if (!jenis || !mr.includes(mp)) return;
+      const k = String(pick(r, CFG.fSiswa.nis)).trim() || n.nama.trim().toUpperCase();
+      const peta = jenis === 'SAS' ? SAS : jenis === 'PTS' ? PTS : null;
+      if (peta && (!peta.has(k) || n.nilai > peta.get(k))) peta.set(k, n.nilai);
+    });
+    DAFTAR.forEach(s => {
+      const d = ST[kunci(s)], v = PTS.get(s.nis) ?? PTS.get(s.nama);
+      if (d.uts === null && v !== undefined) { d.uts = v; kotor = true; }
+    });
+  } catch (e) { console.error(e); info('Gagal memuat nilai kelas: ' + (e.message || e)); DAFTAR.forEach(s => { if (!ST[kunci(s)]) ST[kunci(s)] = kosongSt(); }); }
+  if (my === seq) gambar();
+}
+
+const sel = (n, k, j, v) => `<td class="e${v === null ? ' kos' : ''}"><input inputmode="decimal" data-n="${esc(n)}" data-k="${k}" data-j="${j}" value="${v === null ? '' : String(v).replace('.', ',')}" aria-label="${k === 'uts' ? 'PTS' : k.toUpperCase()} ${j + 1}"></td>`;
+const hc = c => `<td class="k" data-c="${c}"></td>`;
 
 function gambar() {
-  const { data, baris } = rekap();
-  const ns = data.map(r => r.nilai);
-  $('n-peserta').textContent = data.length;
-  $('n-rata').textContent = ns.length ? fmtN(ns.reduce((a, x) => a + x, 0) / ns.length) : '–';
-  $('n-max').textContent = ns.length ? fmtN(Math.max(...ns)) : '–';
-  $('n-min').textContent = ns.length ? fmtN(Math.min(...ns)) : '–';
-  $('body').innerHTML = baris.map(b => `<tr><td><b>${esc(b.kelas)}</b></td><td class="n">${b.n}</td><td class="n">${fmtN(b.rata)}</td>
-    <td class="n">${fmtN(b.max)}</td><td class="n">${fmtN(b.min)}</td><td class="n">${b.tun}</td><td class="n">${b.belum}</td>
-    <td class="n"><span class="badge ${b.tun / b.n >= .75 ? 'ok' : 'bad'}">${Math.round(b.tun / b.n * 100)}%</span></td></tr>`).join('');
-  $('empty').hidden = baris.length > 0;
+  renderHead();
+  $('empty').hidden = DAFTAR.length > 0;
+  $('body').innerHTML = DAFTAR.map((s, i) => {
+    const d = ST[kunci(s)], n = kunci(s);
+    return `<tr data-n="${esc(n)}"><td>${i + 1}</td><td class="l"><b>${esc(s.nama)}</b></td><td class="k">${esc(s.nis) || '–'}</td>`
+      + d.tg.map((v, j) => sel(n, 'tg', j, v)).join('') + hc('nt')
+      + d.uh.map((v, j) => sel(n, 'uh', j, v)).join('') + hc('nu') + sel(n, 'uts', 0, d.uts)
+      + `<td class="s" data-c="sas"></td>` + sel(n, 'prk', 0, d.pr).replace('class="e', 'class="kolp e') + hc('ak') + hc('pr') + hc('ket') + '</tr>';
+  }).join('');
+  [...$('body').rows].forEach(isi);
+  ringkas();
 }
 
-async function muat() {
-  const info = $('info'), dot = $('dot'), cs = $('cs');
-  info.hidden = true;
-  try {
-    const { rows, gagal } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu' });
-    ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), tingkat: r.tingkat }));
-    if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
-    if (dot) dot.classList.add('on');
-    if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
-  } catch (e) {
-    console.error(e); ROWS = [];
-    info.hidden = false; info.textContent = 'Gagal memuat data dari Firebase: ' + (e.message || e);
+function isi(tr) {
+  const s = DAFTAR.find(x => kunci(x) === tr.dataset.n); if (!s) return;
+  const h = hit(s), c = k => tr.querySelector(`[data-c="${k}"]`);
+  c('nt').textContent = fmtN(h.nilaiTugas) + (h.tugasTerisi && h.tugasTerisi < totalTg() ? ` (${h.tugasTerisi}/${totalTg()})` : '');
+  c('nu').textContent = fmtN(h.nilaiUH);
+  c('sas').textContent = h.sas === null ? 'belum' : fmtN(h.sas);
+  c('ak').innerHTML = h.akhir === null ? '–' : `<b class="${h.akhir < kkm() ? 'rd' : ''}">${h.akhir}</b>`;
+  c('pr').textContent = h.predikat || '–';
+  c('ket').innerHTML = h.keterangan ? `<span class="badge ${h.keterangan === 'Tuntas' ? 'ok' : 'bad'}">${h.keterangan}</span>` : '–';
+}
+
+function ringkas() {
+  const r = ringkasan(DAFTAR.map(hit), kkm());
+  $('r-n').textContent = r.jumlah; $('r-t').textContent = r.tuntas; $('r-b').textContent = r.belum;
+  $('r-l').textContent = r.belumLengkap; $('r-p').textContent = Math.round(r.persen * 100) + '%';
+  pratinjau(r);
+}
+
+function pratinjau(r) {
+  $('pv').hidden = !DAFTAR.length; if (!DAFTAR.length) return;
+  $('pv-k').innerHTML = [P.instansi, P.dinas, P.sekolah].map((t, i) => t ? `<b${i === 2 ? ' class="n"' : ''}>${esc(t)}</b>` : '').join('') + (P.alamat ? `<span>${esc(P.alamat)}</span>` : '');
+  $('pv-i').innerHTML = `<div>Mata Pelajaran : <b>${esc($('fMapel').value)}</b></div><div>Semester : <b>${esc(P.semester || '')}</b></div><div>Kelas : <b>${esc($('fKelas').value)}</b></div><div>Tahun Pelajaran : <b>${esc(P.tahunAjaran || '')}</b></div>`;
+  const c = v => `<td>${v === null || v === undefined ? '' : fmtN(v)}</td>`;
+  $('pv-b').innerHTML = DAFTAR.map((s, i) => {
+    const d = ST[kunci(s)], h = hit(s);
+    return `<tr><td>${i + 1}</td><td class="nm">${esc(s.nama)}</td><td>${esc(s.nis)}</td>${d.tg.map(c).join('')}${c(h.nilaiTugas)}${d.uh.map(c).join('')}${c(h.nilaiUH)}${c(d.uts)}${c(h.sas)}<td class="kolp">${d.pr === null ? '' : fmtN(d.pr)}</td><td><b>${h.akhir ?? ''}</b></td><td>${h.predikat || ''}</td><td>${h.keterangan || ''}</td></tr>`;
+  }).join('');
+  $('pv-r').textContent = `Ringkasan: ${r.jumlah} peserta didik, ${r.tuntas} tuntas, ${r.belum} belum tuntas, ketuntasan ${Math.round(r.persen * 100)}% (KKM ${kkm()}).`;
+  $('pv-ks1').textContent = 'Kepala ' + (P.sekolah || 'Sekolah') + ',';
+  $('pv-ks2').textContent = P.ksNama ? '(' + P.ksNama + ')' : '(........................................)';
+  $('pv-ks3').textContent = 'NIP. ' + (P.ksNip || '..............................');
+  $('pv-g2').textContent = G.nama ? '(' + G.nama + ')' : '(........................................)';
+  $('pv-g3').textContent = 'NIP. ' + (G.nip || '..............................');
+}
+
+$('body').addEventListener('input', e => {
+  const i = e.target; if (!i.dataset.k) return;
+  const t = i.value.trim().replace(',', '.'); let v = null, bad = false;
+  if (t !== '') { v = Number(t); if (!Number.isFinite(v) || v < 0 || v > 100) { bad = true; v = null; } }
+  i.classList.toggle('bad', bad); i.parentNode.classList.toggle('kos', t === '');
+  const d = ST[i.dataset.n], j = Number(i.dataset.j);
+  if (i.dataset.k === 'uts') d.uts = v; else if (i.dataset.k === 'prk') d.pr = v; else d[i.dataset.k][j] = v;
+  kotor = true; isi(i.closest('tr')); ringkas();
+});
+
+/* Tempel blok dari Excel: mulai dari sel yang sedang dipilih, isi ke kanan dan ke bawah
+   sesuai ukuran blok yang disalin; yang melewati tabel diabaikan. */
+function tulis(i, v) {
+  const d = ST[i.dataset.n], j = Number(i.dataset.j), k = i.dataset.k;
+  if (k === 'uts') d.uts = v; else if (k === 'prk') d.pr = v; else d[k][j] = v;
+  i.value = String(v).replace('.', ','); i.classList.remove('bad'); i.parentNode.classList.remove('kos');
+}
+
+$('body').addEventListener('paste', e => {
+  const i = e.target; if (!i.dataset || !i.dataset.k) return;
+  const teks = (e.clipboardData || window.clipboardData).getData('text');
+  if (!teks) return;
+  e.preventDefault();
+  const baris = teks.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(b => b.split('\t'));
+  const W = Math.max(...baris.map(b => b.length));
+  const rows = [...$('body').rows], r0 = rows.indexOf(i.closest('tr'));
+  const sembunyiP = $('tabel').classList.contains('tp');
+  const kol = tr => [...tr.cells].slice(3).filter(td => !(sembunyiP && td.classList.contains('kolp')));
+  const c0 = kol(rows[r0]).indexOf(i.parentNode);
+  const sisa = kol(rows[r0]).slice(c0).filter(td => td.classList.contains('e')).length;
+  const ikutPosisi = W > sisa;   // blok ikut memuat kolom hitung (Nilai tugas, Nilai UH, SAS): lewati kolom itu
+  let ok = 0, tolak = 0;
+  baris.forEach((b, r) => {
+    const tr = rows[r0 + r]; if (!tr) return;
+    const k = kol(tr).slice(c0), target = ikutPosisi ? k : k.filter(td => td.classList.contains('e'));
+    b.forEach((t, c) => {
+      const inp = target[c] && target[c].classList.contains('e') ? target[c].querySelector('input') : null;
+      t = t.trim().replace(',', '.');
+      if (!inp || t === '') return;
+      const v = Number(t);
+      if (!Number.isFinite(v) || v < 0 || v > 100) { tolak++; return; }
+      tulis(inp, v); ok++;
+    });
+    isi(tr);
+  });
+  if (ok) { kotor = true; ringkas(); }
+  toast(ok || tolak ? `${ok} nilai ditempel` + (tolak ? `, ${tolak} sel ditolak (bukan angka 0–100)` : '') + '.' : 'Tidak ada nilai yang ditempel.');
+});
+
+$('kkm').addEventListener('input', () => { kotor = true; [...$('body').rows].forEach(isi); ringkas(); });
+['fKelas', 'fMapel'].forEach(id => $(id).addEventListener('change', async () => {
+  if (kotor && !(await konfirmasi({ judul: 'Perubahan belum disimpan', pesan: 'Pindah kelas atau mapel akan membuang perubahan. Lanjutkan?', ya: 'Lanjutkan' }))) {
+    $('fKelas').value = sebelum.kelas; $('fMapel').value = sebelum.mapel; return;
   }
-  isiPilihan($('fPaket'), 'Semua ujian', [...new Set(ROWS.map(r => r.paket).filter(x => x && x !== '-'))].sort(urutAlfa));
-  isiPilihan($('fTingkat'), 'Semua tingkat', [...new Set(ROWS.map(r => r.tingkat))].sort(urutAlfa));
-  gambar();
+  if (id === 'fKelas') pilihan($('fMapel'), 'Pilih mata pelajaran', mapelUntuk($('fKelas').value));
+  muatKelas();
+}));
+
+async function simpan() {
+  if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.');
+  $('simpan').disabled = true;
+  try {
+    const siswa = {}; DAFTAR.forEach(s => siswa[kunci(s)] = ST[kunci(s)]);
+    await F.setDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()), {
+      kelas: $('fKelas').value, mapel: $('fMapel').value, semester: P.semester || '', tahunAjaran: P.tahunAjaran || '',
+      kkm: kkm(), bobot: Object.fromEntries(KB.map(k => [k, pct(k)])), struktur: { tg: [...STRUK.tg], uh: STRUK.uh }, siswa, diubah: Date.now(), oleh: G.nama || ''
+    });
+    kotor = false; toast('Nilai tersimpan.');
+  } catch (e) { console.error(e); toast('Gagal menyimpan: ' + (e.code || e.message)); }
+  $('simpan').disabled = false;
 }
 
-function unduh() {
-  const { baris } = rekap();
-  if (!baris.length) return toast('Tidak ada data untuk diunduh.');
-  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const out = [['Kelas', 'Peserta', 'Rata-rata', 'Tertinggi', 'Terendah', 'Tuntas', 'Belum tuntas'].map(q).join(',')]
-    .concat(baris.map(b => [b.kelas, b.n, fmtN(b.rata), b.max, b.min, b.tun, b.belum].map(q).join(',')));
-  const url = URL.createObjectURL(new Blob(['\uFEFF' + out.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a'); a.href = url; a.download = 'Rekap_Nilai.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/* Impor: letak mapel, kelas, dan baris siswa dicari otomatis (tidak bergantung nomor baris tetap).
+   Kolom TG dan UH mengikuti struktur yang sedang tampil di layar. */
+async function impor(file) {
+  try {
+    await muatLib(CFG.lib.xlsx, 'XLSX');
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    const ws = wb.Sheets['Rekap_Nilai'] || wb.Sheets[wb.SheetNames[0]];
+    const a = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+    const cari = re => { for (let r = 0; r < Math.min(a.length, 25); r++) { const b = a[r] || []; if (re.test(String(b[1] ?? '').trim())) return String(b[2] ?? '').trim(); } return ''; };
+    const mp = cari(/^mata pelajaran/i), kl = cari(/^kelas/i);
+    if (mp.toLowerCase() !== $('fMapel').value.toLowerCase() || kl !== $('fKelas').value)
+      return toast('Mapel atau kelas di file tidak sama dengan pilihan di layar.');
+    const nT = totalTg(), nU = STRUK.uh, iNT = 3 + nT, iU0 = 4 + nT, iNU = 4 + nT + nU, iUTS = iNU + 1;
+    const cocok = a.slice(8, 16).some(b => b && /^nilai tugas/i.test(String(b[iNT] ?? '').trim()) && /^nilai uh/i.test(String(b[iNU] ?? '').trim()));
+    if (!cocok) return toast('Jumlah kolom TG/UH di file berbeda dengan tabel di layar. Samakan jumlah kolom, lalu unduh templat lagi.');
+    let ubah = 0, tolak = 0, hilang = 0;
+    let kp = -1;
+    for (let r = 8; r < Math.min(a.length, 16); r++) (a[r] || []).forEach((v, c) => { if (/^praktik/i.test(String(v ?? '').trim())) kp = c; });
+    for (const b of a) {
+      if (!b || !b[1] || typeof b[0] !== 'number') continue;
+      const nis = String(b[2] ?? '').trim(), nama = String(b[1]).trim().toUpperCase();
+      const s = DAFTAR.find(x => (nis && x.nis === nis) || (!nis && x.nama === nama));
+      if (!s) { hilang++; continue; }
+      const d = ST[kunci(s)]; let ada = false;
+      const set = (v, tulis) => {
+        if (v === null || v === '') return;
+        const n = Number(String(v).replace(',', '.'));
+        if (!Number.isFinite(n) || n < 0 || n > 100) { tolak++; return; }
+        tulis(n); ada = true;
+      };
+      for (let j = 0; j < nT; j++) set(b[3 + j], n => d.tg[j] = n);
+      for (let j = 0; j < nU; j++) set(b[iU0 + j], n => d.uh[j] = n);
+      set(b[iUTS], n => d.uts = n);
+      if (kp >= 0) set(b[kp], n => d.pr = n);
+      if (ada) ubah++;
+    }
+    kotor = kotor || ubah > 0; gambar();
+    await konfirmasi({ judul: 'Impor selesai', pesan: `${ubah} siswa diperbarui, ${tolak} sel ditolak (di luar 0–100), ${hilang} baris tidak ditemukan. Klik Simpan untuk menyimpan.`, ya: 'OK', tanpaBatal: true });
+  } catch (e) { console.error(e); toast('Gagal membaca file: ' + (e.message || e)); }
 }
 
-['fPaket', 'fTingkat'].forEach(id => $(id).addEventListener('change', gambar));
-$('kkm').addEventListener('input', () => { try { localStorage.setItem(KUNCI_KKM, String(kkm())); } catch (_) {} gambar(); });
-$('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
-$('unduh').onclick = unduh;
-muat();
+/* ===== Unduhan =====
+   Semua unduhan: kertas Legal (21,59 x 35,56 cm), landscape. */
+const namaBerkas = (awalan, ext) => `${awalan}Rekap_Nilai_${$('fMapel').value}_${$('fKelas').value}.${ext}`.replace(/\s+/g, '_');
+function unduhBlob(blob, nama) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = nama;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const logoData = async f => {
+  try {
+    const r = await fetch(f); if (!r.ok) return '';
+    const b = await r.blob();
+    return await new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = () => ok(''); fr.readAsDataURL(b); });
+  } catch (_) { return ''; }
+};
+const fN = v => v === null || v === undefined ? '' : fmtN(v);
+function barisData() {
+  const adaP = BOBOT.praktik > 0;
+  return DAFTAR.map((s, i) => {
+    const d = ST[kunci(s)], h = hit(s);
+    return [String(i + 1), s.nama, s.nis, ...d.tg.map(fN), fN(h.nilaiTugas), ...d.uh.map(fN), fN(h.nilaiUH), fN(d.uts), fN(h.sas), ...(adaP ? [fN(d.pr)] : []), h.akhir === null || h.akhir === undefined ? '' : String(h.akhir), h.predikat || '', h.keterangan || ''];
+  });
+}
+const teksRingkas = r => `Ringkasan: ${r.jumlah} peserta didik, ${r.tuntas} tuntas, ${r.belum} belum tuntas, ketuntasan ${Math.round(r.persen * 100)}% (KKM ${kkm()}).`;
+const warnaG = g => ({ 1: '#DDEBF7', 2: '#E2EFDA', 3: '#FFF2CC' }[g] || '#F2F2F2');
+const rgbG = g => ({ 1: [221, 235, 247], 2: [226, 239, 218], 3: [255, 242, 204] }[g] || [242, 242, 242]);
+const cekUnduh = () => {
+  if (!DAFTAR.length) { toast('Pilih kelas dan mapel dulu.'); return false; }
+  if (bacaBobot() !== 100) { toast('Total bobot harus 100%. Sesuaikan bobot dulu.'); return false; }
+  return true;
+};
+
+/* PDF: Legal landscape */
+async function buatPdf() {
+  if (!cekUnduh()) return;
+  try {
+    await muatLib(CFG.lib.jspdf, 'jspdf');
+    await muatLib(CFG.lib.autotable, () => window.jspdf && window.jspdf.jsPDF.API.autoTable);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'legal' });
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 12;
+    const [lk, lr] = await Promise.all([logoData(CFG.logoKiri), logoData(CFG.logoKanan)]);
+    if (lk) doc.addImage(lk, 'PNG', M, 10, 22, 22);
+    if (lr) doc.addImage(lr, 'PNG', W - M - 22, 10, 22, 22);
+    let y = 14;
+    doc.setFont('helvetica', 'bold');
+    [P.instansi, P.dinas, P.sekolah].forEach((t, i) => { if (!t) return; doc.setFontSize(i === 2 ? 14 : 11); doc.text(t, W / 2, y, { align: 'center' }); y += i === 2 ? 6 : 5; });
+    if (P.alamat) { doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(P.alamat, W / 2, y, { align: 'center' }); y += 4; }
+    y = Math.max(y, 35);
+    doc.setLineWidth(.7); doc.line(M, y, W - M, y); doc.setLineWidth(.2); doc.line(M, y + 1.3, W - M, y + 1.3);
+    y += 8; doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text('REKAP NILAI PESERTA DIDIK', W / 2, y, { align: 'center' });
+    y += 7; doc.setFontSize(9);
+    const kv = (x, yy, k, v) => { doc.setFont('helvetica', 'normal'); doc.text(k + ' :', x, yy); doc.setFont('helvetica', 'bold'); doc.text(String(v || ''), x + 34, yy); };
+    kv(M, y, 'Mata Pelajaran', $('fMapel').value); kv(W / 2, y, 'Semester', P.semester);
+    kv(M, y + 5, 'Kelas', $('fKelas').value); kv(W / 2, y + 5, 'Tahun Pelajaran', P.tahunAjaran);
+    const head = headSpec(false).map(r => r.map(c => ({ content: teksHead(c), colSpan: c.cs || 1, rowSpan: c.rs || 1, styles: { fillColor: rgbG(c.g), fontStyle: 'bold' } })));
+    doc.autoTable({
+      startY: y + 10, head, body: barisData(), theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 7.5, cellPadding: 1.2, halign: 'center', valign: 'middle', lineColor: [68, 68, 68], lineWidth: .15, textColor: 0 },
+      headStyles: { textColor: 0 }, columnStyles: { 1: { halign: 'left', cellWidth: 58 } }, margin: { left: M, right: M, bottom: 12 }
+    });
+    const r = ringkasan(DAFTAR.map(hit), kkm());
+    y = doc.lastAutoTable.finalY + 6;
+    if (y + 48 > H) { doc.addPage(); y = 20; }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text(teksRingkas(r), M, y);
+    y += 10; const xk = W * 0.2, xg = W * 0.8;
+    doc.setFontSize(9);
+    doc.text('Mengetahui,', xk, y, { align: 'center' }); doc.text('Kepala ' + (P.sekolah || 'Sekolah') + ',', xk, y + 5, { align: 'center' });
+    doc.text('Guru Mata Pelajaran,', xg, y + 5, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(P.ksNama ? '(' + P.ksNama + ')' : '(........................................)', xk, y + 25, { align: 'center' });
+    doc.text(G.nama ? '(' + G.nama + ')' : '(........................................)', xg, y + 25, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('NIP. ' + (P.ksNip || '..............................'), xk, y + 30, { align: 'center' });
+    doc.text('NIP. ' + (G.nip || '..............................'), xg, y + 30, { align: 'center' });
+    doc.save(namaBerkas('', 'pdf'));
+  } catch (e) { console.error(e); toast('Gagal membuat PDF: ' + (e.message || e)); }
+}
+
+/* Word: dokumen HTML berformat Word (.doc), Legal landscape */
+async function buatWord() {
+  if (!cekUnduh()) return;
+  try {
+    const [lk, lr] = await Promise.all([logoData(CFG.logoKiri), logoData(CFG.logoKanan)]);
+    const r = ringkasan(DAFTAR.map(hit), kkm());
+    const br = t => esc(t).replace(/\n/g, '<br>');
+    const head = headSpec(false).map(row => '<tr>' + row.map(c => `<th bgcolor="${warnaG(c.g)}"${c.cs > 1 ? ` colspan="${c.cs}"` : ''}${c.rs ? ` rowspan="${c.rs}"` : ''}>${br(teksHead(c))}</th>`).join('') + '</tr>').join('');
+    const body = barisData().map(b => '<tr>' + b.map((t, i) => `<td${i === 1 ? ' align="left"' : ''}>${esc(t)}</td>`).join('') + '</tr>').join('');
+    const kopTeks = [P.instansi, P.dinas, P.sekolah].map((t, i) => t ? `<p style="margin:0;font-size:${i === 2 ? 15 : 12}pt"><b>${esc(t)}</b></p>` : '').join('') + (P.alamat ? `<p style="margin:0;font-size:9pt">${esc(P.alamat)}</p>` : '');
+    const img = d => d ? `<img src="${d}" width="76" height="76">` : '';
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Rekap Nilai</title>
+<!${'-'}-[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-${'-'}>
+<style>
+@page Section1{size:35.56cm 21.59cm;mso-page-orientation:landscape;margin:1.2cm 1.2cm 1.2cm 1.2cm}
+div.Section1{page:Section1}
+body{font-family:Arial,Helvetica,sans-serif}
+table.data{border-collapse:collapse;width:100%}
+table.data th,table.data td{border:1px solid #000;font-size:7.5pt;padding:2px 3px;text-align:center}
+table.kop,table.idn,table.ttd{border-collapse:collapse;width:100%}
+table.kop td,table.idn td,table.ttd td{border:none;font-size:10pt}
+</style><\/head><body><div class="Section1">
+<table class="kop"><tr><td width="12%" align="center">${img(lk)}</td><td align="center">${kopTeks}</td><td width="12%" align="center">${img(lr)}</td></tr></table>
+<hr style="border:0;border-top:3px double #000;margin:4px 0 8px">
+<p align="center" style="margin:0 0 6px;font-size:13pt"><b>REKAP NILAI PESERTA DIDIK</b></p>
+<table class="idn"><tr><td width="50%">Mata Pelajaran : <b>${esc($('fMapel').value)}</b></td><td>Semester : <b>${esc(P.semester || '')}</b></td></tr><tr><td>Kelas : <b>${esc($('fKelas').value)}</b></td><td>Tahun Pelajaran : <b>${esc(P.tahunAjaran || '')}</b></td></tr></table>
+<p style="margin:4px 0"></p>
+<table class="data"><thead>${head}</thead><tbody>${body}</tbody></table>
+<p style="font-size:9pt;margin:8px 0">${esc(teksRingkas(r))}</p>
+<table class="ttd"><tr>
+<td align="center" width="50%">Mengetahui,<br>Kepala ${esc(P.sekolah || 'Sekolah')},<br><br><br><br><br><b>${esc(P.ksNama ? '(' + P.ksNama + ')' : '(........................................)')}</b><br>NIP. ${esc(P.ksNip || '..............................')}</td>
+<td align="center"><br>Guru Mata Pelajaran,<br><br><br><br><br><b>${esc(G.nama ? '(' + G.nama + ')' : '(........................................)')}</b><br>NIP. ${esc(G.nip || '..............................')}</td>
+</tr></table></div><\/body><\/html>`;
+    unduhBlob(new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' }), namaBerkas('', 'doc'));
+  } catch (e) { console.error(e); toast('Gagal membuat Word: ' + (e.message || e)); }
+}
+
+/* Excel: templat=false -> rekap berisi nilai; templat=true -> templat kosong + petunjuk di atas tabel. */
+async function buatExcel(templat) {
+  if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.');
+  try {
+    if (bacaBobot() !== 100) return toast('Total bobot harus 100%. Sesuaikan bobot dulu.');
+    await muatLib(CFG.lib.exceljs, 'ExcelJS');
+    const L = n => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+    const adaP = BOBOT.praktik > 0, nT = totalTg(), nU = STRUK.uh;
+    // posisi kolom (nomor kolom, mulai 1)
+    const cT = 4 + nT, cU0 = cT + 1, cNU = cU0 + nU, cUTS = cNU + 1, cSAS = cUTS + 1, cPR = adaP ? cSAS + 1 : 0;
+    const cAk = (adaP ? cPR : cSAS) + 1, cPd = cAk + 1, cKt = cPd + 1, NC = cKt, LC = L(NC);
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('Rekap_Nilai', { views: [{ state: 'frozen', xSplit: 2, ySplit: 13 }] }), pg = wb.addWorksheet('Pengaturan');
+    const mapel = $('fMapel').value, kelas = $('fKelas').value, n = DAFTAR.length, akhir = 13 + n;
+    [['B5', 'KKM', 'C5', kkm()], ['B7', 'Bobot Nilai Tugas', 'C7', BOBOT.tugas], ['B8', 'Bobot Nilai UH', 'C8', BOBOT.uh], ['B9', 'Bobot PTS', 'C9', BOBOT.uts], ['B10', 'Bobot SAS', 'C10', BOBOT.sas], ['B11', 'Bobot Praktik', 'C11', BOBOT.praktik], ['B12', 'Batas Predikat A', 'C12', PREDIKAT_BAWAAN.A], ['B13', 'Batas Predikat B', 'C13', PREDIKAT_BAWAAN.B]]
+      .forEach(([bl, bt, cl, cv]) => { pg.getCell(bl).value = bt; pg.getCell(cl).value = cv; });
+    pg.getColumn(2).width = 28;
+    [5, 30, 14, ...Array(nT).fill(7), 10, ...Array(nU).fill(7), 10, 8, 8, ...(adaP ? [8] : []), 10, 9, 15].forEach((w, i) => ws.getColumn(i + 1).width = w);
+    [16, 16, 20, 16].forEach((h, i) => ws.getRow(i + 1).height = h);
+    const mid = { vertical: 'middle', horizontal: 'center', wrapText: true }, tp = { style: 'thin' }, bd = { top: tp, left: tp, bottom: tp, right: tp };
+    [P.instansi, P.dinas, P.sekolah, P.alamat].forEach((t, i) => { ws.mergeCells(i + 1, 1, i + 1, NC); const c = ws.getCell(i + 1, 1); c.value = t || ''; c.alignment = mid; c.font = { name: 'Arial', bold: i < 3, size: i === 2 ? 14 : 11 }; });
+
+    if (templat) {
+      ws.mergeCells(`A5:${LC}5`); ws.getRow(5).height = 62;
+      const c5 = ws.getCell('A5'); c5.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+      c5.font = { name: 'Arial', italic: true, size: 9, color: { argb: 'FFC00000' } };
+      c5.value = 'PETUNJUK: (1) Isi nilai angka 0–100 hanya pada kolom TG di bawah setiap LM, kolom UH, dan PTS. Boleh dikosongkan bila belum ada. '
+        + '(2) Jangan mengubah kolom No, Nama, NIS/NISN, Mata Pelajaran, Kelas, dan baris judul; sistem mencocokkan siswa lewat NIS/NISN. '
+        + '(3) Kolom Nilai Tugas, Nilai UH, Nilai Akhir, Predikat, dan Keterangan terisi otomatis oleh rumus. Kolom SAS diambil dari ujian online dan tidak ikut diimpor. '
+        + '(4) Jangan menambah atau menghapus kolom TG/UH di file ini; atur jumlah kolom di halaman Rekap Nilai lalu unduh templat lagi. '
+        + '(5) Simpan sebagai .xlsx lalu klik "Impor Excel" di halaman ini, dan klik "Simpan" setelah impor selesai.';
+      const pt = wb.addWorksheet('Petunjuk');
+      pt.getColumn(1).width = 110;
+      ['PETUNJUK PENGISIAN TEMPLAT REKAP NILAI', '', '1. Templat ini sudah berisi daftar siswa untuk mapel dan kelas yang dipilih. Jangan memilih mapel/kelas lain saat mengimpor.',
+        '2. Isi nilai 0–100 pada lembar "Rekap_Nilai": kolom TG di bawah setiap LM, kolom UH, dan PTS. Pakai angka, koma atau titik desimal diperbolehkan.',
+        '3. Jangan menambah, menghapus, atau memindahkan baris/kolom. Jangan mengubah isi kolom No, Nama, dan NIS/NISN. Jumlah kolom TG dan UH harus sama dengan di halaman Rekap Nilai.',
+        '4. Kolom otomatis (Nilai Tugas, Nilai UH, Nilai Akhir, Predikat, Keterangan) dihitung rumus; bobot dan KKM ada di lembar "Pengaturan".',
+        '5. Nilai SAS tidak diisi di sini; diambil otomatis dari ujian online (nilai tertinggi bila ada remedial).',
+        '6. Setelah selesai: simpan .xlsx, buka halaman Rekap Nilai, pilih mapel dan kelas yang sama, klik "Impor Excel", lalu "Simpan".']
+        .forEach((t, i) => { const c = pt.getCell(i + 1, 1); c.value = t; c.alignment = { wrapText: true, vertical: 'top' }; c.font = { name: 'Arial', size: 10, bold: i === 0 }; });
+    }
+
+    ws.mergeCells(`A6:${LC}6`); ws.getCell('A6').value = 'REKAP NILAI PESERTA DIDIK'; ws.getCell('A6').alignment = mid; ws.getCell('A6').font = { name: 'Arial', bold: true, size: 13 };
+    ws.getCell('B8').value = 'Mata Pelajaran :'; ws.mergeCells('C8:G8'); ws.getCell('C8').value = mapel;
+    ws.getCell('B9').value = 'Kelas :'; ws.mergeCells('C9:G9'); ws.getCell('C9').value = kelas;
+    ws.getCell(8, cU0).value = 'Semester :'; ws.mergeCells(8, cUTS, 8, NC); ws.getCell(8, cUTS).value = P.semester || '';
+    ws.getCell(9, cU0).value = 'Tahun Pelajaran :'; ws.mergeCells(9, cUTS, 9, NC); ws.getCell(9, cUTS).value = P.tahunAjaran || '';
+    const p100 = v => Math.round(v * 100) + '%';
+    const mg = (r1, c1, r2, c2, t) => { if (r1 !== r2 || c1 !== c2) ws.mergeCells(r1, c1, r2, c2); ws.getCell(r1, c1).value = t; };
+    mg(11, 1, 13, 1, 'No'); mg(11, 2, 13, 2, 'Nama Peserta Didik'); mg(11, 3, 13, 3, 'NIS/NISN');
+    mg(11, 4, 11, 3 + nT, 'NILAI TUGAS (FORMATIF)'); mg(11, cT, 13, cT, 'Nilai Tugas\n(' + p100(BOBOT.tugas) + ')');
+    mg(11, cU0, 11, cU0 + nU - 1, 'ULANGAN HARIAN (UH)'); mg(11, cNU, 13, cNU, 'Nilai UH\n(' + p100(BOBOT.uh) + ')');
+    mg(11, cUTS, 13, cUTS, 'PTS\n(' + p100(BOBOT.uts) + ')'); mg(11, cSAS, 13, cSAS, 'SAS\n(' + p100(BOBOT.sas) + ')');
+    if (adaP) mg(11, cPR, 13, cPR, 'PRAKTIK\n(' + p100(BOBOT.praktik) + ')');
+    mg(11, cAk, 13, cAk, 'NILAI AKHIR\n(100%)'); mg(11, cPd, 13, cPd, 'Predikat'); mg(11, cKt, 13, cKt, 'Keterangan');
+    let cc = 4;
+    STRUK.tg.forEach((k, i) => { mg(12, cc, 12, cc + k - 1, 'LM ' + (i + 1)); for (let x = 0; x < k; x++) ws.getCell(13, cc + x).value = 'TG ' + (x + 1); cc += k; });
+    for (let j = 0; j < nU; j++) mg(12, cU0 + j, 13, cU0 + j, 'UH ' + (j + 1));
+    for (let r = 11; r <= 13; r++) for (let c = 1; c <= NC; c++) {
+      const x = ws.getCell(r, c); x.alignment = mid; x.border = bd; x.font = { name: 'Arial', bold: true, size: 9 };
+      x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: c >= 4 && c <= cT ? 'FFDDEBF7' : c >= cU0 && c <= cNU ? 'FFE2EFDA' : (c === cSAS || (adaP && c === cPR)) ? 'FFFFF2CC' : 'FFF2F2F2' } };
+    }
+    DAFTAR.forEach((s, i) => {
+      const r = 14 + i, d = templat ? kosongSt() : ST[kunci(s)], h = templat ? {} : hit(s);
+      const v = [i + 1, s.nama, s.nis, ...d.tg, null, ...d.uh, null, d.uts, h.sas, ...(adaP ? [d.pr] : [])];
+      v.forEach((x, c) => { ws.getCell(r, c + 1).value = x === null || x === undefined ? null : x; });
+      const fm = (col, f, res) => ws.getCell(r, col).value = { formula: f, result: res ?? '' };
+      fm(cT, `IF(COUNT(D${r}:${L(cT - 1)}${r})=0,"",ROUND(AVERAGE(D${r}:${L(cT - 1)}${r}),1))`, h.nilaiTugas);
+      fm(cNU, `IF(COUNT(${L(cU0)}${r}:${L(cNU - 1)}${r})=0,"",ROUND(AVERAGE(${L(cU0)}${r}:${L(cNU - 1)}${r}),1))`, h.nilaiUH);
+      const cond = [['7', L(cT)], ['8', L(cNU)], ['9', L(cUTS)], ['10', L(cSAS)]].concat(adaP ? [['11', L(cPR)]] : []);
+      const syr = cond.map(([c, k]) => `AND(Pengaturan!$C$${c}>0,${k}${r}="")`).join(',');
+      const jml = cond.map(([c, k]) => `N(${k}${r})*Pengaturan!$C$${c}`).join('+');
+      const A = L(cAk);
+      fm(cAk, `IF(OR(${syr}),"",ROUND(${jml},0))`, h.akhir);
+      fm(cPd, `IF(${A}${r}="","",IF(${A}${r}>=Pengaturan!$C$12,"A",IF(${A}${r}>=Pengaturan!$C$13,"B",IF(${A}${r}>=Pengaturan!$C$5,"C","D"))))`, h.predikat);
+      fm(cKt, `IF(${A}${r}="","",IF(${A}${r}>=Pengaturan!$C$5,"Tuntas","Belum Tuntas"))`, h.keterangan);
+      for (let c = 1; c <= NC; c++) { const x = ws.getCell(r, c); x.border = bd; x.font = { name: 'Arial', size: 9 }; x.alignment = { vertical: 'middle', horizontal: c === 2 ? 'left' : 'center' }; }
+    });
+    const m = templat ? { jumlah: n, tuntas: 0, belum: 0, persen: 0 } : ringkasan(DAFTAR.map(hit), kkm()), s0 = akhir + 2, rg = c => `${c}14:${c}${akhir}`;
+    ws.getCell('H' + s0).value = 'RINGKASAN KETUNTASAN'; ws.getCell('H' + s0).font = { name: 'Arial', bold: true, size: 9 };
+    [['Jumlah Peserta Didik', `COUNTA(${rg('B')})`, m.jumlah], ['Tuntas', `COUNTIF(${rg(L(cKt))},"Tuntas")`, m.tuntas], ['Belum Tuntas', `COUNTIF(${rg(L(cKt))},"Belum Tuntas")`, m.belum], ['Persentase Ketuntasan', `IF(L${s0 + 1}=0,0,L${s0 + 2}/L${s0 + 1})`, m.persen], ['KKM', 'Pengaturan!C5', kkm()]]
+      .forEach(([t, f, res], i) => { ws.getCell('H' + (s0 + 1 + i)).value = t; ws.getCell('L' + (s0 + 1 + i)).value = { formula: f, result: res }; });
+    ws.getCell('L' + (s0 + 4)).numFmt = '0%';
+    const t0 = s0 + 1, cG = L(cUTS);
+    ws.getCell('B' + t0).value = 'Mengetahui,'; ws.getCell('B' + (t0 + 1)).value = 'Kepala ' + (P.sekolah || 'Sekolah') + ',';
+    ws.getCell('B' + (t0 + 5)).value = P.ksNama ? '(' + P.ksNama + ')' : '(........................................................)';
+    ws.getCell('B' + (t0 + 6)).value = 'NIP. ' + (P.ksNip || '......................................................');
+    ws.getCell(cG + t0).value = 'Guru Mata Pelajaran,';
+    ws.getCell(cG + (t0 + 5)).value = G.nama ? '(' + G.nama + ')' : '(........................................................)';
+    ws.getCell(cG + (t0 + 6)).value = 'NIP. ' + (G.nip || '......................................................');
+    // Kertas Legal (paperSize 5), landscape
+    ws.pageSetup = { orientation: 'landscape', paperSize: 5, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printArea: `A1:${LC}${t0 + 7}` };
+
+    /* Logo kop: image1 di kiri, image2 di kanan */
+    const logo = async (file, col) => {
+      try {
+        const res = await fetch(file); if (!res.ok) return;
+        ws.addImage(wb.addImage({ buffer: await res.arrayBuffer(), extension: 'png' }), { tl: { col, row: 0.15 }, ext: { width: 80, height: 80 } });
+      } catch (_) {}
+    };
+    await logo(CFG.logoKiri, 1.15); await logo(CFG.logoKanan, NC - 1.6);
+
+    const out = await wb.xlsx.writeBuffer();
+    unduhBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), namaBerkas(templat ? 'Templat_' : '', 'xlsx'));
+  } catch (e) { console.error(e); toast('Gagal membuat Excel: ' + (e.message || e)); }
+}
+
+$('pdA').textContent = PREDIKAT_BAWAAN.A; $('pdB').textContent = PREDIKAT_BAWAAN.B;
+renderHead();
+KB.forEach(k => $('b-' + k).addEventListener('input', () => { bacaBobot(); kotor = true; [...$('body').rows].forEach(isi); ringkas(); }));
+$('simpan').onclick = simpan;
+$('unduh').onclick = () => buatExcel(false);
+$('unduhWord').onclick = buatWord;
+$('unduhPdf').onclick = buatPdf;
+$('templat').onclick = () => buatExcel(true);
+$('impor').onclick = () => { if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.'); $('berkas').click(); };
+$('berkas').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) impor(f); };
+$('muat').onclick = async () => {
+  if (kotor && !(await konfirmasi({ judul: 'Perubahan belum disimpan', pesan: 'Muat ulang akan membuang perubahan. Lanjutkan?', ya: 'Lanjutkan' }))) return;
+  $('muat').disabled = true; await muatDasar(); await muatKelas(); toast('Data dimuat ulang.'); $('muat').disabled = false;
+};
+window.addEventListener('beforeunload', e => { if (kotor) { e.preventDefault(); e.returnValue = ''; } });
+muatDasar();
 </script>
 </body>
 </html>

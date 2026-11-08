@@ -2,75 +2,162 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nilai Ujian · KW Learning</title>
 <script>document.documentElement.style.visibility='hidden'</script>
 <script type="module" src="../assets/js/guard.js" data-peran="guru"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nilai Ujian · KW Learning</title>
 <link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-  .tw { border: 0; box-shadow: none; background: transparent; }
-  td.n, th.n { text-align: right; }
-  .badge.ok { background: color-mix(in srgb, var(--nm-ok) 16%, var(--nm-bg)); color: var(--nm-ok); }
-  .badge.bad { background: color-mix(in srgb, var(--nm-warn) 16%, var(--nm-bg)); color: var(--nm-warn); }
-  .tools .kkm { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; color: var(--nm-muted); font-size: 13px; }
-  .tools .kkm input { width: 76px; min-width: 0; flex: none; }
-  .cnt { color: var(--nm-muted); font-size: 13px; margin: 0 0 10px; }
-  th button { all: unset; cursor: pointer; font-weight: 600; }
+.kw-halaman{
+  --bg:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --hi:var(--nm-light); --lo:var(--nm-dark);
+  --biru:var(--nm-accent); --hijau:var(--nm-ok); --kuning:var(--nm-kuning); --merah:var(--nm-warn);
+  --garis:var(--nm-garis);
+  --out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+  --in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
+  font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+}
+.kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
+.kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
+.kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:3px;border-radius:14px}
+.kw-halaman [hidden]{display:none!important}
+
+.kw-halaman .wrap{width:auto;max-width:none;margin:0;padding-inline:24px;animation:none}
+.kw-halaman main.wrap{padding-block:0 1.5rem}
+.kw-halaman > header{padding-block:1.6rem .8rem;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:flex-end}
+.kw-halaman h1{font-size:clamp(1.6rem,3.5vw,2.2rem);line-height:1.2}
+.kw-halaman > header p,.kw-halaman p.sub{color:var(--muted);margin-top:.3rem;font-size:.86rem}
+.kw-halaman .aksi{display:flex;gap:.8rem;flex-wrap:wrap}
+
+.kw-halaman .muat{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.7rem 1.1rem;font-size:.84rem;font-weight:600;color:var(--biru);cursor:pointer}
+.kw-halaman .muat:active{box-shadow:var(--in)}
+.kw-halaman .muat:disabled{opacity:.55;cursor:default;box-shadow:var(--in)}
+
+.kw-halaman #info{background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem;margin:0 0 1rem;color:var(--kuning);font-size:.86rem;font-weight:500}
+
+/* Filter utama: kelas dan mapel milik guru */
+.kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:1rem 0 .4rem}
+.kw-halaman .cari,.kw-halaman select{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.75rem 1.1rem;min-width:0}
+.kw-halaman .cari{flex:2;min-width:200px}
+.kw-halaman select{cursor:pointer;max-width:100%;flex:1;min-width:150px}
+
+/* Bagian */
+.kw-halaman .bag{margin-top:1.8rem}
+.kw-halaman .bag-h{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:space-between;align-items:flex-end}
+.kw-halaman .bag-h h2{font-size:1.15rem;display:flex;align-items:center;gap:.6rem}
+
+.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.1rem;margin:1rem 0 1.2rem}
+.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:20px;padding:.9rem 1.1rem;min-width:0}
+.kw-halaman .ringkas b{display:block;font-size:1.7rem;line-height:1.1}
+.kw-halaman .ringkas span{font-size:.8rem;color:var(--muted)}
+.kw-halaman .cnt{font-size:.8rem;color:var(--muted);margin:.2rem 0 .6rem}
+
+.kw-halaman .panel{background:var(--bg);box-shadow:var(--out);border-radius:24px;padding:.6rem 1.2rem 1.2rem;overflow:hidden}
+.kw-halaman .sc{overflow-x:auto}
+.kw-halaman table{width:100%;border-collapse:collapse;font-size:.86rem}
+.kw-halaman th{text-align:left;font-weight:600;color:var(--muted);font-size:.78rem;padding:.9rem .6rem;white-space:nowrap}
+.kw-halaman th button{all:unset;cursor:pointer;font-weight:600}
+.kw-halaman td{padding:.75rem .6rem;border-top:1px solid var(--garis);vertical-align:middle}
+.kw-halaman td small{display:block;color:var(--muted);font-size:.76rem}
+.kw-halaman td.n,.kw-halaman th.n{text-align:right}
+
+.kw-halaman .empty{text-align:center;color:var(--muted);padding:2rem 1rem}
+.kw-halaman > footer{margin-top:auto;padding:1.4rem;text-align:center;font-size:.8rem;color:var(--muted)}
+
+.kw-halaman #toast,#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--nm-bg);color:var(--nm-text);box-shadow:6px 6px 14px var(--nm-dark),-6px -6px 14px var(--nm-light);font-size:.84rem;font-weight:500;padding:.6rem 1.2rem;border-radius:14px;z-index:50}
+
+@media (max-width:820px){ .kw-halaman .wrap{padding-inline:14px} }
+
+/* HP: tabel hasil ujian jadi kartu */
+@media (max-width:760px){
+  .kw-halaman .cari,.kw-halaman select{font-size:16px;min-height:42px;flex:1 1 100%;width:100%}
+  .kw-halaman .aksi{width:100%}
+  .kw-halaman .aksi .muat{flex:1;min-height:42px}
+  .kw-halaman .panel{padding:.4rem 1rem 1rem}
+  .kw-halaman #tb-ujian thead{position:absolute;left:-9999px}
+  .kw-halaman #tb-ujian,.kw-halaman #tb-ujian tbody,.kw-halaman #tb-ujian tr,.kw-halaman #tb-ujian td{display:block;width:100%}
+  .kw-halaman #tb-ujian tr{padding:.8rem 0;border-top:1px solid var(--garis)}
+  .kw-halaman #tb-ujian td,.kw-halaman #tb-ujian td.n{border:0;padding:.25rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;overflow-wrap:anywhere;text-align:right}
+  .kw-halaman #tb-ujian td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;flex:none;text-align:left}
+  .kw-halaman #tb-ujian td small{display:inline;margin-left:.4rem}
+}
+@media (max-width:380px){
+  .kw-halaman .wrap{padding-inline:10px}
+  .kw-halaman .ringkas{grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+  .kw-halaman .ringkas b{font-size:1.4rem}
+}
 </style>
 </head>
 <body>
 <div id="sidebar-slot" data-mode="halaman" data-peran="guru" data-aktif="hasil"></div>
 <script src="../assets/js/sidebar-awal.js"></script>
 
-<div id="mn">
+<div id="mn" class="kw-halaman">
   <div class="top">
     <button id="burger" type="button" aria-label="Buka menu">☰</button>
     <h2>Nilai Ujian</h2>
   </div>
-  <div class="wrap">
-    <div id="info" class="msg warn" role="status" hidden></div>
 
-    <section class="stats" aria-label="Ringkasan">
-      <div class="st"><b id="n-total">0</b><span>Jumlah nilai</span></div>
-      <div class="st"><b id="n-rata">–</b><span>Rata-rata</span></div>
-      <div class="st"><b id="n-tuntas">0</b><span>Tuntas</span></div>
-      <div class="st"><b id="n-belum">0</b><span>Belum tuntas</span></div>
-    </section>
-
-    <div class="card">
-      <h3>Nilai ujian siswa</h3>
-      <div class="tools">
-        <input id="q" type="search" placeholder="Cari nama atau NIS" aria-label="Cari">
-        <select id="fTingkat" aria-label="Tingkat"><option value="">Semua tingkat</option></select>
-        <select id="fKelas" aria-label="Kelas"><option value="">Semua kelas</option></select>
-        <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
-        <select id="fStatus" aria-label="Status">
-          <option value="">Semua status</option><option value="ok">Tuntas</option><option value="bad">Belum tuntas</option>
-        </select>
-        <label class="kkm">KKM <input id="kkm" type="number" min="0" max="100" value="75" aria-label="KKM"></label>
-      </div>
-      <div class="acts" style="margin-bottom:12px">
-        <button id="muat" class="btn p" type="button">Muat ulang</button>
-        <button id="unduh" class="btn" type="button">Unduh CSV</button>
-      </div>
-      <p class="cnt" id="count"></p>
-      <div class="tw"><table>
-        <thead><tr id="thead">
-          <th><button data-k="nama">Nama</button></th><th><button data-k="kelas">Kelas</button></th>
-          <th><button data-k="paket">Ujian</button></th><th><button data-k="waktu">Waktu</button></th>
-          <th class="n"><button data-k="benar">Benar</button></th><th class="n"><button data-k="salah">Salah</button></th>
-          <th class="n"><button data-k="nilai">Nilai</button></th><th>Status</th>
-        </tr></thead>
-        <tbody id="body"></tbody>
-      </table></div>
-      <p class="empty" id="empty" hidden></p>
+  <header class="wrap">
+    <div>
+      <h1>Nilai Ujian</h1>
+      <p id="ident">Hasil ujian online kelas yang Anda ajar.</p>
     </div>
-  </div>
+    <div class="aksi">
+      <button id="muat" class="muat" type="button">Muat ulang</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="info" role="status" hidden></div>
+
+    <div class="alat">
+      <select id="fKelas" aria-label="Kelas"><option value="">Semua kelas saya</option></select>
+      <select id="fMapel" aria-label="Mata pelajaran"><option value="">Semua mapel saya</option></select>
+    </div>
+    <p class="sub" id="lingkup"></p>
+
+    <!-- Hasil ujian online -->
+    <section class="bag" aria-labelledby="j1">
+      <div class="bag-h">
+        <div><h2 id="j1">Hasil ujian online</h2><p class="sub">Nilai ujian yang dikerjakan siswa lewat sistem.</p></div>
+        <button id="unduhU" class="muat" type="button">Unduh CSV</button>
+      </div>
+
+      <div class="ringkas" aria-label="Ringkasan hasil ujian">
+        <div><b id="n-total">0</b><span>Jumlah nilai</span></div>
+        <div><b id="n-rata">–</b><span>Rata-rata</span></div>
+      </div>
+
+      <div class="alat" style="margin-top:0">
+        <input id="q" class="cari" type="search" placeholder="Cari nama atau NIS" aria-label="Cari">
+        <select id="fPaket" aria-label="Ujian"><option value="">Semua ujian</option></select>
+      </div>
+
+      <p class="cnt" id="count"></p>
+      <div class="panel">
+        <div class="sc">
+          <table id="tb-ujian">
+            <thead><tr id="thead">
+              <th><button data-k="nama">Nama</button></th><th><button data-k="kelas">Kelas</button></th>
+              <th><button data-k="paket">Ujian</button></th><th><button data-k="waktu">Waktu</button></th>
+              <th class="n"><button data-k="benar">Benar</button></th><th class="n"><button data-k="salah">Salah</button></th>
+              <th class="n"><button data-k="nilai">Nilai</button></th>
+            </tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="empty" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>KW Learning</footer>
 </div>
 
 <div id="toast" role="status"></div>
@@ -78,21 +165,28 @@
 <script type="module">
 import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
 import { norm, esc, fmtT, fmtN, toast } from '../assets/js/util.js';
+import { F } from '../assets/js/firebase-pusat.js';
+import * as FP from '../assets/js/firebase-pusat.js';
+
+/* ===== Konfigurasi =====
+   siswa      -> Firebase Data Siswa dan Guru
+   pengaturan -> Firebase Bank-soal, dokumen pengaturan/kop_sekolah (semester, tahun ajaran)
+   hasil      -> Firebase tingkat kelas (hasil ujian online) */
+const CFG = {
+  koleksi: { siswa: 'siswa', hasil: 'hasil', pengaturan: 'pengaturan', guru: 'guru' },
+  docPengaturan: 'kop_sekolah',
+  fSiswa: { nama: ['nama'], nis: ['nis', 'nisn'], kelas: ['kelas'] },
+  paketCocok: (paket, mapel) => String(paket || '').toLowerCase().includes(String(mapel).toLowerCase())
+};
 
 const $ = id => document.getElementById(id);
-let ROWS = [];
-let urut = { k: 'waktu', dir: -1 };
-const KUNCI_KKM = 'kw-kkm';
+const pick = (o, ks) => { for (const k of ks) if (o[k] !== undefined && o[k] !== '') return o[k]; return ''; };
+let P = {}, G = { nama: '', nip: '', mengajar: [] }, SIS = [], ROWS = [], urut = { k: 'waktu', dir: -1 };
 
-try {
-  const v = Number(localStorage.getItem(KUNCI_KKM));
-  const app = JSON.parse(localStorage.getItem('kw_pengaturan_app') || 'null');   // KKM dari Pengaturan Aplikasi
-  const awal = v > 0 && v <= 100 ? v : Number(app && app.kkm);
-  if (awal > 0 && awal <= 100) $('kkm').value = awal;
-} catch (_) {}
-const kkm = () => { const v = Number($('kkm').value); return Number.isFinite(v) ? v : 75; };
 const ada = r => r.nilai !== null && r.nilai !== undefined;
-const tuntas = r => ada(r) && r.nilai >= kkm();
+const normK = v => String(v || '').toUpperCase().replace(/[\s.\-_]/g, '').replace(/^(7|8|9)/, m => ({ 7: 'VII', 8: 'VIII', 9: 'IX' })[m]);
+const kelasMilik = (kelas) => G.mengajar.filter(x => x.kelas.some(k => normK(k) === normK(kelas)));   // baris mengajar untuk kelas itu
+const mapelUntuk = kelas => [...new Set(G.mengajar.filter(x => !kelas || x.kelas.some(k => normK(k) === normK(kelas))).map(x => x.mapel))].sort(urutAlfa);
 
 function isiPilihan(sel, label, nilai) {
   const cur = sel.value;
@@ -100,83 +194,144 @@ function isiPilihan(sel, label, nilai) {
   sel.value = nilai.includes(cur) ? cur : '';
 }
 
+async function dataGuru() {
+  const kosong = { nama: '', nip: '', mengajar: [] };
+  try {
+    const auth = FP.FIREBASE_PUSAT.SISWA_GURU.auth;
+    await auth.authStateReady();
+    const u = auth.currentUser;
+    if (!u || !u.email) return kosong;
+    const q = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.guru), F.where('akunEmail', '==', u.email.toLowerCase()), F.limit(1)));
+    if (!q.docs[0]) return { ...kosong, nama: u.displayName || '' };
+    const dok = q.docs[0].data(), id = q.docs[0].id;
+    const pecah = t => String(t || '').split(/[,;]/).map(x => x.trim()).filter(Boolean);
+    const arr = Array.isArray(dok.mengajar) ? dok.mengajar : (dok.mapel ? [{ mapel: dok.mapel, kelas: pecah(dok.kelas) }] : []);
+    const mengajar = arr.map(x => ({ mapel: String(x.mapel || '').trim(), kelas: (Array.isArray(x.kelas) ? x.kelas : pecah(x.kelas)).map(k => String(k).trim()) })).filter(x => x.mapel);
+    return { nama: dok.nama || u.displayName || '', nip: dok.nip || id, mengajar };
+  } catch (e) { console.warn('data guru gagal dibaca', e); return kosong; }
+}
+
+/* ===== Hasil ujian online ===== */
 function saring() {
   const q = $('q').value.trim().toLowerCase();
-  const t = $('fTingkat').value, k = $('fKelas').value, p = $('fPaket').value, s = $('fStatus').value;
+  const k = $('fKelas').value, m = $('fMapel').value, p = $('fPaket').value;
   const rows = ROWS.filter(r =>
-    (!t || r.tingkat === t) && (!k || r.kelas === k) && (!p || r.paket === p) &&
-    (!s || (s === 'ok' ? tuntas(r) : ada(r) && !tuntas(r))) &&
+    (!k || r.kelas === k) && (!m || CFG.paketCocok(r.paket, m)) && (!p || r.paket === p) &&
     (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)));
-  const { k: kunci, dir } = urut;
+  const { k: kc, dir } = urut;
   rows.sort((a, b) => {
-    const x = kunci === 'waktu' ? (a.waktu ? a.waktu.getTime() : 0) : a[kunci];
-    const y = kunci === 'waktu' ? (b.waktu ? b.waktu.getTime() : 0) : b[kunci];
+    const x = kc === 'waktu' ? (a.waktu ? a.waktu.getTime() : 0) : a[kc];
+    const y = kc === 'waktu' ? (b.waktu ? b.waktu.getTime() : 0) : b[kc];
     if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
     return urutAlfa(x ?? '', y ?? '') * dir;
   });
   return rows;
 }
 
-function gambar() {
-  const rows = saring();
-  const bernilai = rows.filter(ada);
+function gambarUjian() {
+  const rows = saring(), bernilai = rows.filter(ada);
   $('n-total').textContent = rows.length;
-  $('n-rata').textContent = bernilai.length ? fmtN(bernilai.reduce((a, r) => a + r.nilai, 0) / bernilai.length) : '–';
-  $('n-tuntas').textContent = bernilai.filter(tuntas).length;
-  $('n-belum').textContent = bernilai.filter(r => !tuntas(r)).length;
-  $('count').textContent = 'Menampilkan ' + Math.min(rows.length, 300) + ' dari ' + rows.length + ' nilai (total ' + ROWS.length + ')';
+  $('n-rata').textContent = bernilai.length ? fmtN(Math.round(bernilai.reduce((a, r) => a + r.nilai, 0) / bernilai.length * 10) / 10) : '–';
+  $('count').textContent = 'Menampilkan ' + Math.min(rows.length, 300) + ' dari ' + rows.length + ' nilai';
   $('body').innerHTML = rows.slice(0, 300).map(r => `<tr>
-    <td>${esc(r.nama)}<br><small>${esc(r.nis)}</small></td><td>${esc(r.kelas || r.tingkat)}</td><td>${esc(r.paket)}</td>
-    <td>${fmtT(r.waktu)}</td><td class="n">${fmtN(r.benar)}</td><td class="n">${fmtN(r.salah)}</td>
-    <td class="n"><b>${fmtN(r.nilai)}</b></td>
-    <td>${ada(r) ? `<span class="badge ${tuntas(r) ? 'ok' : 'bad'}">${tuntas(r) ? 'Tuntas' : 'Belum tuntas'}</span>` : '–'}</td></tr>`).join('');
+    <td data-l="Nama"><span>${esc(r.nama)}<small>${esc(r.nis)}</small></span></td>
+    <td data-l="Kelas">${esc(r.kelas || r.tingkat)}</td>
+    <td data-l="Ujian">${esc(r.paket)}</td>
+    <td data-l="Waktu">${fmtT(r.waktu)}</td>
+    <td class="n" data-l="Benar">${fmtN(r.benar)}</td>
+    <td class="n" data-l="Salah">${fmtN(r.salah)}</td>
+    <td class="n" data-l="Nilai"><b>${fmtN(r.nilai)}</b></td></tr>`).join('');
   $('empty').hidden = rows.length > 0;
-  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian yang masuk.';
+  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian untuk kelas dan mapel Anda.';
 }
 
-function isiFilter() {
-  isiPilihan($('fTingkat'), 'Semua tingkat', [...new Set(ROWS.map(r => r.tingkat))].sort(urutAlfa));
-  isiPilihan($('fKelas'), 'Semua kelas', [...new Set(ROWS.map(r => r.kelas).filter(Boolean))].sort(urutAlfa));
-  isiPilihan($('fPaket'), 'Semua ujian', [...new Set(ROWS.map(r => r.paket).filter(p => p && p !== '-'))].sort(urutAlfa));
+function isiFilterPaket() {
+  const k = $('fKelas').value, m = $('fMapel').value;
+  const paket = ROWS.filter(r => (!k || r.kelas === k) && (!m || CFG.paketCocok(r.paket, m))).map(r => r.paket).filter(p => p && p !== '-');
+  isiPilihan($('fPaket'), 'Semua ujian', [...new Set(paket)].sort(urutAlfa));
 }
 
+/* ===== Muat data ===== */
 async function muat() {
   const info = $('info'), dot = $('dot'), cs = $('cs');
   info.hidden = true;
   try {
-    const { rows, gagal } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu' });
-    ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), nis: String(r.nis || ''), tingkat: r.tingkat }));
-    if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
-    if (dot) dot.classList.add('on');
-    if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
+    const sn = await F.getDoc(F.doc(FP.dbBankSoal, CFG.koleksi.pengaturan, CFG.docPengaturan));
+    const d = sn.exists() ? sn.data() : {};
+    P = { semester: d.semester || '', tahunAjaran: d.tahun || '' };
+    $('ident').textContent = [P.semester && 'Semester ' + P.semester, P.tahunAjaran && 'Tahun pelajaran ' + P.tahunAjaran].filter(Boolean).join(' · ') || 'Hasil ujian online kelas yang Anda ajar.';
+
+    G = await dataGuru();
+    if (!G.mengajar.length) { info.hidden = false; info.textContent = 'Data mengajar untuk akun guru ini tidak ditemukan di Data Guru.'; }
+    const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
+
+    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)));
+    SIS = snap.docs.map(x => {
+      const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
+      return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };
+    }).filter(s => s.kelas && s.tingkat && boleh.has(normK(s.kelas)));
+
+    const tingkat = [...new Set(SIS.map(s => s.tingkat))];
+    ROWS = [];
+    if (tingkat.length) {
+      const { rows, gagal } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat });
+      // hanya kelas milik guru, dengan ujian yang namanya memuat mapel yang ia ajar di kelas itu
+      ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), nis: String(pick(r, CFG.fSiswa.nis)).trim(), tingkat: r.tingkat }))
+        .filter(r => kelasMilik(r.kelas).some(x => CFG.paketCocok(r.paket, x.mapel)));
+      if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
+      if (dot) dot.classList.add('on');
+      if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
+    }
+
+    const kelasAda = [...new Set(SIS.map(s => s.kelas))].sort(urutAlfa);
+    isiPilihan($('fKelas'), 'Semua kelas saya', kelasAda);
+    if (!$('fKelas').value && kelasAda.length === 1) $('fKelas').value = kelasAda[0];
+    isiPilihan($('fMapel'), 'Semua mapel saya', mapelUntuk($('fKelas').value));
+    if (!$('fMapel').value && mapelUntuk($('fKelas').value).length === 1) $('fMapel').value = mapelUntuk($('fKelas').value)[0];
   } catch (e) {
-    console.error(e); ROWS = [];
+    console.error(e); ROWS = []; SIS = [];
     info.hidden = false; info.textContent = 'Gagal memuat data dari Firebase: ' + (e.message || e);
   }
-  isiFilter(); gambar();
+  segarkan();
 }
 
-function unduh() {
-  const rows = saring();
-  if (!rows.length) return toast('Tidak ada data untuk diunduh.');
-  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const baris = [['NIS', 'Nama', 'Kelas', 'Ujian', 'Waktu', 'Benar', 'Salah', 'Nilai', 'Status'].map(q).join(',')]
-    .concat(rows.map(r => [r.nis, r.nama, r.kelas, r.paket, fmtT(r.waktu), r.benar, r.salah, r.nilai, ada(r) ? (tuntas(r) ? 'Tuntas' : 'Belum tuntas') : ''].map(q).join(',')));
-  const url = URL.createObjectURL(new Blob(['\uFEFF' + baris.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a'); a.href = url; a.download = 'Nilai_Ujian.csv';
+function segarkan() {
+  const k = $('fKelas').value, m = $('fMapel').value;
+  $('lingkup').textContent = 'Menampilkan ' + (k ? 'kelas ' + k : 'semua kelas yang Anda ajar') + ' · ' + (m ? m : 'semua mapel yang Anda ajar') + '.';
+  isiFilterPaket(); gambarUjian();
+}
+
+/* ===== CSV ===== */
+function unduhCsv(nama, judul, baris) {
+  // Awali sel yang berawalan = + - @ dengan ' agar tidak dibaca sebagai rumus di Excel
+  const q = v => { let s = String(v ?? ''); if (/^[=+\-@]/.test(s) && isNaN(Number(s))) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  const isi = [judul.map(q).join(',')].concat(baris.map(b => b.map(q).join(',')));
+  const url = URL.createObjectURL(new Blob(['﻿' + isi.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = nama.replace(/\s+/g, '_');
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+$('unduhU').onclick = () => {
+  const rows = saring();
+  if (!rows.length) return toast('Tidak ada data untuk diunduh.');
+  unduhCsv('Nilai_Ujian.csv', ['NIS', 'Nama', 'Kelas', 'Ujian', 'Waktu', 'Benar', 'Salah', 'Nilai'],
+    rows.map(r => [r.nis, r.nama, r.kelas, r.paket, fmtT(r.waktu), r.benar, r.salah, r.nilai]));
+};
 
-['q', 'fTingkat', 'fKelas', 'fPaket', 'fStatus'].forEach(id => $(id).addEventListener(id === 'q' ? 'input' : 'change', gambar));
-$('kkm').addEventListener('input', () => { try { localStorage.setItem(KUNCI_KKM, String(kkm())); } catch (_) {} gambar(); });
+/* ===== Event ===== */
+['q', 'fPaket'].forEach(id => $(id).addEventListener(id === 'q' ? 'input' : 'change', gambarUjian));
+$('fKelas').addEventListener('change', () => {
+  isiPilihan($('fMapel'), 'Semua mapel saya', mapelUntuk($('fKelas').value));
+  if (!$('fMapel').value && mapelUntuk($('fKelas').value).length === 1) $('fMapel').value = mapelUntuk($('fKelas').value)[0];
+  segarkan();
+});
+$('fMapel').addEventListener('change', segarkan);
 $('thead').addEventListener('click', e => {
   const b = e.target.closest('[data-k]'); if (!b) return;
   urut = urut.k === b.dataset.k ? { k: urut.k, dir: -urut.dir } : { k: b.dataset.k, dir: 1 };
-  gambar();
+  gambarUjian();
 });
 $('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
-$('unduh').onclick = unduh;
 muat();
 </script>
 </body>

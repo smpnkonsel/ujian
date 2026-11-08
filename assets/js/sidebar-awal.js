@@ -9,6 +9,8 @@
 
    Memasang sidebar SEKETIKA saat halaman dibaca.
    Tanpa fetch, sehingga tidak berkedip saat pindah halaman.
+   Posisi scroll sidebar disimpan dan dipulihkan di halaman baru,
+   jadi menu yang dibuka di bagian bawah tetap terlihat.
 
    Pasang setelah slot:
    <div id="sidebar-slot"
@@ -331,7 +333,7 @@
      STATUS KONEKSI FIREBASE
 
      Mengambil status terakhir dari sessionStorage.
-     Status aktual tetap diperbarui oleh halaman.js.
+     Status aktual diperbarui oleh skrip halaman (jika ada).
   ===================================================== */
 
   var KUNCI_KONEKSI = 'kw_sb_koneksi';
@@ -367,6 +369,100 @@
   ===================================================== */
 
   slot.replaceWith(kotak.content);
+
+  /* =====================================================
+     POSISI SCROLL SIDEBAR
+
+     Sidebar punya scroll sendiri (overflow-y: auto). Setiap
+     pindah halaman sidebar dibuat baru sehingga scroll kembali
+     ke atas. Posisi disimpan di sessionStorage, lalu dipulihkan
+     seketika sebelum halaman digambar.
+     Kunjungan pertama (belum ada posisi): menu aktif dibawa
+     ke tengah sidebar.
+  ===================================================== */
+
+  var KUNCI_SCROLL = 'kw_sb_scroll_' + PERAN;
+
+  var sbEl = document.getElementById('sb');
+
+  if (sbEl) {
+
+    var tersimpan = null;
+
+    try {
+      tersimpan = sessionStorage.getItem(KUNCI_SCROLL);
+    } catch (e) {
+      // Abaikan.
+    }
+
+    var pulihkan = function () {
+
+      if (tersimpan !== null) {
+
+        sbEl.scrollTop = parseInt(tersimpan, 10) || 0;
+
+      } else {
+
+        var menuAktif = sbEl.querySelector('nav a.on');
+
+        if (menuAktif) {
+          sbEl.scrollTop =
+            menuAktif.offsetTop -
+            (sbEl.clientHeight / 2) +
+            (menuAktif.offsetHeight / 2);
+        }
+
+      }
+
+    };
+
+    pulihkan();
+
+    /* Cadangan: bila CSS baru selesai diterapkan setelah skrip jalan */
+    document.addEventListener('DOMContentLoaded', function () {
+
+      if (
+        tersimpan !== null &&
+        sbEl.scrollTop !== (parseInt(tersimpan, 10) || 0)
+      ) {
+        pulihkan();
+      }
+
+    });
+
+    var simpanScroll = function () {
+
+      try {
+        sessionStorage.setItem(KUNCI_SCROLL, String(sbEl.scrollTop));
+      } catch (e) {
+        // Abaikan.
+      }
+
+    };
+
+    var menunggu = false;
+
+    sbEl.addEventListener('scroll', function () {
+
+      if (menunggu) return;
+
+      menunggu = true;
+
+      requestAnimationFrame(function () {
+        menunggu = false;
+        simpanScroll();
+      });
+
+    }, { passive: true });
+
+    /* Pastikan tersimpan tepat sebelum pindah halaman */
+    sbEl.querySelectorAll('nav a, .brand').forEach(function (a) {
+      a.addEventListener('click', simpanScroll);
+    });
+
+    window.addEventListener('pagehide', simpanScroll);
+
+  }
 
   /* =====================================================
      MENYIMPAN PERUBAHAN STATUS KONEKSI

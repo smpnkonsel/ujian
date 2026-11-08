@@ -80,14 +80,16 @@ td.kosong { text-align: center; color: var(--redup); padding: 36px 16px; }
 
 .lencana {
   display: inline-block;
-  padding: 2px 10px;
-  margin: 2px 4px 2px 0;
+  padding: 3px 12px;
+  margin: 3px 6px 3px 0;
   border-radius: 999px;
   background: var(--nm-bg);
   box-shadow: var(--nm-in-s);
   color: var(--utama);
   font-size: .78rem;
+  line-height: 1.4;
 }
+.lencana b { font-weight: 600; }
 
 /* ---------- Dialog ---------- */
 dialog { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: auto; }
@@ -98,6 +100,20 @@ dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
 .f span { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
 .f small { display: block; color: var(--redup); font-size: .78rem; margin-top: 4px; }
 .f input { width: 100%; }
+.f textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--nm-bg);
+  box-shadow: var(--nm-in-s);
+  color: var(--nm-text);
+  font: inherit;
+  font-size: .92rem;
+  line-height: 1.5;
+  resize: vertical;
+}
 
 .gf {
   color: var(--bahaya);
@@ -164,7 +180,8 @@ button.utama.merah { color: var(--bahaya) !important; }
   .atas .alat button { flex: 1 1 auto; }
   #cari, #fk { flex: 1 1 100%; max-width: none; width: 100%; }
 
-  input, select { font-size: 16px; min-height: 42px; }  /* cegah zoom iOS */
+  input, select, textarea { font-size: 16px; }  /* cegah zoom iOS */
+  input, select { min-height: 42px; }
 
   /* Tabel jadi kartu */
   .k.tbl { background: transparent; box-shadow: none; overflow: visible; border-radius: 0; }
@@ -180,9 +197,8 @@ button.utama.merah { color: var(--bahaya) !important; }
   .tbl td { padding: 4px 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
   .tbl td[data-label]::before {
     content: attr(data-label);
-    display: inline-block;
-    min-width: 76px;
-    margin-right: 8px;
+    display: block;
+    margin-bottom: 2px;
     color: var(--redup);
     font-size: .8rem;
     font-weight: 400;
@@ -219,6 +235,7 @@ button.utama.merah { color: var(--bahaya) !important; }
       <button id="templat" type="button">Unduh templat Excel</button>
       <button id="impor" type="button">Impor Excel/CSV</button>
       <input id="berkas" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden">
+      <button id="sinkron" type="button" title="Salin semua mapel dari data guru ke Daftar/mapel">Sinkron mapel</button>
       <button id="tambah" type="button" class="utama">Tambah guru</button>
     </div>
   </header>
@@ -226,13 +243,13 @@ button.utama.merah { color: var(--bahaya) !important; }
   <div id="cfgwarn" class="warn hidden"></div>
 
   <div class="alat">
-    <input id="cari" type="search" placeholder="Cari nama atau NIP" aria-label="Cari">
+    <input id="cari" type="search" placeholder="Cari nama, NIP, atau mapel" aria-label="Cari">
     <select id="fk" aria-label="Saring kelas"></select>
   </div>
 
   <div class="k tbl">
     <table>
-      <thead><tr><th>NIP / ID guru</th><th>Nama lengkap</th><th>Mata pelajaran</th><th></th></tr></thead>
+      <thead><tr><th>NIP / ID guru</th><th>Nama lengkap</th><th>Mengajar</th><th></th></tr></thead>
       <tbody id="tb"></tbody>
     </table>
   </div>
@@ -294,6 +311,26 @@ try {
 
   const KOLEKSI_GURU = KOLEKSI.guru;
 
+  // Daftar mapel: terisi otomatis saat guru ditambah, diubah, atau diimpor.
+  // Letaknya di Firestore: koleksi "Daftar" -> dokumen "mapel".
+  // Semua mapel menjadi field langsung di dokumen itu (satu field per mapel).
+  const JALUR_MAPEL = ["Daftar", "mapel"];
+
+  // Singkatan mapel, kunci = id mapel (nama huruf kecil, spasi jadi "-").
+  const SINGKATAN_MAPEL = {
+    "pendidikan-agama-islam": "PAI",
+    "pendidikan-agama-hindu": "PAH",
+    "pendidikan-pancasila": "PKKn",
+    "bahasa-indonesia": "BIND",
+    "matematika": "MTK",
+    "ipa": "IPA",
+    "ips": "IPS",
+    "bahasa-inggris": "BING",
+    "pjok": "PJOK",
+    "informatika": "INFORMATIKA",
+    "seni-budaya": "SB"
+  };
+
   // Berkas templat yang diunduh (dibuat sesuai kolom di bawah).
   const NAMA_TEMPLAT = "Template_Data_Guru.xlsx";
   const URL_TEMPLAT = "../assets/templat/" + NAMA_TEMPLAT;
@@ -306,11 +343,39 @@ try {
   ];
 
   /*
-    Judul kolom pada templat:
-    NIP / ID guru | Nama lengkap | Mata pelajaran
-    (kolom "Kelas diampu" bersifat opsional)
+    Struktur dokumen guru di Firestore:
+    {
+      id, nama,
+      mengajar: [ { mapel: "IPA", kelas: ["IX A", "IX B"] }, ... ],
+      daftarMapel: ["IPA", ...],      // turunan, untuk pencarian
+      daftarKelas: ["IX A", ...]      // turunan, untuk penyaringan
+    }
+
+    Struktur daftar mapel di Firestore (Daftar/mapel), field langsung:
+    {
+      "matematika": { id: "matematika", nama: "Matematika", singkatan: "MTK" },
+      "pendidikan-agama-islam": { id: "...", nama: "Pendidikan Agama Islam", singkatan: "PAI" },
+      ...
+      diperbaruiPada
+    }
+    Nama field = id mapel (nama huruf kecil, spasi jadi "-").
+    Mapel yang sudah ada tidak ditulis ulang, jadi nama/kode yang
+    sudah Anda rapikan di Daftar/mapel tidak tertimpa.
+
+    Templat Excel/CSV: satu baris per penugasan (mapel + kelas).
+    NIP yang sama di beberapa baris digabung menjadi satu guru.
+    Kolom: NIP / ID Guru | Nama Lengkap | Mata Pelajaran | Kelas Diampu
   */
-  const BIDANG = [
+
+  // Isian pada formulir tambah/ubah.
+  const BIDANG_FORM = [
+    { k: "id", l: "NIP / ID Guru" },
+    { k: "nama", l: "Nama Lengkap" },
+    { k: "mengajar", l: "Mapel & kelas yang diajar", area: true }
+  ];
+
+  // Kolom pada berkas impor.
+  const BIDANG_IMPOR = [
     {
       k: "id",
       l: "NIP / ID Guru",
@@ -332,19 +397,20 @@ try {
     {
       k: "kelas",
       l: "Kelas Diampu",
-      wajib: false,
-      alias: ["kelas diampu", "kelas"],
-      daftar: "dk"
+      wajib: true,
+      alias: ["kelas diampu", "kelas"]
     }
   ];
 
-  const KOLOM = ["id", "nama", "mapel"];
   const CARI = ["id", "nama"];
 
   let data = [];
   let idDiedit = null;
   let sedangMemuat = false;
   let timerToast;
+
+  // Mapel yang sudah ada di Daftar/mapel: id dokumen -> nama.
+  let petaMapel = new Map();
 
   /* =========================================
      UTILITAS
@@ -406,6 +472,75 @@ try {
   };
 
   const urut = banding;
+
+  /* ---------- Penugasan mengajar (mapel + kelas) ---------- */
+
+  // "IPA: IX A, IX B\nMatematika: VIII A" -> [{mapel, kelas:[...]}]
+  // Mapel yang sama di dua baris digabung.
+  function pecahMengajar(teks) {
+    const hasil = [];
+
+    String(teks || "")
+      .split(/\r?\n/)
+      .map(rapikan)
+      .filter(Boolean)
+      .forEach((baris) => {
+        const [m, ...sisa] = baris.split(":");
+        const mapel = rapikan(m);
+        const kelas = pecahKelas(sisa.join(":"));
+
+        if (!mapel) return;
+
+        let ada = hasil.find(
+          (x) => x.mapel.toLowerCase() === mapel.toLowerCase()
+        );
+
+        if (!ada) {
+          ada = { mapel, kelas: [] };
+          hasil.push(ada);
+        }
+
+        kelas.forEach((k) => {
+          if (!ada.kelas.includes(k)) ada.kelas.push(k);
+        });
+      });
+
+    hasil.forEach((x) => x.kelas.sort(urutKelas));
+
+    return hasil;
+  }
+
+  const teksMengajar = (arr) =>
+    (arr || [])
+      .map((x) => `${x.mapel}: ${x.kelas.join(", ")}`)
+      .join("\n");
+
+  // Kompatibel dengan data lama (mapel dan kelas berupa teks biasa).
+  function ambilMengajar(d) {
+    if (Array.isArray(d.mengajar)) return d.mengajar;
+
+    return d.mapel
+      ? [{ mapel: String(d.mapel).trim(), kelas: pecahKelas(d.kelas) }]
+      : [];
+  }
+
+  // Mengisi kolom turunan.
+  function lengkapi(item) {
+    item.daftarMapel = [
+      ...new Set(item.mengajar.map((x) => x.mapel))
+    ];
+
+    item.daftarKelas = [
+      ...new Set(item.mengajar.flatMap((x) => x.kelas))
+    ].sort(urutKelas);
+
+    // Tautan ke field mapel di Daftar/mapel (nama field = id mapel).
+    item.daftarIdMapel = [
+      ...new Set(item.daftarMapel.map(idMapel).filter(Boolean))
+    ];
+
+    return item;
+  }
 
   /* Pemberitahuan (toast) di tengah layar, tanpa alert/confirm bawaan browser. */
 
@@ -496,6 +631,11 @@ try {
     timerToast = setTimeout(() => sembunyiToast(el), 4000);
   }
 
+  // Penyebab galat Firebase (mis. "permission-denied") untuk ditampilkan.
+  function alasanGalat(e) {
+    return (e && (e.code || e.message)) || "tidak diketahui";
+  }
+
   function peringatan(pesan) {
     const el = $("cfgwarn");
 
@@ -508,6 +648,108 @@ try {
 
     el.textContent = pesan;
     el.classList.remove("hidden");
+  }
+
+  /* =========================================
+     KOLEKSI MAPEL
+     Dokumen: Daftar/mapel  ->  satu field per mapel: { [id]: { id, nama, singkatan } }
+  ========================================= */
+
+  // "Pendidikan Agama Islam" -> "pendidikan-agama-islam"
+  // Huruf besar/kecil dan spasi ganda tidak membuat mapel ganda.
+  function idMapel(nama) {
+    return rapikan(nama)
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  // Membaca mapel yang sudah ada dari dokumen Daftar/mapel.
+  // Gagal membaca tidak menghentikan halaman.
+  async function muatMapel() {
+    try {
+      const snap = await F.getDocs(
+        F.collection(dbSiswaGuru, JALUR_MAPEL[0])
+      );
+
+      const dok = snap.docs.find((d) => d.id === JALUR_MAPEL[1]);
+      const isi = dok ? dok.data() : {};
+
+      petaMapel = new Map(
+        Object.entries(isi)
+          .filter(([, v]) => v && typeof v === "object" && v.nama)
+          .map(([id, v]) => [id, v.nama])
+      );
+
+    } catch (error) {
+      console.warn("Daftar mapel tidak terbaca:", error);
+    }
+  }
+
+  // Dari daftar nama mapel, ambil yang belum ada di koleksi (tanpa duplikat).
+  function mapelBaru(daftarNama) {
+    const unik = new Map();
+
+    daftarNama.forEach((n) => {
+      const nama = rapikan(n);
+      const id = idMapel(nama);
+
+      if (id && !petaMapel.has(id) && !unik.has(id)) unik.set(id, nama);
+    });
+
+    return [...unik].map(([id, nama]) => ({ id, nama }));
+  }
+
+  // Singkatan dari tabel di atas. Mapel yang belum terdaftar di tabel:
+  // nama beberapa kata -> huruf awal tiap kata, satu kata -> huruf besar
+  // (maks. 8 huruf). Bisa diubah langsung di Firestore bila kurang tepat.
+  function singkatanMapel(nama, id) {
+    if (SINGKATAN_MAPEL[id]) return SINGKATAN_MAPEL[id];
+
+    const kata = rapikan(nama).split(" ").filter(Boolean);
+
+    if (kata.length > 1) {
+      return kata.map((k) => k[0]).join("").toUpperCase();
+    }
+
+    return (kata[0] || "").toUpperCase().slice(0, 8);
+  }
+
+  // Semua mapel baru ditulis sekaligus ke dokumen Daftar/mapel
+  // (merge: field mapel lain di dokumen itu tidak tersentuh).
+  function tulisMapelKeBatch(batch, baru) {
+    if (!baru.length) return;
+
+    const isi = { diperbaruiPada: F.serverTimestamp() };
+
+    baru.forEach((m) => {
+      isi[m.id] = {
+        id: m.id,
+        nama: m.nama,
+        singkatan: singkatanMapel(m.nama, m.id)
+      };
+    });
+
+    batch.set(F.doc(dbSiswaGuru, ...JALUR_MAPEL), isi, { merge: true });
+  }
+
+  const catatMapel = (baru) =>
+    baru.forEach((m) => petaMapel.set(m.id, m.nama));
+
+  // Menyimpan mapel baru sendiri (dipakai impor dan tombol Sinkron mapel).
+  // Mengembalikan jumlah mapel yang ditambahkan.
+  async function simpanMapelTerpisah(daftarNama) {
+    const baru = mapelBaru(daftarNama);
+
+    if (!baru.length) return 0;
+
+    const batch = F.writeBatch(dbSiswaGuru);
+
+    tulisMapelKeBatch(batch, baru);
+    await batch.commit();
+    catatMapel(baru);
+
+    return baru.length;
   }
 
   /* =========================================
@@ -532,6 +774,8 @@ try {
         id: dok.id
       }));
 
+      await muatMapel();
+
       gambar();
 
     } catch (error) {
@@ -552,6 +796,10 @@ try {
      FIREBASE: SIMPAN DATA GURU
   ========================================= */
 
+  // Mengembalikan { mapelDitambah, mapelGagal }.
+  // Guru dan mapel baru disimpan dalam satu batch. Bila batch itu ditolak
+  // (mis. aturan Firestore belum mengizinkan Daftar/mapel), guru tetap
+  // disimpan tanpa mapel dan alasannya dikembalikan di mapelGagal.
   async function simpanFirebase(item, idLama = null) {
     const idBaru = String(item.id).trim();
 
@@ -559,31 +807,44 @@ try {
       throw new Error("NIP/ID guru wajib diisi.");
     }
 
-    const batch = F.writeBatch(dbSiswaGuru);
+    const baru = mapelBaru(item.mengajar.map((x) => x.mapel));
 
-    const refBaru = F.doc(
-      dbSiswaGuru,
-      KOLEKSI_GURU,
-      idBaru
-    );
+    const susun = (denganMapel) => {
+      const batch = F.writeBatch(dbSiswaGuru);
 
-    if (idLama && idLama !== idBaru) {
-      const refLama = F.doc(
-        dbSiswaGuru,
-        KOLEKSI_GURU,
-        idLama
-      );
+      if (idLama && idLama !== idBaru) {
+        batch.delete(F.doc(dbSiswaGuru, KOLEKSI_GURU, idLama));
+      }
 
-      batch.delete(refLama);
+      // Tanpa merge: dokumen diganti utuh, sehingga kolom lama
+      // (mapel dan kelas berupa teks) ikut hilang.
+      batch.set(F.doc(dbSiswaGuru, KOLEKSI_GURU, idBaru), {
+        ...item,
+        id: idBaru,
+        diperbaruiPada: F.serverTimestamp()
+      });
+
+      if (denganMapel) tulisMapelKeBatch(batch, baru);
+
+      return batch;
+    };
+
+    try {
+      await susun(true).commit();
+      catatMapel(baru);
+
+      return { mapelDitambah: baru.length, mapelGagal: "" };
+
+    } catch (errGabungan) {
+      // Tidak ada mapel baru: masalahnya pada data guru itu sendiri.
+      if (!baru.length) throw errGabungan;
+
+      console.error("Batch guru + mapel ditolak:", errGabungan);
+
+      await susun(false).commit();
+
+      return { mapelDitambah: 0, mapelGagal: alasanGalat(errGabungan) };
     }
-
-    batch.set(refBaru, {
-      ...item,
-      id: idBaru,
-      diperbaruiPada: F.serverTimestamp()
-    });
-
-    await batch.commit();
   }
 
   /* =========================================
@@ -593,7 +854,9 @@ try {
   function semuaKelas() {
     return [
       ...new Set(
-        data.flatMap((d) => pecahKelas(d.kelas))
+        data.flatMap((d) =>
+          ambilMengajar(d).flatMap((x) => x.kelas)
+        )
       )
     ].sort(urutKelas);
   }
@@ -635,11 +898,15 @@ try {
 
     return data
       .filter((d) =>
-        !fk || pecahKelas(d.kelas).includes(fk)
+        !fk || ambilMengajar(d).some((x) => x.kelas.includes(fk))
       )
       .filter((d) =>
-        !q || CARI.some((k) =>
+        !q ||
+        CARI.some((k) =>
           String(d[k] || "").toLowerCase().includes(q)
+        ) ||
+        ambilMengajar(d).some((x) =>
+          x.mapel.toLowerCase().includes(q)
         )
       )
       .sort((a, b) =>
@@ -650,6 +917,16 @@ try {
   /* =========================================
      TABEL
   ========================================= */
+
+  function lencanaMengajar(d) {
+    const arr = ambilMengajar(d);
+
+    if (!arr.length) return '<span style="color:var(--redup)">–</span>';
+
+    return arr.map((x) =>
+      `<span class="lencana"><b>${esc(x.mapel)}</b> · ${esc(x.kelas.join(", ") || "tanpa kelas")}</span>`
+    ).join("");
+  }
 
   function gambar() {
     isiPilihan();
@@ -664,9 +941,9 @@ try {
       : `${data.length} guru terdaftar`;
 
     const jumlahMapel = new Set(
-      data
-        .map((d) => (d.mapel || "").trim().toLowerCase())
-        .filter(Boolean)
+      data.flatMap((d) =>
+        ambilMengajar(d).map((x) => x.mapel.toLowerCase())
+      )
     ).size;
 
     $("rinci").textContent =
@@ -677,7 +954,7 @@ try {
           <tr>
             <td class="id" data-label="NIP / ID">${esc(d.id)}</td>
             <td data-label="Nama">${esc(d.nama)}</td>
-            <td data-label="Mapel">${esc(d.mapel)}</td>
+            <td data-label="Mengajar">${lencanaMengajar(d)}</td>
 
             <td class="aksi">
               <button
@@ -722,22 +999,36 @@ try {
       ? "Ubah Data Guru"
       : "Tambah Guru";
 
-    $("isi").innerHTML = BIDANG.map((b) => `
-      <label class="f">
-        <span>
-          ${esc(b.l)}${b.wajib ? " *" : ""}
-        </span>
+    $("isi").innerHTML = BIDANG_FORM.map((b) => {
+      if (b.area) {
+        const nilai = item ? teksMengajar(ambilMengajar(item)) : "";
 
-        <input
-          name="${b.k}"
-          type="text"
-          autocomplete="off"
-          ${b.wajib ? "required" : ""}
-          ${b.daftar ? `list="${b.daftar}"` : ""}
-          value="${esc(item ? item[b.k] : "")}"
-        >
-      </label>
-    `).join("");
+        return `
+          <label class="f">
+            <span>${esc(b.l)} *</span>
+            <textarea
+              name="${b.k}"
+              rows="4"
+              required
+              placeholder="IPA: IX A, IX B&#10;Matematika: VIII A">${esc(nilai)}</textarea>
+            <small>Satu baris per mata pelajaran. Format: Mapel: kelas, kelas</small>
+          </label>
+        `;
+      }
+
+      return `
+        <label class="f">
+          <span>${esc(b.l)} *</span>
+          <input
+            name="${b.k}"
+            type="text"
+            autocomplete="off"
+            required
+            value="${esc(item ? item[b.k] : "")}"
+          >
+        </label>
+      `;
+    }).join("");
 
     $("gf").classList.add("hidden");
     $("dlg").showModal();
@@ -763,12 +1054,12 @@ try {
     try {
       const baru = {};
 
-      for (const b of BIDANG) {
+      for (const b of BIDANG_FORM) {
         baru[b.k] = String(
           $("frm").elements[b.k].value || ""
         ).trim();
 
-        if (b.wajib && !baru[b.k]) {
+        if (!baru[b.k]) {
           galat(`${b.l} wajib diisi.`);
           return;
         }
@@ -781,7 +1072,17 @@ try {
         return;
       }
 
-      baru.kelas = pecahKelas(baru.kelas).join(", ");
+      baru.mengajar = pecahMengajar(baru.mengajar);
+
+      if (
+        !baru.mengajar.length ||
+        baru.mengajar.some((x) => !x.kelas.length)
+      ) {
+        galat("Isi tiap baris dengan format  Mapel: kelas, kelas  (contoh: IPA: IX A, IX B).");
+        return;
+      }
+
+      lengkapi(baru);
 
       const kembar = data.some((d) =>
         d.id === baru.id && d.id !== idDiedit
@@ -792,14 +1093,19 @@ try {
         return;
       }
 
-      await simpanFirebase(baru, idDiedit);
+      const hasil = await simpanFirebase(baru, idDiedit);
 
       $("dlg").close();
 
       toast(
-        idDiedit
+        (idDiedit
           ? "Data guru berhasil diperbarui."
-          : "Data guru berhasil ditambahkan."
+          : "Data guru berhasil ditambahkan.") +
+        (hasil.mapelGagal
+          ? ` Tetapi daftar mapel gagal disimpan (${hasil.mapelGagal}). Periksa aturan Firestore untuk ${JALUR_MAPEL.join("/")}.`
+          : hasil.mapelDitambah
+            ? ` ${hasil.mapelDitambah} mapel baru masuk ke daftar mapel.`
+            : "")
       );
 
       await muatGuru();
@@ -808,7 +1114,7 @@ try {
       console.error(error);
 
       galat(
-        "Gagal menyimpan data guru ke Firebase."
+        "Gagal menyimpan data guru ke Firebase (" + alasanGalat(error) + ")."
       );
 
     } finally {
@@ -846,6 +1152,38 @@ try {
     } catch (error) {
       console.error(error);
       toast("Gagal menghapus data guru.");
+    }
+  }
+
+  /* =========================================
+     SINKRON MAPEL
+     Menyalin mapel dari semua guru yang sudah ada ke Daftar/mapel.
+  ========================================= */
+
+  async function sinkronMapel() {
+    if (sedangMemuat) return;
+
+    if (!data.length) {
+      toast("Belum ada data guru.");
+      return;
+    }
+
+    try {
+      await muatMapel();
+
+      const n = await simpanMapelTerpisah(
+        data.flatMap((d) => ambilMengajar(d).map((x) => x.mapel))
+      );
+
+      toast(
+        n
+          ? `${n} mapel baru ditambahkan ke daftar mapel.`
+          : "Daftar mapel sudah lengkap."
+      );
+
+    } catch (error) {
+      console.error("Sinkron mapel:", error);
+      toast("Gagal menyimpan koleksi mapel. Periksa aturan Firestore untuk " + JALUR_MAPEL.join("/") + ".");
     }
   }
 
@@ -1024,13 +1362,13 @@ try {
       const kepala = tabel[0].map(normKepala);
       const indeks = {};
 
-      for (const b of BIDANG) {
+      for (const b of BIDANG_IMPOR) {
         const i = kepala.findIndex((h) => b.alias.includes(h));
 
         if (i >= 0) indeks[b.k] = i;
       }
 
-      const hilang = BIDANG.filter((b) =>
+      const hilang = BIDANG_IMPOR.filter((b) =>
         b.wajib && !(b.k in indeks)
       );
 
@@ -1042,39 +1380,45 @@ try {
         return;
       }
 
+      // Satu baris = satu penugasan. NIP yang sama digabung.
       const hasil = new Map();
       let dilewati = 0;
 
       for (const r of tabel.slice(1)) {
-        const item = {};
+        const g = (k) => (k in indeks ? rapikan(r[indeks[k]]) : "");
 
-        for (const b of BIDANG) {
-          if (!(b.k in indeks)) continue;
+        const id = g("id").replace(/\s+/g, "").replace(/^'/, "");
+        const nama = g("nama");
+        const mapel = g("mapel");
+        const kelas = pecahKelas(g("kelas"));
 
-          item[b.k] = rapikan(r[indeks[b.k]]);
-        }
-
-        item.id = (item.id || "")
-          .replace(/\s+/g, "")
-          .replace(/^'/, "");
-
-        // Kolom kelas hanya diolah bila ada di berkas.
-        if ("kelas" in item) {
-          item.kelas = pecahKelas(item.kelas).join(", ");
-        }
-
-        if (
-          !item.id ||
-          item.id.includes("/") ||
-          !item.nama ||
-          !item.mapel
-        ) {
+        if (!id || id.includes("/") || !nama || !mapel || !kelas.length) {
           dilewati++;
           continue;
         }
 
-        hasil.set(item.id, item);
+        const guru = hasil.get(id) || { id, nama, mengajar: [] };
+
+        let m = guru.mengajar.find(
+          (x) => x.mapel.toLowerCase() === mapel.toLowerCase()
+        );
+
+        if (!m) {
+          m = { mapel, kelas: [] };
+          guru.mengajar.push(m);
+        }
+
+        kelas.forEach((k) => {
+          if (!m.kelas.includes(k)) m.kelas.push(k);
+        });
+
+        hasil.set(id, guru);
       }
+
+      hasil.forEach((guru) => {
+        guru.mengajar.forEach((x) => x.kelas.sort(urutKelas));
+        lengkapi(guru);
+      });
 
       const daftar = [...hasil.values()];
 
@@ -1089,35 +1433,69 @@ try {
 
       const baru = daftar.length - diperbarui;
 
-      // merge: kolom yang tidak ada di berkas (mis. kelas) tidak ditimpa.
-      for (let i = 0; i < daftar.length; i += 450) {
-        const batch = F.writeBatch(dbSiswaGuru);
+      // Guru dan mapel disimpan bersama dalam batch yang sama
+      // (mapel ditaruh paling depan agar ikut batch pertama).
+      // Daftar mengajar guru di berkas menggantikan daftar lamanya.
+      await muatMapel();
 
-        daftar.slice(i, i + 450).forEach((item) => {
-          const ref = F.doc(
-            dbSiswaGuru,
-            KOLEKSI_GURU,
-            item.id
-          );
+      const mapelTambah = mapelBaru(
+        daftar.flatMap((g) => g.mengajar.map((x) => x.mapel))
+      );
 
-          batch.set(ref, {
-            ...item,
-            diperbaruiPada: F.serverTimestamp()
-          }, { merge: true });
-        });
+      const opsiMapel = mapelTambah.length
+        ? [(batch) => tulisMapelKeBatch(batch, mapelTambah)]
+        : [];
 
-        await batch.commit();
+      const opsiGuru = daftar.map((item) => (batch) => {
+        batch.set(
+          F.doc(dbSiswaGuru, KOLEKSI_GURU, item.id),
+          { ...item, diperbaruiPada: F.serverTimestamp() },
+          { merge: true }
+        );
+      });
+
+      const tulisSemua = async (operasi) => {
+        for (let i = 0; i < operasi.length; i += 450) {
+          const batch = F.writeBatch(dbSiswaGuru);
+
+          operasi.slice(i, i + 450).forEach((jalankan) => jalankan(batch));
+
+          await batch.commit();
+        }
+      };
+
+      let mapelGagal = "";
+
+      try {
+        await tulisSemua([...opsiMapel, ...opsiGuru]);
+        catatMapel(mapelTambah);
+      } catch (errGabungan) {
+        // Jika hanya mapel yang ditolak, guru tetap disimpan.
+        // Bila guru juga gagal, galat aslinya dilempar ke catch luar.
+        console.error("Batch guru + mapel ditolak:", errGabungan);
+
+        await tulisSemua(opsiGuru);
+
+        mapelGagal = alasanGalat(errGabungan);
       }
 
+      peringatan("");
+
       toast(
-        `Impor selesai: ${baru} baru, ${diperbarui} diperbarui, ${dilewati} dilewati.`
+        `Impor selesai: ${baru} guru baru, ${diperbarui} diperbarui, ${dilewati} baris dilewati. ` +
+        (mapelGagal
+          ? `Daftar mapel gagal disimpan (${mapelGagal}). Periksa aturan Firestore untuk ${JALUR_MAPEL.join("/")}.`
+          : `${mapelTambah.length} mapel baru masuk ke daftar mapel.`)
       );
 
       await muatGuru();
 
     } catch (error) {
       console.error(error);
-      toast("Gagal mengimpor berkas. Pastikan formatnya sesuai templat.");
+      const sebab = alasanGalat(error);
+
+      peringatan("Impor gagal: " + sebab);
+      toast("Gagal mengimpor berkas (" + sebab + ").");
     } finally {
       $("berkas").value = "";
     }
@@ -1128,15 +1506,9 @@ try {
   ========================================= */
 
   function mulai() {
-    document.querySelector("thead tr").innerHTML =
-      KOLOM.map((k) => {
-        const b = BIDANG.find((x) => x.k === k);
-        return `<th>${esc(b.l)}</th>`;
-      }).join("") + "<th>Aksi</th>";
-
     $("tambah").textContent = "Tambah Guru";
 
-    $("cari").placeholder = "Cari nama atau NIP";
+    $("cari").placeholder = "Cari nama, NIP, atau mapel";
 
     $("tambah").addEventListener(
       "click",
@@ -1151,6 +1523,11 @@ try {
     $("impor").addEventListener(
       "click",
       () => $("berkas").click()
+    );
+
+    $("sinkron").addEventListener(
+      "click",
+      sinkronMapel
     );
 
     $("berkas").addEventListener(

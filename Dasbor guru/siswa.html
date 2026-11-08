@@ -10,51 +10,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Data Siswa · KW Learning</title>
+<link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-/* data.css — halaman Data Siswa · KW Learning
-   Tema gelap, tabel berubah jadi kartu di layar HP. */
+/* Halaman Data Siswa (guru) · KW Learning (responsif)
+   Warna, tombol, isian, dan dialog mengikuti neumorph.css.
+   Di sini hanya tata letak dan hal khusus halaman ini. */
 
 :root {
-  --dt-bg:var(--nm-bg);
-  --dt-panel:var(--nm-bg);
-  --dt-panel-2:color-mix(in srgb,var(--nm-text) 5%,var(--nm-bg));
-  --dt-garis:var(--nm-garis);
-  --dt-teks:var(--nm-text);
-  --dt-redup:var(--nm-muted);
-  --dt-aksen:var(--nm-accent);
-  --dt-aksen-teks:#fff;
-  --dt-bahaya:var(--nm-warn);
-  --dt-ok:var(--nm-ok);
-  --dt-warn-bg:color-mix(in srgb,var(--nm-kuning) 16%,var(--nm-bg));
-  --dt-warn-teks:var(--nm-kuning);
-  --dt-radius:14px;
-  /* Jika sidebar tetap (fixed) di sisi kiri, isi lebarnya lewat variabel ini
-     di sidebar.css, mis. :root { --sidebar-w:0px} */
-  --sidebar-w:0px;
+  --dt-aksen: var(--nm-accent);
+  --dt-redup: var(--nm-muted);
+  --dt-bahaya: var(--nm-warn);
+  --dt-ok: var(--nm-ok);
+  --dt-warn-bg: color-mix(in srgb, var(--nm-kuning) 16%, var(--nm-bg));
+  --dt-warn-teks: var(--nm-kuning);
 }
 
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-html { -webkit-text-size-adjust: 100%; }
-
-body {
-  margin: 0;
-  background: var(--dt-bg);
-  color: var(--dt-teks);
-  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-
-.hidden { display: none !important; }
-
-/* ---------- Tata letak ---------- */
+/* ---------- Tata letak: mepet sidebar, jarak kanan kecil ---------- */
 .isi {
-  max-width: 1100px;
-  margin: 0 auto;
-  margin-left: max(var(--sidebar-w), calc((100% - 1100px) / 2));
-  padding: 20px 16px calc(40px + env(safe-area-inset-bottom, 0px));
+  max-width: none;
+  margin: 0;
+  padding: 20px 24px calc(40px + env(safe-area-inset-bottom, 0px));
 }
 
 .atas {
@@ -63,74 +39,27 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .atas h1 { margin: 0 0 4px; font-size: 1.6rem; line-height: 1.2; }
 .atas p { margin: 0; color: var(--dt-redup); font-size: .9rem; }
 #rinci { margin-top: 2px; }
 
-.alat {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.isi > .alat { margin-bottom: 12px; }
+.alat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.isi > .alat { margin-bottom: 16px; }
+.alat input[type="search"] { flex: 1 1 220px; width: auto; min-width: 0; }
+.alat select { flex: 0 1 180px; width: auto; min-width: 0; }
 
-/* ---------- Kontrol ---------- */
-button,
-input,
-select {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid var(--dt-garis);
-  border-radius: 8px;
-  background: var(--dt-panel-2);
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
-button:hover { border-color: var(--dt-aksen); }
-button:disabled { opacity: .55; cursor: not-allowed; }
-button.utama {
-  background: var(--dt-aksen);
-  border-color: var(--dt-aksen);
-  color: var(--dt-aksen-teks);
-  font-weight: 600;
-}
-button.utama:hover { filter: brightness(1.08); }
+/* ---------- Ukuran kontrol (tampilan dari neumorph.css) ---------- */
+button { min-height: 40px; padding: 8px 16px; }
+button.kecil { min-height: 32px; padding: 4px 12px; font-size: .85rem; }
 button.bahaya { color: var(--dt-bahaya); }
-button.bahaya:hover { border-color: var(--dt-bahaya); }
-button.kecil { min-height: 32px; padding: 4px 10px; font-size: .85rem; }
-
-input,
-select {
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--dt-garis);
-  border-radius: 8px;
-  background: var(--dt-panel);
-  width: 100%;
-}
-.alat input[type="search"] { flex: 1 1 220px; width: auto; }
-.alat select { flex: 0 1 180px; width: auto; }
-
-:focus-visible {
-  outline: 2px solid var(--dt-aksen);
-  outline-offset: 2px;
-}
-input:focus,
-select:focus { border-color: var(--dt-aksen); outline: none; box-shadow: 0 0 0 3px rgba(79, 157, 255, .25); }
+input, select { min-height: 40px; width: 100%; }
 
 /* ---------- Peringatan konfigurasi ---------- */
 .warn {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   padding: 10px 14px;
-  border-radius: var(--dt-radius);
   background: var(--dt-warn-bg);
   color: var(--dt-warn-teks);
   font-size: .9rem;
@@ -138,78 +67,71 @@ select:focus { border-color: var(--dt-aksen); outline: none; box-shadow: 0 0 0 3
 
 /* ---------- Tabel ---------- */
 .k {
-  background: var(--dt-panel);
-  border: 1px solid var(--dt-garis);
-  border-radius: var(--dt-radius);
+  background: var(--nm-bg);
+  border: 0;
+  border-radius: 22px;
+  box-shadow: var(--nm-out);
 }
-.tbl { overflow-x: auto; }
+.tbl { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 22px; }
 
 table { width: 100%; border-collapse: collapse; }
-th,
-td { padding: 10px 14px; text-align: left; vertical-align: middle; }
+th, td { padding: 12px 16px; text-align: left; vertical-align: middle; }
 thead th {
   position: sticky;
   top: 0;
-  background: var(--dt-panel-2);
+  background: var(--nm-bg);
   color: var(--dt-redup);
   font-size: .8rem;
   font-weight: 600;
   white-space: nowrap;
-  border-bottom: 1px solid var(--dt-garis);
+  border-bottom: 1px solid var(--nm-garis);
 }
-tbody tr + tr td { border-top: 1px solid var(--dt-garis); }
-tbody tr:hover td { background: rgba(79, 157, 255, .05); }
+tbody tr + tr td { border-top: 1px solid var(--nm-garis); }
 td.nis { font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.nama { font-weight: 600; }
 td.aksi { text-align: right; white-space: nowrap; }
-td.aksi button + button { margin-left: 6px; }
+td.aksi button + button { margin-left: 8px; }
 td.kosong { text-align: center; color: var(--dt-redup); padding: 32px 14px; }
 
 .lencana {
   display: inline-block;
   min-width: 26px;
-  padding: 1px 8px;
+  padding: 2px 10px;
   border-radius: 999px;
-  background: var(--dt-panel-2);
-  border: 1px solid var(--dt-garis);
   text-align: center;
   font-size: .82rem;
+  background: var(--nm-bg);
+  box-shadow: var(--nm-in-s);
 }
 
 /* ---------- Dialog ---------- */
-dialog {
-  width: min(460px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
-  padding: 0;
-  border: 1px solid var(--dt-garis);
-  border-radius: 14px;
-  background: var(--dt-panel);
-  color: var(--dt-teks);
-  overflow: auto;
-}
-dialog::backdrop { background: rgba(3, 7, 18, .65); }
-dialog form { padding: 20px; }
+dialog { width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; overflow: auto; }
+dialog form { padding: 22px; }
 dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
 
-.f { margin-bottom: 12px; }
-.f label { display: block; margin-bottom: 4px; font-size: .85rem; color: var(--dt-redup); }
-.f small { display: block; margin-top: 3px; color: var(--dt-redup); font-size: .78rem; }
-.baris { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.f { margin-bottom: 14px; }
+.f label { display: block; margin-bottom: 6px; font-size: .85rem; color: var(--dt-redup); }
+.f small { display: block; margin-top: 4px; font-size: .78rem; }
+.baris { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .gf {
   margin: 0 0 12px;
   padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 107, 107, .12);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--nm-warn) 12%, var(--nm-bg));
   color: var(--dt-bahaya);
   font-size: .88rem;
 }
-.tombol {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 4px;
-}
+.tombol { display: flex; justify-content: flex-end; gap: 10px; padding-top: 6px; }
+
+/* Dialog konfirmasi (tengah layar) */
+.konfirm { width: min(380px, calc(100vw - 32px)); text-align: center; }
+.kbox { padding: 24px 22px 20px; }
+.kbox h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.kbox p { margin: 0 0 20px; color: var(--dt-redup); white-space: pre-line; }
+.konfirm .tombol { justify-content: center; }
+.konfirm .tombol button { min-width: 96px; }
+button.utama.merah { color: var(--dt-bahaya) !important; }
 
 /* ---------- Toast: di tengah layar ---------- */
 #toast {
@@ -217,37 +139,42 @@ dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
   inset: auto;
   left: 50%;
   top: 50%;
+  bottom: auto;
   margin: 0;
   transform: translate(-50%, -50%);
   width: max-content;
   max-width: min(420px, calc(100vw - 32px));
   padding: 16px 24px;
-  border-radius: 14px;
-  background: var(--dt-panel-2);
-  color: var(--dt-teks);
-  border: 1px solid var(--dt-garis);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, .55);
   font-size: .95rem;
   text-align: center;
   z-index: 2000;
+  opacity: 1;
+  transition: none;
   animation: toast-masuk .18s ease-out;
 }
-#toast.ok { border-color: var(--dt-ok); }
-#toast.err { border-color: var(--dt-bahaya); }
+#toast.ok  { color: var(--dt-ok); }
+#toast.err { color: var(--dt-bahaya); }
 @keyframes toast-masuk {
   from { opacity: 0; transform: translate(-50%, -46%) scale(.96); }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
+/* ---------- Tablet ---------- */
+@media (max-width: 820px) {
+  .isi { padding: 16px 14px calc(40px + env(safe-area-inset-bottom, 0px)); }
+}
 
 /* ---------- HP: tabel jadi kartu ---------- */
 @media (max-width: 680px) {
-  .isi { padding: 14px 12px 40px; }
   .atas h1 { font-size: 1.35rem; }
   .atas .alat { width: 100%; }
   .atas .alat button { flex: 1 1 auto; }
 
-  .k { background: transparent; border: 0; }
+  .alat input[type="search"], .alat select { flex: 1 1 100%; width: 100%; }
+  input, select { font-size: 16px; min-height: 42px; }  /* cegah zoom iOS */
+  button { min-height: 42px; }
+
+  .k { background: transparent; box-shadow: none; border-radius: 0; }
   .tbl { overflow: visible; }
   table, tbody, tr, td { display: block; width: 100%; }
   thead { display: none; }
@@ -255,50 +182,37 @@ dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
   tbody tr {
     display: flex;
     flex-direction: column;
-    margin-bottom: 10px;
-    padding: 12px 14px;
-    background: var(--dt-panel);
-    border: 1px solid var(--dt-garis);
-    border-radius: var(--dt-radius);
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: var(--nm-bg);
+    border-radius: 20px;
+    box-shadow: var(--nm-out);
   }
-  tbody tr + tr td,
-  tbody tr:hover td { border-top: 0; background: none; }
-
-  td { padding: 2px 0; }
+  tbody tr + tr td { border-top: 0; }
+  td { padding: 2px 0; overflow-wrap: anywhere; }
   td[data-label]::before {
     content: attr(data-label);
     display: inline-block;
-    min-width: 72px;
+    min-width: 96px;
     color: var(--dt-redup);
     font-size: .8rem;
   }
   td.nama { order: -1; font-size: 1.05rem; margin-bottom: 4px; }
   td.nama::before { display: none; }
-  td.aksi { margin-top: 8px; text-align: left; }
-  td.kosong { padding: 28px 8px; }
+  td.kosong { padding: 28px 8px; text-align: center; }
   td.kosong::before { display: none; }
 
+  dialog { width: calc(100vw - 20px); border-radius: 20px; }
   dialog form { padding: 16px; }
   .baris { grid-template-columns: 1fr; }
   .tombol button { flex: 1 1 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+/* ---------- HP kecil ---------- */
+@media (max-width: 380px) {
+  .isi { padding: 12px 10px 36px; }
 }
 
-
-/* dialog konfirmasi (tengah layar) */
-.konfirm { width: min(380px, calc(100vw - 32px)); text-align: center; }
-.kbox { padding: 24px 22px 20px; }
-.kbox h2 { margin: 0 0 8px; font-size: 1.15rem; }
-.kbox p { margin: 0 0 20px; color: var(--dt-redup); white-space: pre-line; }
-.konfirm .tombol { justify-content: center; }
-.konfirm .tombol button { min-width: 96px; }
-button.utama.merah { background: var(--dt-bahaya); border-color: var(--dt-bahaya); color: #1a0505; }
-</style>
-<link rel="stylesheet" href="../assets/css/neumorph.css">
-<style>
 /* Guru hanya melihat data master; mengubahnya hanya boleh admin (juga ditegakkan Firestore Rules). */
 #templat, #impor, #berkas, #tambah, [data-aksi="ubah"], [data-aksi="hapus"], td.aksi, thead th:last-child { display: none !important; }
 </style>

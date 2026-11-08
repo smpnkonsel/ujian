@@ -5,38 +5,46 @@
 <script type="module" src="../assets/js/guard.js" data-peran="guru"></script>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Monitoring Peserta – KW Learning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-body{background:#e4e9f2}
 .kw-halaman{
   --bg:var(--nm-bg); --ink:var(--nm-text); --muted:var(--nm-muted); --hi:var(--nm-light); --lo:var(--nm-dark);
   --biru:var(--nm-accent); --hijau:var(--nm-ok); --kuning:var(--nm-kuning); --merah:var(--nm-warn); --abu:var(--nm-muted);
+  --garis:var(--nm-garis);
   --out:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
   --in:inset 4px 4px 9px var(--lo),inset -4px -4px 9px var(--hi);
   font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);
-  min-height:100vh;display:flex;flex-direction:column;
+  min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
 }
 .kw-halaman,.kw-halaman *{box-sizing:border-box;margin:0}
 .kw-halaman button,.kw-halaman input,.kw-halaman select{font:inherit;color:inherit}
 .kw-halaman :focus-visible{outline:3px solid var(--biru);outline-offset:3px;border-radius:14px}
-.kw-halaman .wrap{width:min(1100px,100% - 2rem);margin-inline:auto}
-.kw-halaman > header{padding:2rem 0 1rem}
-.kw-halaman h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2}
+
+/* Mepet sidebar, jarak kanan kecil */
+.kw-halaman .wrap{width:auto;max-width:none;margin:0;padding-inline:24px;animation:none}
+.kw-halaman main.wrap{padding-block:0 1rem}
+.kw-halaman > header{padding-block:1.6rem .8rem}
+.kw-halaman h1{font-size:clamp(1.6rem,3.5vw,2.2rem);line-height:1.2}
 .kw-halaman > header p{color:var(--muted);margin-top:.3rem}
 .kw-halaman .info{margin-top:.8rem;font-size:.88rem}
 
 .kw-halaman .muat{border:0;background:var(--bg);box-shadow:var(--out);border-radius:12px;padding:.3rem .8rem;margin-left:.6rem;font-size:.8rem;font-weight:600;color:var(--biru);cursor:pointer}
-.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.2rem;margin:1.2rem 0 1.6rem}
-.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:20px;padding:1rem 1.2rem}
+
+/* Ringkasan */
+.kw-halaman .ringkas{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1.2rem;margin:1.2rem 0 1.6rem}
+.kw-halaman .ringkas div{background:var(--bg);box-shadow:var(--out);border-radius:20px;padding:1rem 1.2rem;min-width:0}
 .kw-halaman .ringkas b{display:block;font-size:1.9rem;line-height:1.1}
 .kw-halaman .ringkas span{font-size:.82rem;color:var(--muted)}
 
+/* Alat dan filter */
 .kw-halaman .alat{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-bottom:1.4rem}
-.kw-halaman .cari,.kw-halaman select{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem}
+.kw-halaman .cari,.kw-halaman select{border:0;background:var(--bg);box-shadow:var(--in);border-radius:16px;padding:.8rem 1.1rem;min-width:0}
 .kw-halaman .cari{flex:1;min-width:200px}
 .kw-halaman select{cursor:pointer;max-width:100%}
 .kw-halaman #pilih{flex:2;min-width:220px}
@@ -46,37 +54,58 @@ body{background:#e4e9f2}
 .kw-halaman .filter button{border:0;background:var(--bg);box-shadow:var(--out);border-radius:14px;padding:.55rem 1rem;font-size:.86rem;font-weight:500;cursor:pointer}
 .kw-halaman .filter button[aria-pressed="true"]{box-shadow:var(--in);color:var(--biru);font-weight:600}
 
+/* Panel dan tabel */
 .kw-halaman .panel{background:var(--bg);box-shadow:var(--out);border-radius:24px;padding:.6rem 1.2rem 1.2rem;overflow:hidden}
 .kw-halaman table{width:100%;border-collapse:collapse;font-size:.88rem}
 .kw-halaman th{text-align:left;font-weight:600;color:var(--muted);font-size:.8rem;padding:.9rem .6rem;white-space:nowrap}
-.kw-halaman td{padding:.8rem .6rem;border-top:1px solid rgba(94,106,134,.18);vertical-align:middle}
+.kw-halaman td{padding:.8rem .6rem;border-top:1px solid var(--garis);vertical-align:middle}
 .kw-halaman td small{display:block;color:var(--muted);font-size:.76rem}
+
 .kw-halaman .badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;font-weight:600;padding:.28rem .75rem;border-radius:999px;box-shadow:var(--in);white-space:nowrap}
 .kw-halaman .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
 .kw-halaman .online,.kw-halaman .selesai-b{color:var(--hijau)}
 .kw-halaman .offline{color:var(--merah)}
 .kw-halaman .belum{color:var(--abu)}
 .kw-halaman .proses{color:var(--kuning)}
+
 .kw-halaman .progres{display:flex;align-items:center;gap:.6rem;min-width:150px}
 .kw-halaman .pbar{flex:1;height:10px;border-radius:99px;background:var(--bg);box-shadow:var(--in);overflow:hidden}
 .kw-halaman .pbar i{display:block;height:100%;border-radius:99px;background:var(--biru)}
 .kw-halaman .pbar.penuh i{background:var(--hijau)}
 .kw-halaman .persen{font-size:.82rem;font-weight:600;min-width:2.8rem;text-align:right}
+
 .kw-halaman .kosong{text-align:center;color:var(--muted);padding:2rem 1rem}
 .kw-halaman .catatan{margin:1rem 0 2rem;font-size:.8rem;color:var(--muted)}
 .kw-halaman > footer{margin-top:auto;padding:1.4rem;text-align:center;font-size:.8rem;color:var(--muted)}
 
+/* Tablet */
+@media (max-width:820px){
+  .kw-halaman .wrap{padding-inline:14px}
+}
+
+/* HP: tabel jadi kartu */
 @media (max-width:760px){
+  .kw-halaman .cari,.kw-halaman select,.kw-halaman #pilih{font-size:16px;min-height:42px;flex:1 1 100%;width:100%}
+  .kw-halaman .alat .muat{min-height:42px;flex:1 1 100%}
+  .kw-halaman .filter button{min-height:40px}
+  .kw-halaman .panel{padding:.4rem 1rem 1rem}
+
   .kw-halaman thead{position:absolute;left:-9999px}
   .kw-halaman table,.kw-halaman tbody,.kw-halaman tr,.kw-halaman td{display:block;width:100%}
-  .kw-halaman tr{padding:.8rem 0;border-top:1px solid rgba(94,106,134,.18)}
-  .kw-halaman td{border:0;padding:.25rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+  .kw-halaman tr{padding:.8rem 0;border-top:1px solid var(--garis)}
+  .kw-halaman td{border:0;padding:.25rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;overflow-wrap:anywhere}
   .kw-halaman td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;flex:none}
   .kw-halaman td small{display:inline;margin-left:.4rem}
   .kw-halaman .progres{min-width:0;flex:1;max-width:60%}
 }
+
+/* HP kecil */
+@media (max-width:380px){
+  .kw-halaman .wrap{padding-inline:10px}
+  .kw-halaman .ringkas{grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+  .kw-halaman .ringkas b{font-size:1.5rem}
+}
 </style>
-<link rel="stylesheet" href="../assets/css/neumorph.css">
 </head>
 <body>
     <div id="sidebar-slot" data-peran="guru" data-mode="halaman" data-aktif="monitoring"></div>

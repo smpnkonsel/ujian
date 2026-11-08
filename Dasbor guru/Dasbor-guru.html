@@ -13,18 +13,66 @@
 <link rel="stylesheet" href="../assets/css/neumorph.css">
 <link rel="stylesheet" href="../assets/css/sidebar.css">
 <style>
-  .sb { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
-        box-shadow: inset 2px 2px 5px var(--nm-dark), inset -2px -2px 5px var(--nm-light); }
-  .sb.belum { color: var(--nm-kuning); } .sb.jalan { color: var(--nm-ok); } .sb.selesai { color: var(--nm-muted); }
-  .alat .btn[aria-pressed="true"] { color: var(--nm-accent);
-    box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light); }
-  .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; margin-bottom: 24px; }
-  .menu a { display: block; padding: 16px 18px; border-radius: 20px; text-decoration: none; color: var(--nm-text);
-            background: var(--nm-bg); box-shadow: 6px 6px 14px var(--nm-dark), -6px -6px 14px var(--nm-light); }
-  .menu a:hover { box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light); }
-  .menu b { display: block; color: var(--nm-accent); } .menu span { font-size: 12.5px; color: var(--nm-muted); }
+  /* Lencana status ujian */
+  .sb {
+    display: inline-block; padding: 3px 12px; border-radius: 99px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    box-shadow: inset 2px 2px 5px var(--nm-dark), inset -2px -2px 5px var(--nm-light);
+  }
+  .sb.belum { color: var(--nm-kuning); }
+  .sb.jalan { color: var(--nm-ok); }
+  .sb.selesai { color: var(--nm-muted); }
+
+  /* Tombol filter yang sedang aktif */
+  .alat .btn[aria-pressed="true"] {
+    color: var(--nm-accent);
+    box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light);
+  }
+
+  /* Kartu menu: maksimal 4 kolom, turun otomatis 3 / 2 / 1 */
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, max(210px, calc((100% - 3 * 18px) / 4))), 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .menu a {
+    display: block; min-width: 0; padding: 16px 18px; border-radius: 20px;
+    text-decoration: none; color: var(--nm-text); background: var(--nm-bg);
+    box-shadow: 6px 6px 14px var(--nm-dark), -6px -6px 14px var(--nm-light);
+  }
+  .menu a:hover, .menu a:active {
+    box-shadow: inset 4px 4px 9px var(--nm-dark), inset -4px -4px 9px var(--nm-light);
+  }
+  .menu a:focus-visible { outline: 2px solid var(--nm-accent); outline-offset: 3px; }
+  .menu b { display: block; color: var(--nm-accent); }
+  .menu span { font-size: 12.5px; color: var(--nm-muted); }
+
   h4.gr { margin: 22px 0 12px; font-size: 14px; color: var(--nm-muted); font-weight: 600; }
-  .tw { border: 0; box-shadow: none; background: transparent; }
+
+  /* Tabel: bisa digeser di layar sempit */
+  .tw {
+    border: 0; box-shadow: none; background: transparent;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tablet */
+  @media (max-width: 820px) {
+    .menu { gap: 14px; }
+  }
+
+  /* HP */
+  @media (max-width: 600px) {
+    .alat .btn { flex: 1 1 auto; min-height: 42px; }
+    .menu { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .menu a { padding: 14px; }
+    .tw table { min-width: 620px; }
+  }
+
+  /* HP kecil */
+  @media (max-width: 380px) {
+    .menu { grid-template-columns: minmax(0, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -37,11 +85,11 @@
     <h2 id="sapa">Dasbor Guru</h2>
   </div>
 
-  <div class="wrap">
+  <div class="wrap penuh">
     <p id="tanggal" style="margin:0 0 16px;color:var(--nm-muted)"></p>
     <div id="info" class="msg warn" role="status" hidden></div>
 
-    <section class="stats" aria-label="Ringkasan">
+    <section class="stats maks4" aria-label="Ringkasan">
       <div class="st"><b id="n-hari">0</b><span>Jadwal hari ini</span></div>
       <div class="st"><b id="n-jalan">0</b><span>Sedang berlangsung</span></div>
       <div class="st"><b id="n-paket">0</b><span>Paket soal</span></div>
