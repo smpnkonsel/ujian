@@ -144,7 +144,7 @@ import {
 
 const BATAS_HASIL = 500, BATAS_TOKEN = 100, MAKS_TOKEN = 30;
 const AMBANG_AKTIF = 3 * 60 * 1000;   // detak lebih lama dari ini = terputus
-const SEGAR_SESI = 60 * 1000;
+const SEGAR_SESI = 120 * 1000;   /* sesi berlangsung disegarkan tiap 2 menit (hemat baca) */
 /* [dari, sampai) — nilai desimal seperti 59,5 tetap masuk kelompok */
 const KELOMPOK = [['0–59', 0, 60], ['60–69', 60, 70], ['70–79', 70, 80], ['80–89', 80, 90], ['90–100', 90, Infinity]];
 
@@ -214,12 +214,14 @@ async function muatTingkat(t) {
 async function muatMaster() {
   /* Siswa tersimpan di Firebase Siswa & Guru, bukan di Firebase tingkat */
   const [rs, rp] = await Promise.allSettled([
-    F.getDocs(F.query(F.collection(dbSiswaGuru, KOLEKSI.siswa), F.limit(5000))),
+    /* Roster siswa lewat cache bersama (cache.js): sebelumnya sampai 5000 pembacaan tiap membuka dasbor. */
+    import('./assets/js/cache.js').then(C => C.ambilCache('siswa', 30,
+      async () => (await F.getDocs(F.query(F.collection(dbSiswaGuru, KOLEKSI.siswa), F.limit(5000)))).docs.map(x => ({ id: x.id, ...x.data() })))),
     F.getDocs(F.query(F.collection(dbBankSoal, KOLEKSI.paket), F.limit(1)))
   ]);
   LAIN.SISWA_GURU = rs.status === 'fulfilled';
   LAIN.BANK_SOAL = rp.status === 'fulfilled';
-  SISWA = rs.status === 'fulfilled' ? rs.value.docs.map(x => x.data()) : null;
+  SISWA = rs.status === 'fulfilled' ? rs.value : null;
   if (rs.status === 'rejected') peringatan('Firebase Siswa & Guru gagal dibaca: ' + (rs.reason?.message || rs.reason));
   if (rp.status === 'rejected') peringatan('Firebase Bank Soal gagal dibaca: ' + (rp.reason?.message || rp.reason));
 }

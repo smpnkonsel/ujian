@@ -286,12 +286,12 @@ button.utama.merah { color: var(--bahaya) !important; }
   gagal dimuat, tombol-tombol lain tetap berfungsi dan penyebabnya
   ditampilkan di halaman (bukan hanya di konsol).
 */
-let F, dbSiswaGuru;
+let F, dbSiswaGuru, FIREBASE_PUSAT = {};
 let KOLEKSI = { guru: "guru", siswa: "siswa" };
 let galatMuat = "";
 
 try {
-  ({ F, dbSiswaGuru, KOLEKSI } = await import("../assets/js/firebase-pusat.js"));
+  ({ F, dbSiswaGuru, KOLEKSI, FIREBASE_PUSAT } = await import("../assets/js/firebase-pusat.js"));
 } catch (e) {
   console.error("firebase-pusat.js gagal dimuat:", e);
 
@@ -1173,7 +1173,24 @@ try {
 
       await F.deleteDoc(ref);
 
-      toast("Data guru berhasil dihapus.");
+      // Cabut hak akses: hapus daftar akunGuru di KELIMA project, kalau tidak
+      // guru yang sudah dihapus masih lolos Firestore Rules (isGuru()).
+      const email = String(guru.akunEmail || "").toLowerCase();
+      let gagalCabut = [];
+
+      if (email) {
+        const hasil = await Promise.allSettled(
+          Object.values(FIREBASE_PUSAT).map((p) =>
+            F.deleteDoc(F.doc(p.db, KOLEKSI.akunGuru || "akunGuru", email)))
+        );
+        gagalCabut = hasil.filter((h) => h.status === "rejected").length;
+      }
+
+      try { (await import("../assets/js/cache.js")).hapusCache("guruRingkas"); } catch (e) { /* abaikan */ }
+
+      toast(gagalCabut
+        ? "Guru dihapus, tetapi akses gagal dicabut di " + gagalCabut + " project. Hapus manual di koleksi akunGuru."
+        : "Data guru berhasil dihapus dan aksesnya dicabut.");
 
       await muatGuru();
 

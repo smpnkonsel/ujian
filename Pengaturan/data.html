@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadangan &amp; Pemeriksaan Data · KW Learning</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+  .acts { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  ul.tmn { margin:8px 0 0; padding-left:20px; line-height:1.6; font-size:14px; }
+  .ok { color:var(--nm-ok); font-weight:600; } .bad { color:var(--nm-warn); font-weight:600; }
+  .card p { color:var(--nm-muted); font-size:14px; }
+</style>
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-peran="admin" data-aktif="data"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+<div id="mn">
+  <div class="top"><button id="burger" type="button" aria-label="Buka menu">☰</button><h2>Cadangan &amp; Pemeriksaan Data</h2></div>
+  <div class="wrap penuh">
+    <div class="card">
+      <h3>Pemeriksaan data</h3>
+      <p>Mencari data yang saling tidak nyambung: jadwal tanpa paket, token yatim, guru aktif tanpa hak akses, paket tanpa file, dan siswa dengan kelas tak terbaca. Tidak mengubah apa pun.</p>
+      <div class="acts"><button id="periksa" class="btn p" type="button">Periksa sekarang</button></div>
+      <div id="hasil"></div>
+    </div>
+    <div class="card">
+      <h3>Cadangan data</h3>
+      <p>Mengunduh siswa, guru (tanpa sandi), jadwal, paket, dan token sebagai satu berkas JSON. Hasil ujian tidak disertakan (unduh dari halaman Nilai Ujian). Disarankan sebelum impor besar atau pergantian tahun ajaran.</p>
+      <div class="acts"><button id="cadang" class="btn" type="button">Unduh cadangan (JSON)</button></div>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { F, TINGKAT, KOLEKSI, FIREBASE_PUSAT, dbSiswaGuru, dbBankSoal, dbTingkat, tingkatDariKelas } from '../assets/js/firebase-pusat.js';
+import { toast, esc } from '../assets/js/util.js';
+import { muatSidebar } from '../assets/js/sidebar.js';
+const $ = id => document.getElementById(id);
+try { await muatSidebar(); } catch (e) { console.warn(e); }
+
+const baca = async (db, nama) => (await F.getDocs(F.collection(db, nama))).docs.map(d => ({ id: d.id, ...d.data() }));
+
+async function kumpul() {
+  const [siswa, guru, jadwal, paket] = await Promise.all([
+    baca(dbSiswaGuru, KOLEKSI.siswa), baca(dbSiswaGuru, KOLEKSI.guru),
+    baca(dbBankSoal, KOLEKSI.jadwal), baca(dbBankSoal, KOLEKSI.paket)
+  ]);
+  const token = {};
+  await Promise.all(TINGKAT.map(async t => { token[t] = await baca(dbTingkat(t), KOLEKSI.token); }));
+  return { siswa, guru, jadwal, paket, token };
+}
+
+$('periksa').onclick = async () => {
+  const b = $('periksa'); b.disabled = true; $('hasil').textContent = 'Memeriksa…';
+  try {
+    const D = await kumpul();
+    const idPaket = new Set(D.paket.map(p => p.id)), idJadwal = new Set(D.jadwal.map(j => j.id));
+    const temuan = [];
+    D.jadwal.forEach(j => {
+      if (!j.paketId) temuan.push(`Jadwal ${j.mapel || j.id} (${j.tgl || '-'}) belum memilih paket soal.`);
+      else if (!idPaket.has(j.paketId)) temuan.push(`Jadwal ${j.mapel || j.id} (${j.tgl || '-'}) memakai paket yang sudah dihapus.`);
+      if (!j.pengawas) temuan.push(`Jadwal ${j.mapel || j.id} (${j.tgl || '-'}) belum punya pengawas.`);
+    });
+    TINGKAT.forEach(t => D.token[t].forEach(k => {
+      if (k.jadwalId && !idJadwal.has(k.jadwalId)) temuan.push(`Token ${k.id} (${t}) menunjuk jadwal yang sudah dihapus.`);
+      if (k.paketId && !idPaket.has(k.paketId)) temuan.push(`Token ${k.id} (${t}) menunjuk paket yang sudah dihapus.`);
+    }));
+    D.paket.forEach(p => { if (!p.file) temuan.push(`Paket ${p.nama || p.id} tidak punya lokasi file DOCX.`); });
+    D.siswa.forEach(s => { if (!tingkatDariKelas(s.kelas)) temuan.push(`Siswa ${s.nama || s.id} (${s.id}) berkelas "${s.kelas ?? ''}" yang tidak terbaca.`); });
+    // guru aktif harus terdaftar di akunGuru kelima project
+    const aktif = D.guru.filter(g => g.akunAktif && g.akunEmail);
+    await Promise.all(aktif.map(async g => {
+      const email = String(g.akunEmail).toLowerCase();
+      const hilang = [];
+      await Promise.all(Object.entries(FIREBASE_PUSAT).map(async ([kode, p]) => {
+        try { if (!(await F.getDoc(F.doc(p.db, KOLEKSI.akunGuru, email))).exists()) hilang.push(kode); }
+        catch (e) { hilang.push(kode + '?'); }
+      }));
+      if (hilang.length) temuan.push(`Guru ${g.nama || g.id} aktif tetapi tidak terdaftar di: ${hilang.join(', ')}. Tekan Aktifkan lagi di Akun Guru.`);
+    }));
+    const ringkas = `${D.siswa.length} siswa · ${D.guru.length} guru · ${D.jadwal.length} jadwal · ${D.paket.length} paket · ${TINGKAT.reduce((a, t) => a + D.token[t].length, 0)} token`;
+    $('hasil').innerHTML = `<p>${esc(ringkas)}</p>` + (temuan.length
+      ? `<p class="bad">${temuan.length} temuan:</p><ul class="tmn">${temuan.slice(0, 200).map(t => `<li>${esc(t)}</li>`).join('')}</ul>`
+      : '<p class="ok">Tidak ada masalah ditemukan.</p>');
+  } catch (e) { console.error(e); $('hasil').innerHTML = `<p class="bad">Gagal memeriksa: ${esc(e.code || e.message)}</p>`; }
+  b.disabled = false;
+};
+
+$('cadang').onclick = async () => {
+  const b = $('cadang'); b.disabled = true;
+  try {
+    const D = await kumpul();
+    D.guru = D.guru.map(({ akunSandi, ...sisa }) => sisa);   // sandi tidak ikut
+    const json = JSON.stringify({ dibuat: new Date().toISOString(), ...D }, (k, v) =>
+      v && typeof v === 'object' && typeof v.toMillis === 'function' ? v.toMillis() : v, 1);
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'cadangan-cbt-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Cadangan diunduh.');
+  } catch (e) { console.error(e); toast('Gagal membuat cadangan: ' + (e.code || e.message)); }
+  b.disabled = false;
+};
+</script>
+</body>
+</html>

@@ -240,6 +240,7 @@ textarea{resize:vertical;min-height:64px}
 <div class="toast" id="toast" role="status"></div>
 
 <script type="module">
+import { buatPeriode, buatFilterJenis, dalamRentang } from "../assets/js/periode.js";
 /* =========================================================
    HEMAT FIRESTORE
    - Snapshot listener : 0 (tidak ada koneksi real-time yang terbuka)
@@ -304,6 +305,7 @@ function cacheGet(k, ttl){
   return null;
 }
 function cacheSet(k, d){ try{ sessionStorage.setItem("jdw:" + k, JSON.stringify({t: Date.now(), d: d})); }catch(e){} }
+function invalidasiLuar(){ try{ sessionStorage.removeItem("tok:jadwal"); sessionStorage.removeItem("tok:token"); localStorage.removeItem("kwc:jadwal"); }catch(e){} }
 function cacheDel(k){ try{ sessionStorage.removeItem("jdw:" + k); }catch(e){} }
 
 function ambil(snap){ return snap.docs.map(function(d){ return Object.assign({}, d.data(), {id: d.id}); }); }
@@ -327,7 +329,7 @@ async function muatJadwal(paksa){
   try{
     var snap = await F.getDocs(F.collection(dbBankSoal, KOLEKSI.jadwal));
     items = ambil(snap).map(normal);
-    cacheSet("jadwal", items);
+    cacheSet("jadwal", items); invalidasiLuar();
     loadError = "";
   }catch(err){
     console.error(err);
@@ -401,8 +403,13 @@ function isiPilihanGuru(){
 /* ---------- Tabel ---------- */
 function render(){
   var q = $("q").value.trim().toLowerCase(), f = $("filter").value, ft = $("filterTingkat").value;
+  var per = PER.rentang();
+  var luar = items.filter(function(it){ return !dalamRentang(startMs(it), per); }).length;
+  $("hintPer").textContent = luar ? luar + " jadwal di luar periode \"" + per.label + "\" disembunyikan. Ganti periode di atas untuk melihatnya." : "";
   var rows = items.slice().sort(function(a,b){ return startMs(a) - startMs(b); }).filter(function(it){
     var st = status(it).k;
+    if(!dalamRentang(startMs(it), per)) return false;
+    if(!JF.cocok(JN.get(it.paketId))) return false;
     if(f === "upcoming" && st === "done") return false;
     if(f === "done" && st !== "done") return false;
     if(ft && it.tingkat !== ft) return false;
@@ -490,6 +497,16 @@ $("btnPrint").addEventListener("click", function(){ window.print(); });
 $("q").addEventListener("input", render);
 $("filter").addEventListener("change", render);
 $("filterTingkat").addEventListener("change", render);
+var PER = buatPeriode($("q").parentElement, { kunci: "jadwal", bawaan: "mendatang", onUbah: render });
+var JN = new Map();
+var JF = buatFilterJenis($("q").parentElement, { kunci: "jadwal", onUbah: render });
+/* Jenis ujian dibaca dari paket (cache bersama), tidak menghambat tampilan jadwal. */
+function muatJenis(){
+  import("../assets/js/data.js").then(function(m){ return m.petaJenisPaket(); })
+    .then(function(map){ JN = map; JF.isi(Array.from(map.values())); render(); })
+    .catch(function(e){ console.warn("Jenis ujian tidak terbaca", e); });
+}
+(function(){ var p = document.createElement("p"); p.id = "hintPer"; p.style.cssText = "margin:6px 0 0;font-size:13px;color:var(--nm-muted)"; $("q").parentElement.insertAdjacentElement("afterend", p); })();
 $("btnReload").addEventListener("click", async function(){
   if(!siap) return;
   var b = $("btnReload"); b.disabled = true;
@@ -551,7 +568,7 @@ $("form").addEventListener("submit", async function(e){
         patch.diubah = F.serverTimestamp();
         await F.updateDoc(F.doc(dbBankSoal, KOLEKSI.jadwal, editId), patch);
         items = items.map(function(x){ return x.id === editId ? Object.assign({}, x, d, {_m: mMs, _s: sMs}) : x; });
-        cacheSet("jadwal", items);
+        cacheSet("jadwal", items); invalidasiLuar();
         toast("Jadwal diperbarui.");
       } else toast("Tidak ada perubahan.");
     } else {
@@ -561,7 +578,7 @@ $("form").addEventListener("submit", async function(e){
       });
       var ref = await F.addDoc(F.collection(dbBankSoal, KOLEKSI.jadwal), data);
       items = items.concat([Object.assign({}, d, {id: ref.id, _m: mMs, _s: sMs})]);
-      cacheSet("jadwal", items);
+      cacheSet("jadwal", items); invalidasiLuar();
       toast("Jadwal tersimpan.");
     }
     $("dlg").close();
@@ -597,9 +614,20 @@ $("delYes").addEventListener("click", async function(){
   if(!siap){ $("delErr").textContent = bootError || "Koneksi belum siap."; return; }
   var b = $("delYes"); b.disabled = true;
   try{
+    /* Hapus juga token yang dibuat dari jadwal ini (kalau dibiarkan, jadi token yatim). */
+    var pusat = await import("../assets/js/firebase-pusat.js");
+    var hapusToken = 0;
+    for(var tk of pusat.TINGKAT){
+      try{
+        var qs = await F.getDocs(F.query(F.collection(pusat.dbTingkat(tk), KOLEKSI.token), F.where("jadwalId","==",delId)));
+        for(var d of qs.docs){ await F.deleteDoc(d.ref); hapusToken++; }
+      }catch(e){ console.warn("Token "+tk+" tidak bisa dibersihkan", e); }
+    }
     await F.deleteDoc(F.doc(dbBankSoal, KOLEKSI.jadwal, delId));
     items = items.filter(function(x){ return x.id !== delId; });
-    cacheSet("jadwal", items);
+    cacheSet("jadwal", items); invalidasiLuar();
+    invalidasiLuar();
+    if(hapusToken) toast(hapusToken + " token terkait ikut dihapus.");
     $("dlgDel").close();
     render();
     toast("Jadwal dihapus.");
@@ -617,6 +645,7 @@ async function mulaiFirebase(){
     F = pusat.F; dbBankSoal = pusat.dbBankSoal; dbSiswaGuru = pusat.dbSiswaGuru; KOLEKSI = pusat.KOLEKSI;
     siap = true;
     await muatJadwal(false);
+    muatJenis();
   }catch(err){
     console.error(err);
     bootError = "Tidak dapat memuat Firebase: " + (err && err.message ? err.message : err);

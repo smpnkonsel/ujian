@@ -10,7 +10,8 @@ dasbor.html           -> dasbor admin
 Dasbor guru/          -> dasbor & halaman guru (hanya baca data master)
 Data Master/ Manajemen Ujian/ Monitoring/ Hasil Ujian/ Pengaturan/   -> halaman admin
 assets/css/neumorph.css  -> desain utama (dari dasbor.css Anda) dipakai semua halaman
-assets/css/sidebar.css, token.css, paket.css, ujian.css -> gaya khusus
+assets/css/sidebar.css, ujian.css      -> gaya khusus
+assets/js/cache.js                    -> cache data master (hemat Firestore)
 assets/js/auth.js, guard.js  -> login, peran, penjaga halaman
 assets/js/data.js            -> baca data gabungan VII/VIII/IX
 assets/js/firebase-pusat.js  -> konfigurasi 5 Firebase
@@ -38,4 +39,4 @@ firebase-rules/              -> rules Firestore untuk kelima project
 - Sandi awal guru tersimpan di dokumen `guru` (`akunSandi`) agar admin bisa membagikannya. Hanya admin dan guru pemilik dokumen yang bisa membacanya.
 - Nilai ujian dihitung di browser siswa; rules membatasi bentuk data tapi tidak bisa menjamin nilai asli.
 - API key Google Drive di `assets/js/storageConfig.js` terlihat publik; batasi di Google Cloud (HTTP referrer + hanya Drive API).
-- Pengaturan Aplikasi (`Pengaturan/pengaturan.html`) tersimpan per browser (localStorage).
+- Pengaturan Aplikasi (`Pengaturan/pengaturan.html`) tersimpan di Firestore (Bank Soal, dokumen `pengaturan/kop_sekolah`); hanya admin yang menulis.

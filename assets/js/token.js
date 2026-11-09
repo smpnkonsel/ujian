@@ -28,6 +28,7 @@ import { muatSidebar } from './sidebar.js';
 import { ambilDokumen } from './storage.js';
 import { parseSoalBaru, punyaKunci } from './parser.js?v=6';
 import { htmlSoal } from './pratinjau.js';
+import { buatPeriode, buatFilterJenis, dalamRentang } from './periode.js';
 
 /* ---------- Kotak peringatan (kuning) ---------- */
 
@@ -260,10 +261,35 @@ function sinkron() {
 let ITEMS = [];            // { key, jadwal|null, paket|null }
 const BUKA = new Set();    // key pratinjau yang sedang terbuka
 
+/* Periode yang dipilih (jadwal & token di luar periode tidak ditampilkan). */
+let PER = null;
+let JF = null;
+let LUAR_JADWAL = 0;
+
+function periode() {
+  if (!PER) {
+    const w = $('perwrap');
+    if (w) {
+      PER = buatPeriode(w, { kunci: 'token', bawaan: 'mendatang', onUbah: () => { drawDaftar(); drawTok(); } });
+      JF = buatFilterJenis(w, { kunci: 'token', onUbah: () => { drawDaftar(); drawTok(); } });
+    }
+  }
+  return PER ? PER.rentang() : null;
+}
+
 function susunItems() {
-  const jadwal = daftarJadwal()
-    .slice()
+  const per = periode();
+  const jadwalSemua = daftarJadwal();
+  const nj = j => (String(j || '').trim().toUpperCase() === 'UTS' ? 'PTS' : String(j || '').trim().toUpperCase() === 'ULANGAN HARIAN' ? 'UH' : String(j || '').trim().toUpperCase());
+  if (JF) JF.isi(daftarPaket().map(p => nj(p.jenis)));
+  const jenisOk = idPaket => !JF || JF.cocok(nj(paketDari(idPaket)?.jenis));
+  const jadwal = jadwalSemua
+    .filter(j => {
+      const m = +mulaiJadwal(j);
+      return (!per || !Number.isFinite(m) || dalamRentang(m, per)) && jenisOk(j.paketId);
+    })
     .sort((a, b) => mulaiJadwal(b) - mulaiJadwal(a));
+  LUAR_JADWAL = jadwalSemua.length - jadwal.length;
 
   const dariJadwal = jadwal.map(j => ({
     key: 'j:' + j.id,
@@ -272,9 +298,9 @@ function susunItems() {
   }));
 
   // Paket yang belum dipakai jadwal mana pun
-  const dipakai = new Set(jadwal.map(j => j.paketId));
+  const dipakai = new Set(jadwalSemua.map(j => j.paketId));   // semua jadwal, termasuk di luar periode
   const tanpaJadwal = daftarPaket()
-    .filter(p => !dipakai.has(p.id))
+    .filter(p => !dipakai.has(p.id) && (!JF || JF.cocok(nj(p.jenis))))
     .map(p => ({ key: 'p:' + p.id, jadwal: null, paket: p }));
 
   ITEMS = [...dariJadwal, ...tanpaJadwal];
@@ -379,13 +405,16 @@ function drawDaftar() {
   susunItems();
 
   if (!ITEMS.length) {
-    container.innerHTML =
-      '<div class="empty">Belum ada jadwal ujian atau paket soal. Buat dulu di <a href="jadwal.html">Jadwal Ujian</a>.</div>';
+    container.innerHTML = LUAR_JADWAL
+      ? '<div class="empty">Tidak ada jadwal yang sesuai filter (' + esc(PER.label()) + '). Ganti periode/jenis di atas untuk melihat ' + LUAR_JADWAL + ' jadwal lainnya.</div>'
+      : '<div class="empty">Belum ada jadwal ujian atau paket soal. Buat dulu di <a href="jadwal.html">Jadwal Ujian</a>.</div>';
     return;
   }
 
   const adaTanpaJadwal = ITEMS.some(x => !x.jadwal);
-  let html = '';
+  let html = LUAR_JADWAL
+    ? '<small style="display:block;margin:0 0 8px;color:var(--soft)">' + LUAR_JADWAL + ' jadwal tidak sesuai filter (' + esc(PER.label()) + ') disembunyikan. Ganti periode/jenis di atas untuk melihatnya.</small>'
+    : '';
   let penandaTerpasang = false;
 
   ITEMS.forEach((item, i) => {
@@ -601,7 +630,7 @@ async function simpan() {
       // Ringkasan untuk daftar token admin
       paketNama: namaPaket,
       mapel: formatNama(jadwal?.mapel) || namaPaket,
-      kelas: labelKelas(paket.kelas || jadwal?.kelas || tingkat),
+      kelas: labelKelas(jadwal?.kelas || paket.kelas || tingkat),   // kelas jadwal lebih spesifik daripada kelas paket
       tgl: jadwal?.tgl || '',
 
       // Cadangan lokasi dokumen soal
@@ -640,7 +669,15 @@ export function drawTok() {
   const input = $('ftk');
   const q = input ? input.value.trim().toLowerCase() : '';
 
-  const L = TOK.filter(x =>
+  const per = periode();
+  const dlmPeriode = x => !per || !(x.tgl || x.dibuat) || dalamRentang(x.tgl || x.dibuat, per) || (x.dibuat && dalamRentang(x.dibuat, per));
+  const nj2 = j => (String(j || '').trim().toUpperCase() === 'UTS' ? 'PTS' : String(j || '').trim().toUpperCase() === 'ULANGAN HARIAN' ? 'UH' : String(j || '').trim().toUpperCase());
+  const dlmJenis = x => !JF || JF.cocok(nj2(paketDari(x.paketId)?.jenis));
+  const luarTok = TOK.filter(x => !(dlmPeriode(x) && dlmJenis(x))).length;
+  const hint = $('hintTok');
+  if (hint) hint.textContent = luarTok ? luarTok + ' token tidak sesuai filter (' + per.label + ') disembunyikan.' : '';
+
+  const L = TOK.filter(x => dlmPeriode(x) && dlmJenis(x)).filter(x =>
     !q ||
     ((x.id || '') + ' ' + (x.mapel || '') + ' ' + (x.paketNama || '') + ' ' + labelKelas(x.kelas) + ' ' + (x.tingkat || '') + ' ' + (x.sumber || '') + ' ' + (x.tgl || ''))
       .toLowerCase().includes(q)
@@ -668,7 +705,7 @@ export function drawTok() {
         </td>
       </tr>`).join('')
     : `<tr><td colspan="6" class="empty">${TOK.length
-        ? 'Tidak ada token yang cocok.'
+        ? (luarTok && !q ? 'Tidak ada token yang sesuai filter (' + per.label + '). Ganti periode/jenis di atas.' : 'Tidak ada token yang cocok.')
         : 'Belum ada token. Pilih jadwal di atas lalu klik Buat token.'}</td></tr>`;
 
   document.querySelectorAll('[data-c]').forEach(button => {
@@ -821,7 +858,15 @@ try {
 
   // Dari halaman Jadwal: token.html?jadwal=ID langsung membuka pembuat token
   const dariUrl = new URLSearchParams(location.search).get('jadwal');
-  const idx = dariUrl ? ITEMS.findIndex(x => x.key === 'j:' + dariUrl) : -1;
+  let idx = dariUrl ? ITEMS.findIndex(x => x.key === 'j:' + dariUrl) : -1;
+
+  /* Jadwal dari tautan ada di luar periode terpilih: lebarkan periode ke "Semua waktu" lalu cari lagi. */
+  if (dariUrl && idx < 0 && PER && daftarJadwal().some(j => j.id === dariUrl)) {
+    const sel = $('perwrap') && $('perwrap').querySelector('select');
+    if (sel) { sel.value = 'semua'; sel.dispatchEvent(new Event('change')); }
+    susunItems();
+    idx = ITEMS.findIndex(x => x.key === 'j:' + dariUrl);
+  }
   if (idx >= 0) openModal(idx);
 
 } catch (error) {

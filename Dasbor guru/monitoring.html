@@ -165,15 +165,16 @@
     </table>
     <p class="kosong" id="kosong" hidden>Tidak ada peserta yang cocok dengan pencarian atau filter ini.</p>
   </section>
-  <p class="catatan">Data dibaca dari sesi dan hasil siswa (Firebase tingkat) dan diperbarui otomatis. Progres = soal terjawab ÷ total soal × 100%. Online = detak sesi terakhir kurang dari 90 detik. Filter Online/Offline/Belum login memakai status login, sedangkan Selesai memakai status pengerjaan, jadi siswa yang sudah selesai (otomatis Offline) muncul di Offline dan Selesai, tetapi tidak di Online. Hasil siswa yang sudah selesai hanya muncul bila sebuah jadwal dipilih.</p>
+  <p class="catatan">Data dibaca dari sesi dan hasil siswa (Firebase tingkat) dan diperbarui otomatis. Progres = soal terjawab ÷ total soal × 100%. Online = detak sesi terakhir kurang dari 3 menit. Filter Online/Offline/Belum login memakai status login, sedangkan Selesai memakai status pengerjaan, jadi siswa yang sudah selesai (otomatis Offline) muncul di Offline dan Selesai, tetapi tidak di Online. Hasil siswa yang sudah selesai hanya muncul bila sebuah jadwal dipilih.</p>
 </main>
 
 <footer>KW Learning &middot; Ujian Online SMP Negeri 20 Konawe Selatan</footer>
 </div>
 
 <script type="module">
+import { buatPeriode, dalamRentang } from '../assets/js/periode.js';
 const LOKASI_FIREBASE = '../assets/js/firebase-pusat.js';
-const BATAS_ONLINE_DETIK = 90;    /* detak (aktifTerakhir) dikirim ujian.js tiap 30 detik */
+const BATAS_ONLINE_DETIK = 180;   /* detak (aktifTerakhir) dikirim ujian.js tiap 60 detik (dilewati bila baru menulis) */
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -298,9 +299,17 @@ function konteks(){
     (JADWAL.pengawas ? ' · pengawas ' + JADWAL.pengawas : '');
 }
 
+/* Dropdown jadwal hanya memuat jadwal pada periode terpilih (bawaan 7 hari terakhir),
+   ditambah jadwal yang sedang berjalan dan jadwal yang sedang dipilih. */
+let PER = null;
 function isiPilihan(){
-  $('pilih').innerHTML = '<option value="">Semua sesi hari ini</option>' + JADWAL_LIST.map(j =>
-    `<option value="${esc(j.id)}"${JADWAL && JADWAL.id === j.id ? ' selected' : ''}>${esc(j.tgl)} · ${esc(j.mapel)} · Kelas ${esc(j.tingkat)}${j.ruang ? ' · ' + esc(j.ruang) : ''}</option>`).join('');
+  if(!PER) PER = buatPeriode($('pilih').parentElement, {kunci:'monitoring', bawaan:'7', onUbah:isiPilihan});
+  const per = PER.rentang();
+  const tampil = JADWAL_LIST.filter(j => dalamRentang(mulaiJadwal(j), per) || statusJadwal(j) === 'jalan' || (JADWAL && JADWAL.id === j.id));
+  const luar = JADWAL_LIST.length - tampil.length;
+  $('pilih').innerHTML = '<option value="">Semua sesi hari ini</option>' + tampil.map(j =>
+    `<option value="${esc(j.id)}"${JADWAL && JADWAL.id === j.id ? ' selected' : ''}>${esc(j.tgl)} · ${esc(j.mapel)} · Kelas ${esc(j.tingkat)}${j.ruang ? ' · ' + esc(j.ruang) : ''}</option>`).join('') +
+    (luar ? `<option value="" disabled>— ${luar} jadwal lain di luar periode "${esc(per.label)}" (ganti periode) —</option>` : '');
 }
 
 function setJadwal(id){
@@ -314,6 +323,20 @@ function setJadwal(id){
 }
 
 function henti(){ berhenti.forEach(f => { try{ f(); }catch(e){} }); berhenti = []; }
+
+/* HEMAT FIRESTORE: listener realtime hanya aktif saat tab terlihat.
+   Tab yang ditinggalkan >2 menit menghentikan listener (tidak membaca lagi);
+   saat tab dibuka kembali, data dimuat ulang sekali. */
+let timerSembunyi = null, dihentikanOtomatis = false;
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    clearTimeout(timerSembunyi);
+    timerSembunyi = setTimeout(() => { if(document.hidden && berhenti.length){ henti(); dihentikanOtomatis = true; } }, 120000);
+  }else{
+    clearTimeout(timerSembunyi);
+    if(dihentikanOtomatis){ dihentikanOtomatis = false; mulai(); }
+  }
+});
 
 async function mulai(){
   henti(); SESI = []; HASIL = []; pesan('');
@@ -357,7 +380,12 @@ async function awal(){
   try{
     FB = await import(LOKASI_FIREBASE);
     const {F, dbSiswaGuru, dbBankSoal, KOLEKSI} = FB;
-    const [j, sw] = await Promise.allSettled([ambil(F, dbBankSoal, KOLEKSI.jadwal), ambil(F, dbSiswaGuru, KOLEKSI.siswa)]);
+    /* Jadwal & roster siswa berubah jarang: dibaca dari cache bersama (cache.js), bukan tiap buka halaman. */
+    const C = await import('../assets/js/cache.js');
+    const [j, sw] = await Promise.allSettled([
+      C.ambilCache('jadwal', 15, () => ambil(F, dbBankSoal, KOLEKSI.jadwal)),
+      C.ambilCache('siswa', 30, () => ambil(F, dbSiswaGuru, KOLEKSI.siswa))
+    ]);
     if(j.status === 'fulfilled') JADWAL_LIST = j.value.sort((a,b) => mulaiJadwal(b) - mulaiJadwal(a));
     else pesan('Daftar jadwal tidak bisa dibaca (' + j.reason.message + ').');
     if(sw.status === 'fulfilled') ROSTER = sw.value;

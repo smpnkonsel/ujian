@@ -7,7 +7,8 @@
    - Daftar mapel dibaca dari [DAT-GURU-SISWA] dokumen Daftar/mapel
    - Mapel milik guru dibaca dari [DAT-GURU-SISWA] dokumen guru
      (lihat bagian PENGATURAN GURU di bawah, sesuaikan bila perlu)
-   - Daftar paket real-time (onSnapshot)
+   - Daftar paket dibaca sekali + cache bersama (cache.js), diperbarui lokal
+     setelah simpan/hapus (HEMAT FIRESTORE: tanpa listener realtime)
    - Kelas memakai angka romawi: VII, VII A, VII B, VIII, ... IX B
    - Jenis ujian (SAS/UTS/dll.) disimpan terpisah di field "jenis"
 ========================================================= */
@@ -19,6 +20,7 @@ import { muatSidebar } from './sidebar.js';
 import { ambilDokumen } from './storage.js';
 import { parseSoalBaru } from './parser.js?v=6';
 import { htmlSoal } from './pratinjau.js';
+import * as C from './cache.js';
 
 /* ---------- Peran halaman ---------- */
 
@@ -321,16 +323,20 @@ function pasangPilihGuru() {
 function dengarDaftarGuru() {
   if (LAGI_GURU || !FP.dbSiswaGuru) return;
 
-  F.onSnapshot(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU), snap => {
-    DAFTAR_GURU = snap.docs.map(d => {
+  /* Disimpan RINGKAS di cache: dokumen guru berisi sandi awal akun, jangan di-cache. */
+  C.ambilCache('guruRingkas', 30, async () => {
+    const snap = await F.getDocs(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU));
+    return snap.docs.map(d => {
       const x = d.data();
-      return {
-        id: d.id,
-        email: String(x.akunEmail || '').toLowerCase(),
-        nama: x.nama || x.akunNama || x.akunEmail || d.id,
-        mapel: x[FIELD_MAPEL_GURU]
-      };
-    }).sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id'));
+      return { id: d.id, akunEmail: x.akunEmail || '', nama: x.nama || '', akunNama: x.akunNama || '', mapel: x[FIELD_MAPEL_GURU] ?? null };
+    });
+  }).then(daftar => {
+    DAFTAR_GURU = daftar.map(x => ({
+      id: x.id,
+      email: String(x.akunEmail || '').toLowerCase(),
+      nama: x.nama || x.akunNama || x.akunEmail || x.id,
+      mapel: x.mapel
+    })).sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id'));
 
     const sel = $('pguru');
     if (sel) {
@@ -339,7 +345,7 @@ function dengarDaftarGuru() {
       sel.value = sekarang;
     }
     if (GURU_PILIH) GURU_PILIH = DAFTAR_GURU.find(g => g.id === GURU_PILIH.id) || null;
-  }, error => {
+  }).catch(error => {
     console.error('Gagal memuat daftar guru:', error);
     peringatan('Gagal memuat daftar guru (' + (error.code || error.message || error) + ').');
   });
@@ -351,28 +357,40 @@ function dengarMapel() {
     return;
   }
 
-  // Daftar mapel seluruh sekolah (dipakai admin, dan untuk menerjemahkan kunci mapel guru)
-  F.onSnapshot(F.doc(FP.dbSiswaGuru, 'Daftar', 'mapel'), snap => {
-    if (!snap.exists()) {
-      if (!LAGI_GURU) peringatan('Dokumen Daftar/mapel belum ada — saran mapel memakai daftar cadangan.');
-      return;
+  // Daftar mapel seluruh sekolah (dipakai admin, dan untuk menerjemahkan kunci mapel guru).
+  // Satu dokumen, dibaca sekali dan di-cache 60 menit.
+  (async () => {
+    try {
+      let data = C.bacaCache('mapelDaftar', 60);
+
+      if (!data) {
+        const snap = await F.getDoc(F.doc(FP.dbSiswaGuru, 'Daftar', 'mapel'));
+        if (!snap.exists()) {
+          if (!LAGI_GURU) peringatan('Dokumen Daftar/mapel belum ada — saran mapel memakai daftar cadangan.');
+          return;
+        }
+        data = snap.data();
+        C.tulisCache('mapelDaftar', data);
+      }
+
+      const entri = Object.entries(data)
+        .filter(([, v]) => v && typeof v === 'object' && typeof v.nama === 'string' && v.nama.trim());
+
+      PETA_MAPEL = Object.fromEntries(entri.map(([k, v]) => [k, v.nama]));
+
+      const hasil = entri.map(([, v]) => formatNama(v.nama)).sort((a, b) => a.localeCompare(b, 'id'));
+      if (hasil.length) MAPEL_SEKOLAH = hasil;
+
+      pasangSaranMapel();
+      if (LAGI_GURU) drawPakets();   // mapel guru bisa bergantung pada PETA_MAPEL
+
+    } catch (error) {
+      console.error('Gagal memuat daftar mapel:', error);
+      if (!LAGI_GURU) {
+        peringatan('Gagal memuat daftar mapel (' + (error.code || error.message || error) + ') — memakai daftar cadangan.');
+      }
     }
-
-    const entri = Object.entries(snap.data())
-      .filter(([, v]) => v && typeof v === 'object' && typeof v.nama === 'string' && v.nama.trim());
-
-    PETA_MAPEL = Object.fromEntries(entri.map(([k, v]) => [k, v.nama]));
-
-    const hasil = entri.map(([, v]) => formatNama(v.nama)).sort((a, b) => a.localeCompare(b, 'id'));
-    if (hasil.length) MAPEL_SEKOLAH = hasil;
-
-    pasangSaranMapel();
-  }, error => {
-    console.error('Gagal memuat daftar mapel:', error);
-    if (!LAGI_GURU) {
-      peringatan('Gagal memuat daftar mapel (' + (error.code || error.message || error) + ') — memakai daftar cadangan.');
-    }
-  });
+  })();
 }
 
 // Khusus guru: baca mapel milik guru yang login
@@ -381,8 +399,8 @@ function dengarMapelGuru() {
 
   if (!GURU) {
     const kunciAda = ['sessionStorage', 'localStorage'].map(n => {
-      const s = window[n];
-      const daftar = Array.from({ length: s.length }, (_, i) => s.key(i));
+      const st = window[n];
+      const daftar = Array.from({ length: st.length }, (_, i) => st.key(i));
       return n + ': ' + (daftar.join(', ') || '(kosong)');
     }).join(' | ');
     peringatan('Data guru yang login tidak ditemukan. Silakan masuk ulang.');
@@ -417,40 +435,53 @@ function dengarMapelGuru() {
     kunciFormGuru();
   };
 
-  // Id guru (NIP) diketahui: baca dokumen guru/{NIP} langsung
-  if (GURU.id) {
-    F.onSnapshot(F.doc(FP.dbSiswaGuru, KOLEKSI_GURU, GURU.id), snap => {
-      if (!snap.exists()) {
-        if (!GURU.mapel) {
-          peringatan('Data mapel guru tidak ditemukan di ' + KOLEKSI_GURU + '/' + GURU.id + '.');
-          kunciFormGuru();
-        }
-        return;
-      }
-      terapkan(snap.data());
-    }, gagal);
-    return;
-  }
+  /* Dibaca sekali per sesi (cache 30 menit). Yang disimpan hanya field yang
+     dibutuhkan — dokumen guru juga berisi sandi awal akun. */
+  const kunciCache = 'mapelGuru:' + String(GURU.email || GURU.id).toLowerCase();
+  const ringkas = d => ({ id: d.id, nama: d.nama || '', akunNama: d.akunNama || '', [FIELD_MAPEL_GURU]: d[FIELD_MAPEL_GURU] ?? null });
 
-  // Hanya email yang diketahui: cari dokumen guru lewat field akunEmail
-  const where = F.where || FP.where;
-  if (!GURU.email || typeof where !== 'function') {
-    peringatan('Id guru (NIP) tidak ditemukan pada data login.');
-    kunciFormGuru();
-    return;
-  }
-  F.onSnapshot(
-    F.query(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU), where('akunEmail', '==', GURU.email)),
-    snap => {
-      const d = snap.docs[0];
-      if (!d) {
-        peringatan('Akun ' + GURU.email + ' tidak ditemukan di data guru.');
-        kunciFormGuru();
-        return;
+  (async () => {
+    try {
+      let data = C.bacaCache(kunciCache, 30);
+
+      if (!data) {
+        // Id guru (NIP) diketahui: baca dokumen guru/{NIP} langsung
+        if (GURU.id) {
+          const snap = await F.getDoc(F.doc(FP.dbSiswaGuru, KOLEKSI_GURU, GURU.id));
+          if (!snap.exists()) {
+            if (!GURU.mapel) {
+              peringatan('Data mapel guru tidak ditemukan di ' + KOLEKSI_GURU + '/' + GURU.id + '.');
+              kunciFormGuru();
+            }
+            return;
+          }
+          data = ringkas({ id: snap.id, ...snap.data() });
+        } else {
+          // Hanya email yang diketahui: cari dokumen guru lewat field akunEmail
+          if (!GURU.email) {
+            peringatan('Id guru (NIP) tidak ditemukan pada data login.');
+            kunciFormGuru();
+            return;
+          }
+          const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, KOLEKSI_GURU), F.where('akunEmail', '==', GURU.email), F.limit(1)));
+          const d = snap.docs[0];
+          if (!d) {
+            peringatan('Akun ' + GURU.email + ' tidak ditemukan di data guru.');
+            kunciFormGuru();
+            return;
+          }
+          data = ringkas({ id: d.id, ...d.data() });
+        }
+        C.tulisCache(kunciCache, data);
       }
-      GURU.id = d.id;
-      terapkan(d.data());
-    }, gagal);
+
+      if (!GURU.id && data.id) GURU.id = data.id;
+      terapkan(data);
+
+    } catch (error) {
+      gagal(error);
+    }
+  })();
 }
 
 function kunciFormGuru() {
@@ -458,10 +489,16 @@ function kunciFormGuru() {
   if (tombol) tombol.disabled = true;
 }
 
-/* ---------- Nama ujian (SAS / UTS / dll.) ---------- */
+/* ---------- Jenis ujian (SAS / PTS / UH) ---------- */
 
+/* Disimpan sebagai singkatan di field "jenis" (dibaca halaman Rekap Nilai:
+   SAS dan PTS terisi otomatis ke rapor) dan dipakai filter jenis di daftar hasil. */
 const JENIS_BAWAAN = 'SAS';
-const SARAN_JENIS = ['SAS', 'UTS', 'Ulangan Harian'];
+const DAFTAR_JENIS = [
+  ['SAS', 'SAS – Sumatif Akhir Semester'],
+  ['PTS', 'PTS – Penilaian Tengah Semester'],
+  ['UH', 'UH – Ulangan Harian']
+];
 
 function pasangInputJenis() {
   const mapel = $('pnama');
@@ -471,26 +508,17 @@ function pasangInputJenis() {
     ? mapel.previousElementSibling : null;
   const awal = labelMapel || mapel;
 
-  const dl = document.createElement('datalist');
-  dl.id = 'djenis';
-  dl.innerHTML = SARAN_JENIS.map(j => `<option value="${esc(j)}"></option>`).join('');
-  document.body.appendChild(dl);
-
-  const input = document.createElement('input');
+  const input = document.createElement('select');
   input.id = 'pjenis';
-  input.type = 'text';
   input.className = mapel.className;
+  input.innerHTML = DAFTAR_JENIS.map(([k, t]) => `<option value="${esc(k)}">${esc(t)}</option>`).join('');
   input.value = JENIS_BAWAAN;
-  input.placeholder = 'Contoh: SAS, UTS';
-  input.setAttribute('list', 'djenis');
-  input.setAttribute('autocomplete', 'off');
-  input.addEventListener('blur', () => { input.value = formatNama(input.value); });
 
   if (labelMapel) {
     const lb = document.createElement('label');
     lb.className = labelMapel.className;
     lb.htmlFor = 'pjenis';
-    lb.textContent = 'Nama ujian';
+    lb.textContent = 'Jenis ujian';
     awal.before(lb);
   }
   awal.before(input);
@@ -505,6 +533,9 @@ const semuaPaket = () => Array.isArray(S.PAKET) ? S.PAKET : [];
 // Paket milik guru: yang diberi guruId guru ini, atau paket lama (belum punya
 // guruId) yang mapelnya termasuk mapel guru ini.
 function milikGuru(p) {
+  /* Email dicocokkan lebih dulu: NIP/ID guru bisa diganti admin di Data Guru,
+     sedangkan email akun (dan aturan Firestore) tetap. */
+  if (p.guruEmail && GURU.email) return String(p.guruEmail).toLowerCase() === String(GURU.email).toLowerCase();
   if (p.guruId) return !!GURU.id && p.guruId === GURU.id;
   const mapelPaket = kunciBanding(p.mapel || p.nama);
   return MAPEL_SMP.some(m => kunciBanding(m) === mapelPaket);
@@ -598,8 +629,28 @@ async function hapusPaket(i) {
   });
   if (!yakin) return;
 
+  // Jadwal yang masih memakai paket ini akan "kehilangan" soalnya: siswa gagal masuk ujian.
+  try {
+    const dipakai = await F.getDocs(F.query(
+      F.collection(dbBankSoal, KOLEKSI.jadwal), F.where('paketId', '==', paket.id), F.limit(3)));
+    if (!dipakai.empty) {
+      const lanjut = await konfirmasi({
+        judul: 'Paket masih dipakai jadwal',
+        pesan: dipakai.size + (dipakai.size >= 3 ? '+' : '') + ' jadwal ujian memakai paket ini. Jika dihapus, siswa tidak bisa memuat soal untuk jadwal itu. Tetap hapus?',
+        ya: 'Tetap hapus', batal: 'Batal', bahaya: true
+      });
+      if (!lanjut) return;
+    }
+  } catch (e) { console.warn('Pemeriksaan jadwal dilewati:', e); }
+
   F.deleteDoc(F.doc(dbBankSoal, KOLEKSI.paket, paket.id))
-    .then(() => toast('Paket soal dihapus.'))
+    .then(() => {
+      S.PAKET = semuaPaket().filter(p => p.id !== paket.id);
+      C.tulisCache('paket', S.PAKET);
+      C.hapusCacheHalaman('paket');
+      drawPakets();
+      toast('Paket soal dihapus.');
+    })
     .catch(error => {
       console.error('Gagal menghapus paket:', error);
       toast('Gagal menghapus: ' + (error.message || error.code || 'Kesalahan Firestore'));
@@ -677,12 +728,12 @@ async function simpanPaket() {
   bersihkanError();
 
   const file = ambilIdDrive($('pid').value);
-  const jenis = formatNama($('pjenis') ? $('pjenis').value : '');
+  const jenis = $('pjenis') ? $('pjenis').value : '';
   const mapel = formatNama($('pnama').value);
   const kelas = $('pkelas').value;
 
   if (!file) return tampilError('Link atau ID Google Drive tidak valid.');
-  if (!jenis) return tampilError('Nama ujian wajib diisi (contoh: SAS).');
+  if (!jenis) return tampilError('Jenis ujian wajib dipilih (SAS, PTS, atau UH).');
   if (!mapel) return tampilError('Nama mapel ujian wajib diisi.');
   if (!DAFTAR_KELAS.includes(kelas)) return tampilError('Kelas wajib dipilih.');
 
@@ -730,6 +781,12 @@ async function simpanPaket() {
       { ...data, dibuat: F.serverTimestamp() }
     );
 
+    // Perbarui daftar lokal + cache (tanpa membaca ulang Firestore)
+    S.PAKET = [{ id, ...data, dibuat: Date.now() }, ...semuaPaket()];
+    C.tulisCache('paket', S.PAKET);
+    C.hapusCacheHalaman('paket');
+    drawPakets();
+
     $('pid').value = '';
     if (!($('pnama').readOnly)) $('pnama').value = '';
     if ($('pjenis')) $('pjenis').value = JENIS_BAWAAN;
@@ -748,22 +805,33 @@ async function simpanPaket() {
 /* ---------- Sinkron real-time dari [BANK_SOAL] ---------- */
 
 function dengarPaket() {
-  const q = F.query(
-    F.collection(dbBankSoal, KOLEKSI.paket),
-    F.orderBy('dibuat', 'desc')
-  );
+  muatPaket(false);
+}
 
-  F.onSnapshot(q, snap => {
-    S.PAKET = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+/* Dibaca sekali, di-cache 15 menit (dipakai bersama halaman lain). */
+async function muatPaket(paksa) {
+  try {
+    let data = paksa ? null : C.bacaCache('paket', 15);
+
+    if (!data) {
+      const snap = await F.getDocs(F.query(
+        F.collection(dbBankSoal, KOLEKSI.paket),
+        F.orderBy('dibuat', 'desc')
+      ));
+      data = snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+      C.tulisCache('paket', data);
+    }
+
+    S.PAKET = data;
     S.ok = true;
-    if (typeof S.simpanCache === 'function') S.simpanCache('paket');
     drawPakets();
-  }, error => {
+
+  } catch (error) {
     console.error('Gagal memuat paket:', error);
     S.ok = false;
     peringatan('Gagal memuat paket dari server: ' + (error.message || error.code || error));
     drawPakets();
-  });
+  }
 }
 
 /* ---------- Mulai ---------- */

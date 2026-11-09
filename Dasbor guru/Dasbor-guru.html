@@ -174,8 +174,12 @@ $('f-saya').onclick = () => pilih(true);
 $('f-semua').onclick = () => pilih(false);
 
 (async () => {
+  /* Jadwal, paket, dan siswa dibaca lewat cache bersama (cache.js): login berikutnya tidak membaca ulang. */
+  const C = await import('../assets/js/cache.js');
   const [j, p, s] = await Promise.allSettled([
-    ambil(dbBankSoal, KOLEKSI.jadwal), ambil(dbBankSoal, KOLEKSI.paket), ambil(dbSiswaGuru, KOLEKSI.siswa)]);
+    C.ambilCache('jadwal', 15, () => ambil(dbBankSoal, KOLEKSI.jadwal)),
+    C.ambilCache('paket', 15, () => ambil(dbBankSoal, KOLEKSI.paket)),
+    C.ambilCache('siswa', 30, () => ambil(dbSiswaGuru, KOLEKSI.siswa))]);
   if (p.status === 'fulfilled') $('n-paket').textContent = p.value.length;
   if (s.status === 'fulfilled') $('n-siswa').textContent = s.value.length;
   const dot = $('dot'), cs = $('cs');

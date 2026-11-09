@@ -230,7 +230,7 @@ async function muat() {
   });
 
   await baca('data siswa', async () => {
-    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(3000)));
+    const snap = await (await import('../assets/js/cache.js')).ambilCache('siswa', 30, async () => (await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(3000)))).docs.map(d => ({ id: d.id, ...d.data() }))).then(a => ({ docs: a.map(o => ({ id: o.id, data: () => o })) }));
     SIS = snap.docs.map(x => {
       const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
       return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };

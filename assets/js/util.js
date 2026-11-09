@@ -136,6 +136,7 @@ export function norm(doc){
   kelas:String(pertama(d.kelas,d.class,'')),
   paket:String(pertama(d.paketNama,d.paket,d.ujian,d.namaUjian,'-')),
   token:String(pertama(d.token,d.kodeToken,'')),
+  paketId:String(d.paketId||''),
   benar:angka(pertama(d.benar,d.jumlahBenar,d.correct)),
   salah:angka(pertama(d.salah,d.jumlahSalah,d.wrong)),
   nilai:angka(pertama(d.nilai,d.skor,d.score)),

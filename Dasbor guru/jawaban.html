@@ -161,6 +161,8 @@
 <div id="toast" role="status"></div>
 
 <script type="module">
+import { buatPeriode, buatFilterJenis } from '../assets/js/periode.js';
+import { petaJenisPaket } from '../assets/js/data.js';
 /* =========================================================
    Jawaban Siswa — data dari ../assets/js/firebase-pusat.js
    Menampilkan kode jawaban siswa dari koleksi "hasil"
@@ -216,7 +218,7 @@ function unduhCsv(nama, baris){
 /* Dokumen "hasil" -> baris tabel. Sesuaikan nama field di sini bila berbeda. */
 function norm(id, x, tingkat){
   return {
-    id, tingkat,
+    id, tingkat, paketId: x.paketId || '',
     nama: x.nama || x.nis || '(tanpa nama)',
     nis: x.nis || '',
     kelas: x.kelas || '',
@@ -264,7 +266,7 @@ const cocokKelas = (r, k) => !k || normK(r.kelas) === normK(k);
 
 function saring(){
   const u = $('fUjian').value, k = $('fKelas').value, m = $('fMapel').value, q = $('q').value.trim().toLowerCase();
-  return rows.filter(r => (!u || r.paket === u) && cocokKelas(r, k) && (!m || paketCocok(r.paket, m)) &&
+  return rows.filter(r => JF.cocok(r.jenis) && (!u || r.paket === u) && cocokKelas(r, k) && (!m || paketCocok(r.paket, m)) &&
     (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)))
     .sort((a, b) => urutAlfa(a.paket, b.paket) || urutAlfa(a.kelas, b.kelas) || urutAlfa(a.nama, b.nama));
 }
@@ -298,7 +300,7 @@ function render(){
       <td class="aksi-baris"><button type="button" class="kecil" aria-label="Lihat jawaban ${esc(r.nama)}">Lihat jawaban</button></td></tr>`).join('');
 
   $('kosong').classList.toggle('hidden', list.length > 0);
-  $('kosong').textContent = rows.length ? 'Tidak ada data yang cocok.' : 'Belum ada siswa yang mengumpulkan ujian pada kelas dan mapel Anda.';
+  $('kosong').textContent = rows.length ? 'Tidak ada data yang cocok.' : 'Belum ada siswa yang mengumpulkan ujian pada kelas dan mapel Anda pada periode ' + PER.label() + '. Ganti periode di atas bila perlu.';
   $('jml').textContent = list.length + ' dari ' + rows.length + ' pengumpulan';
 }
 
@@ -326,7 +328,7 @@ async function muat(){
 
   // daftar kelas dari Data Siswa: hanya kelas yang diajar guru dan ada siswanya
   const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
-  const snapS = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, (KOLEKSI && KOLEKSI.siswa) || 'siswa'), F.limit(2000)));
+  const snapS = await (await import('../assets/js/cache.js')).ambilCache('siswa', 30, async () => (await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, (KOLEKSI && KOLEKSI.siswa) || 'siswa'), F.limit(2000)))).docs.map(d => ({ id: d.id, ...d.data() }))).then(a => ({ docs: a.map(o => ({ id: o.id, data: () => o })) }));
   SIS = snapS.docs.map(x => {
     const r = x.data(), kelas = String(pick(r, ['kelas'])).trim();
     return {kelas, tingkat: FP.tingkatDariKelas(kelas)};
@@ -338,8 +340,19 @@ async function muat(){
   const target = TINGKAT.filter(t => tg.has(String(t)));
   if(!target.length){ rows = []; render(); return; }
 
-  const hasil = await Promise.allSettled(target.map(t =>
-    F.getDocs(F.query(F.collection(dbTingkat(t), kol), F.limit(BATAS_PER_TINGKAT)))));
+  /* Hanya hasil pada periode terpilih yang dibaca (terbaru dulu), bukan seluruh data lama. */
+  const pr = PER.rentang();
+  const bacaPeriode = async t => {
+    const ref = F.collection(dbTingkat(t), kol);
+    const w = [];
+    if(pr.dari) w.push(F.where('waktu', '>=', F.Timestamp.fromDate(pr.dari)));
+    if(pr.sampai) w.push(F.where('waktu', '<', F.Timestamp.fromDate(pr.sampai)));
+    try{ return await F.getDocs(F.query(ref, ...w, F.orderBy('waktu', 'desc'), F.limit(BATAS_PER_TINGKAT))); }
+    catch(e){ console.warn('Filter periode gagal, memakai tanpa filter:', e); return F.getDocs(F.query(ref, F.limit(BATAS_PER_TINGKAT))); }
+  };
+  const hasil = await Promise.allSettled(target.map(bacaPeriode));
+  const terpotong = hasil.map((h, i) => h.status === 'fulfilled' && h.value.size >= BATAS_PER_TINGKAT ? target[i] : null).filter(Boolean);
+  if(terpotong.length) peringatan('Periode ini berisi lebih dari ' + BATAS_PER_TINGKAT + ' hasil di kelas ' + terpotong.join(', ') + '; sebagian belum tampil. Persempit periode.');
 
   const baru = [], gagal = [];
   hasil.forEach((h, i) => {
@@ -351,6 +364,9 @@ async function muat(){
 
   // hanya kelas milik guru, dengan ujian yang namanya memuat mapel yang ia ajar di kelas itu
   rows = baru.filter(milikGuru).sort((a, b) => (b.waktu || 0) - (a.waktu || 0));
+  const JN = await petaJenisPaket();
+  rows.forEach(r => { r.jenis = JN.get(r.paketId) || ''; });
+  JF.isi(rows.map(r => r.jenis));
   render();
 }
 
@@ -374,6 +390,8 @@ $('btnCsv').onclick = () => unduhCsv('jawaban-siswa.csv', [
   ...saring().map(r => [r.nis, r.nama, r.kelas, r.paket, r.nilai, pecah(r).join(' ')])
 ]);
 
+const JF = buatFilterJenis($('q').parentElement, { kunci: 'jawaban-guru', onUbah: () => render() });
+const PER = buatPeriode($('q').parentElement, { kunci: 'jawaban', bawaan: 'bulan-ini', tanpa: ['mendatang'], onUbah: () => muat().catch(e => peringatan(String(e.message || e))) });
 try { await muat(); }
 catch(e){ console.error(e); peringatan('Jawaban gagal dimuat: ' + (e.message || e.code || e)); render(); }
 </script>

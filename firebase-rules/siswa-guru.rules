@@ -1,7 +1,7 @@
 rules_version = '2';
 // ==========================================================================
 // PROJECT: DATA SISWA DAN GURU (dat-guru-siswa)
-// Koleksi: siswa, guru, akunGuru
+// Koleksi: siswa, guru, kelas, Daftar, akunGuru
 // ==========================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -11,8 +11,7 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email in ["admin@smpn20.id"];
     }
-    // Guru sah = emailnya terdaftar di koleksi akunGuru project ini
-    // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru).
+    // Guru sah = emailnya terdaftar di koleksi akunGuru project ini.
     function isGuru() {
       return request.auth != null
         && request.auth.token.email != null
@@ -46,15 +45,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Bila halaman kelas memakai koleksi kelas (opsional).
+    // Koleksi kelas (wali kelas, tahun ajaran).
     match /kelas/{id} {
       allow read: if isStaff();
       allow write: if isAdmin();
     }
-match /Daftar/{dok} {
-  allow read: if true;
-  allow write: if isAdmin();
-}
+
+    // Daftar/mapel: dibaca staf (admin & guru), ditulis admin.
+    match /Daftar/{dok} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+
     match /{other=**} {
       allow read, write: if false;
     }

@@ -164,12 +164,14 @@
     ['Hasil Ujian', [
       ['jawaban', 'Jawaban Siswa', 'Hasil Ujian/jawaban.html'],
       ['hasil', 'Nilai Ujian', 'Hasil Ujian/hasil.html'],
-      ['rekap', 'Rekap Nilai', 'Hasil Ujian/nilai.html']
+      ['rekap', 'Rekap Nilai', 'Hasil Ujian/nilai.html'],
+      ['reset', 'Reset Ujian Siswa', 'Hasil Ujian/reset.html']
     ]],
 
     ['Pengaturan', [
       ['firebase', 'Konfigurasi Firebase', 'Pengaturan/firebase.html'],
-      ['pengaturan', 'Pengaturan Aplikasi', 'Pengaturan/pengaturan.html']
+      ['pengaturan', 'Pengaturan Aplikasi', 'Pengaturan/pengaturan.html'],
+      ['data', 'Cadangan & Pemeriksaan Data', 'Pengaturan/data.html']
     ]]
 
   ];

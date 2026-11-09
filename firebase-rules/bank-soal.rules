@@ -11,8 +11,7 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email in ["admin@smpn20.id"];
     }
-    // Guru sah = emailnya terdaftar di koleksi akunGuru project ini
-    // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru).
+    // Guru sah = emailnya terdaftar di koleksi akunGuru project ini.
     function isGuru() {
       return request.auth != null
         && request.auth.token.email != null
@@ -27,7 +26,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Jadwal: halaman ujian siswa mencari jadwal berdasarkan tingkat.
+    // Jadwal: halaman ujian siswa mencari jadwal berdasarkan tingkat/paket.
     match /jadwal/{id} {
       allow read: if true;
       allow write: if isAdmin();
@@ -56,10 +55,12 @@ service cloud.firestore {
             && resource.data.guruEmail == request.auth.token.email);
     }
 
-    // Pengaturan: dibaca semua; ditulis oleh pengguna yang login.
+    // Pengaturan (kop sekolah, dll.): dibaca staf, hanya admin yang menulis.
+    // (Sebelumnya "write: if request.auth != null" => SIAPA PUN yang login
+    //  bisa mengubah; sudah diperbaiki.)
     match /pengaturan/{id} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isStaff();
+      allow write: if isAdmin();
     }
 
     match /{other=**} {

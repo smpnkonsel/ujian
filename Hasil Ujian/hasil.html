@@ -106,7 +106,8 @@
 <div id="toast" role="status"></div>
 
 <script type="module">
-import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
+import { ambilTingkat, urutAlfa, petaJenisPaket } from '../assets/js/data.js';
+import { buatPeriode, buatFilterJenis } from '../assets/js/periode.js';
 import { norm, esc, fmtT, fmtN, toast } from '../assets/js/util.js';
 
 const $ = id => document.getElementById(id);
@@ -134,7 +135,7 @@ function saring() {
   const q = $('q').value.trim().toLowerCase();
   const t = $('fTingkat').value, k = $('fKelas').value, p = $('fPaket').value, s = $('fStatus').value;
   const rows = ROWS.filter(r =>
-    (!t || r.tingkat === t) && (!k || r.kelas === k) && (!p || r.paket === p) &&
+    (!t || r.tingkat === t) && (!k || r.kelas === k) && (!p || r.paket === p) && JF.cocok(r.jenis) &&
     (!s || (s === 'ok' ? tuntas(r) : ada(r) && !tuntas(r))) &&
     (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)));
   const { k: kunci, dir } = urut;
@@ -161,7 +162,7 @@ function gambar() {
     <td class="n"><b>${fmtN(r.nilai)}</b></td>
     <td>${ada(r) ? `<span class="badge ${tuntas(r) ? 'ok' : 'bad'}">${tuntas(r) ? 'Tuntas' : 'Belum tuntas'}</span>` : '–'}</td></tr>`).join('');
   $('empty').hidden = rows.length > 0;
-  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian yang masuk.';
+  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian pada periode ' + (PER ? PER.label() : '') + '. Ganti periode di atas bila perlu.';
 }
 
 function isiFilter() {
@@ -174,9 +175,15 @@ async function muat() {
   const info = $('info'), dot = $('dot'), cs = $('cs');
   info.hidden = true;
   try {
-    const { rows, gagal } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu' });
+    const r = PER.rentang();
+    const { rows, gagal, terpotong } = await ambilTingkat('hasil', { batas: 1000, urut: 'waktu', rentang: { field: 'waktu', dari: r.dari, sampai: r.sampai } });
+    if (terpotong.length) { info.hidden = false; info.textContent = 'Periode ini berisi lebih dari 1000 hasil di kelas ' + terpotong.join(', ') + '; sebagian belum tampil. Persempit periode (mis. pilih satu hari).'; }
     ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), nis: String(r.nis || ''), tingkat: r.tingkat }));
+    const JN = await petaJenisPaket();
+    ROWS.forEach(r => { r.jenis = JN.get(r.paketId) || ''; });
+    JF.isi(ROWS.map(r => r.jenis));
     if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
+    $('count').dataset.periode = r.label;
     if (dot) dot.classList.add('on');
     if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
   } catch (e) {
@@ -207,6 +214,8 @@ $('thead').addEventListener('click', e => {
 });
 $('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
 $('unduh').onclick = unduh;
+const PER = buatPeriode($('q').parentElement, { kunci: 'hasil', bawaan: 'bulan-ini', tanpa: ['mendatang'], onUbah: () => muat() });
+const JF = buatFilterJenis($('q').parentElement, { kunci: 'hasil', onUbah: gambar });
 muat();
 </script>
 </body>

@@ -163,7 +163,8 @@
 <div id="toast" role="status"></div>
 
 <script type="module">
-import { ambilTingkat, urutAlfa } from '../assets/js/data.js';
+import { ambilTingkat, urutAlfa, petaJenisPaket } from '../assets/js/data.js';
+import { buatPeriode, buatFilterJenis } from '../assets/js/periode.js';
 import { norm, esc, fmtT, fmtN, toast } from '../assets/js/util.js';
 import { F } from '../assets/js/firebase-pusat.js';
 import * as FP from '../assets/js/firebase-pusat.js';
@@ -216,7 +217,7 @@ function saring() {
   const q = $('q').value.trim().toLowerCase();
   const k = $('fKelas').value, m = $('fMapel').value, p = $('fPaket').value;
   const rows = ROWS.filter(r =>
-    (!k || r.kelas === k) && (!m || CFG.paketCocok(r.paket, m)) && (!p || r.paket === p) &&
+    (!k || r.kelas === k) && (!m || CFG.paketCocok(r.paket, m)) && (!p || r.paket === p) && JF.cocok(r.jenis) &&
     (!q || (r.nama + ' ' + r.nis).toLowerCase().includes(q)));
   const { k: kc, dir } = urut;
   rows.sort((a, b) => {
@@ -242,7 +243,7 @@ function gambarUjian() {
     <td class="n" data-l="Salah">${fmtN(r.salah)}</td>
     <td class="n" data-l="Nilai"><b>${fmtN(r.nilai)}</b></td></tr>`).join('');
   $('empty').hidden = rows.length > 0;
-  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian untuk kelas dan mapel Anda.';
+  $('empty').textContent = ROWS.length ? 'Tidak ada nilai yang cocok dengan filter.' : 'Belum ada hasil ujian untuk kelas dan mapel Anda pada periode ' + PER.label() + '. Ganti periode di atas bila perlu.';
 }
 
 function isiFilterPaket() {
@@ -265,7 +266,7 @@ async function muat() {
     if (!G.mengajar.length) { info.hidden = false; info.textContent = 'Data mengajar untuk akun guru ini tidak ditemukan di Data Guru.'; }
     const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
 
-    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)));
+    const snap = await (await import('../assets/js/cache.js')).ambilCache('siswa', 30, async () => (await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)))).docs.map(d => ({ id: d.id, ...d.data() }))).then(a => ({ docs: a.map(o => ({ id: o.id, data: () => o })) }));
     SIS = snap.docs.map(x => {
       const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
       return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };
@@ -274,10 +275,15 @@ async function muat() {
     const tingkat = [...new Set(SIS.map(s => s.tingkat))];
     ROWS = [];
     if (tingkat.length) {
-      const { rows, gagal } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat });
+      const pr = PER.rentang();
+      const { rows, gagal, terpotong } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat, rentang: { field: 'waktu', dari: pr.dari, sampai: pr.sampai } });
+      if (terpotong.length) { info.hidden = false; info.textContent = 'Periode ini berisi lebih dari 3000 hasil; sebagian belum tampil. Persempit periode.'; }
       // hanya kelas milik guru, dengan ujian yang namanya memuat mapel yang ia ajar di kelas itu
       ROWS = rows.map(r => ({ ...norm({ id: r.id, data: () => r }), nis: String(pick(r, CFG.fSiswa.nis)).trim(), tingkat: r.tingkat }))
         .filter(r => kelasMilik(r.kelas).some(x => CFG.paketCocok(r.paket, x.mapel)));
+      const JN = await petaJenisPaket();
+      ROWS.forEach(r => { r.jenis = JN.get(r.paketId) || ''; });
+      JF.isi(ROWS.map(r => r.jenis));
       if (gagal.length) { info.hidden = false; info.textContent = 'Sebagian Firebase gagal dibaca: kelas ' + gagal.map(g => g.tingkat).join(', ') + '.'; }
       if (dot) dot.classList.add('on');
       if (cs) cs.textContent = 'Terhubung: ' + (3 - gagal.length) + ' dari 3 Firebase kelas';
@@ -332,6 +338,8 @@ $('thead').addEventListener('click', e => {
   gambarUjian();
 });
 $('muat').onclick = async () => { $('muat').disabled = true; await muat(); toast('Data dimuat ulang.'); $('muat').disabled = false; };
+const PER = buatPeriode($('q').parentElement, { kunci: 'hasil-guru', bawaan: 'bulan-ini', tanpa: ['mendatang'], onUbah: () => muat() });
+const JF = buatFilterJenis($('q').parentElement, { kunci: 'hasil-guru', onUbah: segarkan });
 muat();
 </script>
 </body>

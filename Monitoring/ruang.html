@@ -165,15 +165,17 @@ async function muat(){
   try{
     const {F, dbBankSoal, dbSiswaGuru, dbTingkat, TINGKAT, KOLEKSI} = await import(LOKASI_FIREBASE);
 
-    /* Daftar siswa dibaca sekali saja (hemat pembacaan Firestore). */
+    /* Roster & jadwal dari cache bersama (cache.js): tidak dibaca ulang tiap 2 menit. */
+    const C = await import('../assets/js/cache.js');
     if(ROSTER === null){
-      try{ ROSTER = (await F.getDocs(F.collection(dbSiswaGuru, KOLEKSI.siswa))).docs.map(d => d.data()); }
+      try{ ROSTER = await C.ambilCache('siswa', 30, async () => (await F.getDocs(F.collection(dbSiswaGuru, KOLEKSI.siswa))).docs.map(d => ({id:d.id, ...d.data()}))); }
       catch(e){ ROSTER = []; }
     }
+    const daftarJadwal = await C.ambilCache('jadwal', 15, async () => (await F.getDocs(F.collection(dbBankSoal, KOLEKSI.jadwal))).docs.map(d => ({id:d.id, ...d.data()})));
 
     const awal = F.Timestamp.fromDate(mulaiHari);
-    const [jadwal, ...sesi] = await Promise.all([
-      F.getDocs(F.collection(dbBankSoal, KOLEKSI.jadwal)),
+    const [, ...sesi] = await Promise.all([
+      Promise.resolve(),
       ...TINGKAT.map(t => F.getDocs(F.query(F.collection(dbTingkat(t), KOLEKSI.sesi), F.where('mulai', '>=', awal))))
     ]);
 
@@ -183,8 +185,8 @@ async function muat(){
       hadir[k] = (hadir[k] || 0) + 1;
     }));
 
-    RUANG = jadwal.docs.map(d => {
-      const x = d.data(), tk = String(x.tingkat ?? '').toUpperCase().trim();
+    RUANG = daftarJadwal.map(x => {
+      const d = {id:x.id}, tk = String(x.tingkat ?? '').toUpperCase().trim();
       const gab = jam => (x.tgl && jam) ? tgl(x.tgl + 'T' + jam) : tgl(jam);
       const kls = daftarKelas(x.kelas);
       const total = ROSTER.filter(r => tingkatDari(r) === tk &&
@@ -259,7 +261,7 @@ document.getElementById('filter').addEventListener('click', e => {
 document.getElementById('cari').addEventListener('input', e => { kata = e.target.value; render(); });
 document.getElementById('muat').addEventListener('click', muat);
 setInterval(render, 30000);   /* hitung ulang status tanpa membaca Firestore */
-setInterval(muat, 120000);    /* baca ulang data tiap 2 menit */
+setInterval(() => { if(!document.hidden) muat(); }, 180000);    /* baca ulang tiap 3 menit, hanya saat tab terlihat */
 render();
 muat();
 </script>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset Ujian Siswa · KW Learning</title>
+<script>document.documentElement.style.visibility='hidden'</script>
+<script type="module" src="../assets/js/guard.js" data-peran="admin"></script>
+<link rel="icon" type="image/jpeg" href="../assets/templat/logo.jpeg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/css/neumorph.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+<style>
+  .f2 { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .f2 input { flex:1 1 160px; min-width:0; }
+  dl.ket { display:grid; grid-template-columns:140px 1fr; gap:6px 12px; margin:12px 0; }
+  dl.ket dt { color:var(--nm-muted); font-size:13px; } dl.ket dd { margin:0; font-weight:600; }
+  .acts { display:flex; gap:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<div id="sidebar-slot" data-mode="halaman" data-peran="admin" data-aktif="reset"></div>
+<script src="../assets/js/sidebar-awal.js"></script>
+
+<div id="mn">
+  <div class="top">
+    <button id="burger" type="button" aria-label="Buka menu">☰</button>
+    <h2>Reset Ujian Siswa</h2>
+  </div>
+  <div class="wrap penuh">
+    <div id="info" class="msg warn" role="status" hidden></div>
+    <div class="card">
+      <h3>Ulangi ujian satu siswa</h3>
+      <p style="color:var(--nm-muted);font-size:14px">
+        Dipakai bila perangkat siswa rusak, hasil tidak tercatat, atau guru mengizinkan ujian ulang.
+        Menghapus <b>hasil</b> dan <b>sesi</b> siswa untuk token tersebut, sehingga siswa bisa masuk lagi dengan waktu baru.
+        Tindakan ini tidak bisa dibatalkan.
+      </p>
+      <div class="f2">
+        <input id="tok" inputmode="numeric" maxlength="4" placeholder="Token (4 angka)" aria-label="Token">
+        <input id="nis" inputmode="numeric" placeholder="NIS" aria-label="NIS">
+        <button id="cari" class="btn p" type="button">Periksa</button>
+      </div>
+      <div id="hsl" hidden>
+        <dl class="ket" id="ket"></dl>
+        <div class="acts"><button id="reset" class="btn d" type="button">Hapus hasil &amp; sesi</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { F, dbTingkat, KOLEKSI, tingkatDariToken } from '../assets/js/firebase-pusat.js';
+import { toast, konfirmasi, esc, fmtT, toDate } from '../assets/js/util.js';
+import { muatSidebar } from '../assets/js/sidebar.js';
+const $ = id => document.getElementById(id);
+let ctx = null;
+
+try { await muatSidebar(); } catch (e) { console.warn(e); }
+
+const info = t => { $('info').textContent = t; $('info').hidden = !t; };
+
+$('cari').onclick = async () => {
+  info(''); $('hsl').hidden = true; ctx = null;
+  const tok = $('tok').value.trim(), nis = $('nis').value.trim();
+  const tk = tingkatDariToken(tok);
+  if (!tk) return info('Token harus 4 angka dan diawali 1, 2, atau 3.');
+  if (!/^\d{4,20}$/.test(nis)) return info('NIS harus angka 4–20 digit.');
+  const db = dbTingkat(tk), id = tok + '_' + nis;
+  $('cari').disabled = true;
+  try {
+    const [h, s] = await Promise.all([
+      F.getDoc(F.doc(db, KOLEKSI.hasil, id)),
+      F.getDoc(F.doc(db, KOLEKSI.sesi, id))
+    ]);
+    if (!h.exists() && !s.exists()) return info('Tidak ada hasil maupun sesi untuk token ' + tok + ' dan NIS ' + nis + '. Siswa sudah bisa masuk.');
+    const hd = h.exists() ? h.data() : null, sd = s.exists() ? s.data() : null, x = hd || sd;
+    ctx = { db, id, tok, nis };
+    $('ket').innerHTML = [
+      ['Nama', x.nama], ['Kelas', x.kelas], ['Ujian', x.paketNama || x.mapel],
+      ['Hasil', hd ? 'Tersimpan (nilai ' + (hd.nilai ?? '–') + ')' : 'Belum ada'],
+      ['Sesi', sd ? (sd.status || '-') + (sd.aktifTerakhir ? ' · aktif ' + fmtT(toDate(sd.aktifTerakhir)) : '') : 'Tidak ada']
+    ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v ?? '-')}</dd>`).join('');
+    $('hsl').hidden = false;
+  } catch (e) { console.error(e); info('Gagal memeriksa: ' + (e.code || e.message)); }
+  finally { $('cari').disabled = false; }
+};
+
+$('reset').onclick = async () => {
+  if (!ctx) return;
+  const ok = await konfirmasi({ judul: 'Reset ujian siswa?', pesan: 'Hasil dan sesi NIS ' + ctx.nis + ' pada token ' + ctx.tok + ' akan dihapus permanen.', ya: 'Hapus', bahaya: true });
+  if (!ok) return;
+  try {
+    await Promise.all([
+      F.deleteDoc(F.doc(ctx.db, KOLEKSI.hasil, ctx.id)),
+      F.deleteDoc(F.doc(ctx.db, KOLEKSI.sesi, ctx.id))
+    ]);
+    toast('Ujian siswa direset. Siswa bisa masuk lagi.');
+    $('hsl').hidden = true; ctx = null;
+  } catch (e) { console.error(e); toast('Gagal reset: ' + (e.code || e.message)); }
+};
+</script>
+</body>
+</html>

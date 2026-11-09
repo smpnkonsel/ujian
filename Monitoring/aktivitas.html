@@ -231,7 +231,9 @@ function render(){
 async function muat(){
   const info = $('info');
   try{
-    const {rows} = await ambilTingkat('sesi', {batas:300});
+    /* Hanya sesi hari ini (bukan 300 dokumen terakhir dari hari-hari lalu) */
+    const awalHari = new Date(); awalHari.setHours(0,0,0,0);
+    const {rows} = await ambilTingkat('sesi', {batas:150, sejak:{field:'mulai', date:awalHari}});
     DATA = bentuk(rows);
     info.hidden = DATA.length > 0;
     if(!DATA.length) info.textContent = 'Belum ada sesi ujian yang tercatat.';
@@ -255,7 +257,7 @@ $('ruang').addEventListener('change', e => { ruang = e.target.value; batas = 15;
 $('lagi').addEventListener('click', () => { batas += 15; render(); });
 render();
 muat();
-setInterval(() => { if(!document.hidden) muat(); }, 60000);
+setInterval(() => { if(!document.hidden) muat(); }, 180000);   /* tiap 3 menit, hanya saat tab terlihat */
 </script>
 </div>
 </body>

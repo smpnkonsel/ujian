@@ -230,6 +230,7 @@ button.utama.merah { color: var(--dt-bahaya) !important; }
   <header class="atas">
     <div><h1>Data Siswa</h1><p id="jml">Memuat data…</p><p id="rinci"></p></div>
     <div class="alat">
+      <button id="muatulang" type="button">Muat ulang</button>
       <button id="templat" type="button">Unduh templat Excel</button>
       <button id="impor" type="button">Impor Excel/CSV</button>
       <input id="berkas" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden">
@@ -562,46 +563,79 @@ try {
 
   function mulaiFirebase() {
     tampilkanPeringatan("");
+    return muatSiswa(false);
+  }
 
-    const ref = F.collection(
-      dbSiswaGuru,
-      NAMA_KOLEKSI
-    );
+  /* HEMAT FIRESTORE: daftar siswa dibaca SEKALI (getDocs) lalu disimpan di
+     cache bersama (cache.js, 30 menit) yang juga dipakai halaman lain.
+     Sebelumnya memakai onSnapshot pada seluruh koleksi: tiap membuka halaman
+     membaca semua siswa dan listener terus aktif. Perubahan dari halaman ini
+     memperbarui daftar lokal + cache tanpa membaca ulang. */
+  let modCache = null;
 
-    berhentiSnapshot = F.onSnapshot(
-      ref,
+  const olahDok = (d) => ({
+    ...d,
+    nis: String(d.id ?? d.nis ?? ""),
+    nama: String(d.nama ?? ""),
+    // data lama ("VII-A") ditampilkan seragam sebagai "VII A"
+    kelas: normKelas(d.kelas)
+  });
 
-      (snapshot) => {
-        semua = snapshot.docs.map((dok) => {
-          const d = dok.data();
+  async function muatSiswa(paksa) {
+    try {
+      modCache = modCache || await import("../assets/js/cache.js");
 
-          return {
-            ...d,
-            nis: dok.id,
-            nama: String(d.nama ?? ""),
-            // data lama ("VII-A") ditampilkan seragam sebagai "VII A"
-            kelas: normKelas(d.kelas)
-          };
-        });
+      let mentah = paksa ? null : modCache.bacaCache("siswa", 30);
 
-        sedangMemuat = false;
-
-        tampilkanPeringatan("");
-        render();
-      },
-
-      (error) => {
-        console.error("Firebase siswa:", error);
-
-        sedangMemuat = false;
-
-        tampilkanPeringatan(
-          "Data siswa gagal dimuat. Periksa koneksi dan aturan keamanan Firestore."
-        );
-
-        toast("Gagal mengambil data siswa.", "err");
+      if (!mentah) {
+        const snap = await F.getDocs(F.collection(dbSiswaGuru, NAMA_KOLEKSI));
+        mentah = snap.docs.map((dok) => ({ id: dok.id, ...dok.data() }));
+        modCache.tulisCache("siswa", mentah);
       }
-    );
+
+      semua = mentah.map(olahDok);
+
+      sedangMemuat = false;
+
+      tampilkanPeringatan("");
+      render();
+
+    } catch (error) {
+      console.error("Firebase siswa:", error);
+
+      sedangMemuat = false;
+
+      tampilkanPeringatan(
+        "Data siswa gagal dimuat. Periksa koneksi dan aturan keamanan Firestore."
+      );
+
+      toast("Gagal mengambil data siswa.", "err");
+      render();
+    }
+  }
+
+  async function muatUlang() {
+    const tombol = $("muatulang");
+    if (tombol) tombol.disabled = true;
+
+    sedangMemuat = true;
+    render();
+
+    await muatSiswa(true);
+
+    if (tombol) tombol.disabled = false;
+    toast("Data dimuat ulang.", "ok");
+  }
+
+  // Simpan daftar lokal ke cache bersama setelah ada perubahan.
+  function simpanCacheLokal() {
+    if (!modCache) return;
+    try { sessionStorage.removeItem("kelas:data"); } catch (e) { /* abaikan */ }
+
+    modCache.tulisCache("siswa", semua.map((s) => {
+      const { nis, ...sisa } = s;
+      return { ...sisa, id: nis };
+    }));
   }
 
   /* =====================================================
@@ -629,6 +663,15 @@ try {
 
       await batch.commit();
     }
+
+    // Perbarui daftar lokal + cache (tanpa membaca ulang Firestore)
+    daftar.forEach((r) => {
+      const i = semua.findIndex((x) => x.nis === r.nis);
+      const baru = { ...(i >= 0 ? semua[i] : {}), ...r };
+      if (i >= 0) semua[i] = baru; else semua.push(baru);
+    });
+    simpanCacheLokal();
+    render();
   }
 
   /* =====================================================
@@ -654,6 +697,7 @@ try {
       if (lama) {
         dasar = { ...lama };
         delete dasar.diperbaruiPada;
+        delete dasar.id;   // "id" hanya milik cache, bukan field dokumen
       }
 
       batch.delete(
@@ -668,6 +712,12 @@ try {
     }, { merge: true });
 
     await batch.commit();
+
+    // Perbarui daftar lokal + cache
+    semua = semua.filter((x) => x.nis !== nisLama && x.nis !== rec.nis);
+    semua.push({ ...dasar, ...rec });
+    simpanCacheLokal();
+    render();
   }
 
   /* =====================================================
@@ -682,6 +732,10 @@ try {
     );
 
     await F.deleteDoc(ref);
+
+    semua = semua.filter((x) => x.nis !== nis);
+    simpanCacheLokal();
+    render();
   }
 
   /* =====================================================
@@ -948,6 +1002,18 @@ try {
         "NIS/NISN " + rec.nis + " sudah terdaftar."
       );
       return;
+    }
+
+    // Hasil & sesi ujian memakai NIS sebagai bagian ID, jadi tidak ikut pindah.
+    if (nisUbah && nisUbah !== rec.nis) {
+      const lanjut = await konfirmasi(
+        "NIS diganti dari " + nisUbah + " menjadi " + rec.nis + ".\n\n" +
+        "Hasil ujian yang SUDAH tersimpan tetap tercatat atas NIS lama " +
+        "dan tidak ikut pindah. Lanjutkan?",
+        { judul: "Ganti NIS?", ya: "Ganti NIS" }
+      );
+
+      if (!lanjut) return;
     }
 
     const tombol = $("simpan");
@@ -1467,6 +1533,7 @@ try {
       </tr>
     `;
 
+    $("muatulang").addEventListener("click", muatUlang);
     mulaiFirebase();
   }
 

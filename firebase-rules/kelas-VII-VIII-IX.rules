@@ -2,9 +2,14 @@ rules_version = '2';
 // ==========================================================================
 // PROJECT: CBT KELAS VII (cbt-6a20d), KELAS VIII (cbt-viii), KELAS IX (cbt-ix)
 // Salin isi berkas ini ke Firestore > Rules di TIGA project tersebut.
-// Koleksi: tokens, hasil, sesi, pengaturan, akunGuru
-// Siswa tidak login (anonim): hanya boleh membaca satu token, menulis
+// Koleksi: tokens, hasil, sesi, nilai, pengaturan, akunGuru
+//
+// Siswa tidak login (anonim): hanya boleh membaca satu token, membaca/menulis
 // sesinya sendiri, dan mengirim hasilnya sendiri.
+//
+// CATATAN BIAYA: isGuru() memakai exists() => 1 pembacaan tambahan per
+// permintaan staf (bukan per dokumen). Wajar, tetapi jangan dipanggil
+// berulang-ulang di rules.
 // ==========================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -15,7 +20,8 @@ service cloud.firestore {
         && request.auth.token.email in ["admin@smpn20.id"];
     }
     // Guru sah = emailnya terdaftar di koleksi akunGuru project ini
-    // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru).
+    // (didaftarkan admin saat menekan Aktifkan di halaman Akun Guru,
+    //  dihapus otomatis saat guru dihapus di Data Guru).
     function isGuru() {
       return request.auth != null
         && request.auth.token.email != null
@@ -48,7 +54,7 @@ service cloud.firestore {
       allow update: if hasilValid(id)
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(["waktu", "mulai", "durasi", "pelanggaran"]);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin();         // dipakai halaman Reset Ujian Siswa
     }
 
     function hasilValid(id) {
@@ -64,8 +70,11 @@ service cloud.firestore {
     }
 
     // Sesi ujian berjalan (untuk monitoring). ID dokumen = token_nis.
+    // get terbuka: halaman ujian membaca sesinya sendiri agar siswa yang
+    // pernah mulai tidak mendapat waktu baru. Daftar sesi hanya staf.
     match /sesi/{id} {
-      allow read: if isStaff();
+      allow get: if true;
+      allow list: if isStaff();
       allow create: if sesiBaru(id);
       allow update: if sesiLama();
       allow delete: if isAdmin();
@@ -85,6 +94,15 @@ service cloud.firestore {
         && d.keys().size() <= 40;
     }
 
+    // Rekap nilai rapor (satu dokumen per tahun_semester_mapel_kelas).
+    match /nilai/{doc} {
+      allow read: if isStaff();
+      allow create, update: if isStaff()
+        && request.resource.data.siswa is map
+        && request.resource.data.keys().size() <= 20;
+      allow delete: if isAdmin();
+    }
+
     // Pengaturan (jumlah siswa untuk dasbor).
     match /pengaturan/{doc} {
       allow read: if isStaff();
@@ -95,12 +113,5 @@ service cloud.firestore {
     match /{other=**} {
       allow read, write: if false;
     }
-    match /nilai/{doc} {
-  allow read: if isStaff();
-  allow create, update: if isStaff()
-    && request.resource.data.siswa is map
-    && request.resource.data.keys().size() <= 20;
-  allow delete: if isAdmin();
-}
   }
 }

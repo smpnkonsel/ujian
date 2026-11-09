@@ -256,6 +256,8 @@ import * as FP from '../assets/js/firebase-pusat.js';
 import { urutAlfa } from '../assets/js/data.js';
 import { norm, esc, fmtN, toast, konfirmasi } from '../assets/js/util.js';
 import { ambilTingkat } from '../assets/js/data.js';
+import { semesterDari } from '../assets/js/periode.js';
+import { ambilCache } from '../assets/js/cache.js';
 import { hitungSiswa, ringkasan, BOBOT_BAWAAN, PREDIKAT_BAWAAN } from '../assets/js/nilai-hitung.js';
 
 /* ===== Konfigurasi =====
@@ -298,6 +300,24 @@ function infoHasil(r) {
   if (jenis === 'UTS') jenis = 'PTS';   // paket lama bernama UTS tetap terbaca sebagai PTS
   const mapel = String(p.mapel || r.mapel || p.nama || teks).trim().toLowerCase();
   return { jenis, mapel };
+}
+
+/* Rentang tanggal semester rekap, dari Pengaturan (mis. "Ganjil" + "2026/2027" = 1 Jul 2026 – 1 Jan 2027).
+   Diperpanjang 21 hari di ujung untuk ujian susulan/remedial. Bila pengaturan tidak terbaca, memakai semester berjalan. */
+function rentangSemesterRekap() {
+  const t = String(P.tahunAjaran || '').match(/(\d{4})\s*[\/\-]\s*(\d{4})/);
+  const sm = String(P.semester || '').trim().toLowerCase();
+  const ganjil = /ganjil/.test(sm) || /^(1|i)$/.test(sm);
+  const genap = /genap/.test(sm) || /^(2|ii)$/.test(sm);
+  let dari, sampai;
+  if (t && (ganjil || genap)) {
+    const y1 = Number(t[1]), y2 = Number(t[2]);
+    dari = ganjil ? new Date(y1, 6, 1) : new Date(y2, 0, 1);
+    sampai = ganjil ? new Date(y2, 0, 1) : new Date(y2, 6, 1);
+  } else {
+    ({ dari, sampai } = semesterDari());
+  }
+  return { dari, sampai: new Date(+sampai + 21 * 864e5) };
 }
 
 const totalTg = () => STRUK.tg.reduce((a, b) => a + b, 0);
@@ -449,15 +469,16 @@ async function muatDasar() {
     // Daftar paket soal: dipakai untuk mengenali jenis ujian (SAS/PTS) dan mapel dari paketId.
     // Gagal dibaca tidak menghentikan halaman (ada cadangan lewat nama paket).
     try {
-      const sp = await F.getDocs(F.collection(FP.dbBankSoal, CFG.koleksi.paket));
-      PAKET = new Map(sp.docs.map(x => { const p = x.data(); return [x.id, { jenis: p.jenis || '', mapel: p.mapel || p.nama || '', nama: p.nama || '' }]; }));
+      const sp = await ambilCache('paket', 15, async () =>
+        (await F.getDocs(F.collection(FP.dbBankSoal, CFG.koleksi.paket))).docs.map(x => ({ id: x.id, ...x.data() })));
+      PAKET = new Map(sp.map(p => [p.id, { jenis: p.jenis || '', mapel: p.mapel || p.nama || '', nama: p.nama || '' }]));
     } catch (e) { console.warn('paket gagal dibaca', e); PAKET = new Map(); }
 
     G = await dataGuru();
     if (!G.mengajar.length) info('Data mengajar untuk akun guru ini tidak ditemukan di Data Guru.');
     const boleh = new Set(G.mengajar.flatMap(x => x.kelas).map(normK));
 
-    const snap = await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)));
+    const snap = await (await import('../assets/js/cache.js')).ambilCache('siswa', 30, async () => (await F.getDocs(F.query(F.collection(FP.dbSiswaGuru, CFG.koleksi.siswa), F.limit(2000)))).docs.map(d => ({ id: d.id, ...d.data() }))).then(a => ({ docs: a.map(o => ({ id: o.id, data: () => o })) }));
     SIS = snap.docs.map(x => {
       const r = x.data(), kelas = String(pick(r, CFG.fSiswa.kelas)).trim();
       return { nis: String(pick(r, CFG.fSiswa.nis)).trim(), nama: String(pick(r, CFG.fSiswa.nama)).trim().toUpperCase(), kelas, tingkat: FP.tingkatDariKelas(kelas) };
@@ -476,6 +497,7 @@ function strukDariDok(s) {
   return strukBawaan();
 }
 
+let versiMuat = 0;
 async function muatKelas() {
   const kelas = $('fKelas').value, mapel = $('fMapel').value, my = ++seq;
   sebelum = { kelas, mapel };
@@ -485,6 +507,7 @@ async function muatKelas() {
   if (!DAFTAR.length) return gambar();
   try {
     const sn = await F.getDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()));
+    versiMuat = sn.exists() ? (sn.data().diubah || 0) : 0;   // untuk deteksi tabrakan saat Simpan
     const dok = sn.exists() ? sn.data() : { siswa: {} };
     if (dok.kkm) $('kkm').value = dok.kkm;
     if (dok.bobot) isiBobot(dok.bobot);
@@ -493,7 +516,10 @@ async function muatKelas() {
     const nT = totalTg(), nU = STRUK.uh;
     const pad = (arr, n) => [...(arr || []), ...Array(n)].slice(0, n).map(v => v ?? null);
     DAFTAR.forEach(s => { const d = (dok.siswa || {})[kunci(s)]; ST[kunci(s)] = d ? { tg: pad(d.tg, nT), uh: pad(d.uh, nU), uts: d.uts ?? null, pr: d.pr ?? null, sasm: d.sasm ?? null } : kosongSt(); });
-    const { rows } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat: [DAFTAR[0].tingkat] });
+    /* Hanya hasil pada semester rekap ini (sesuai Pengaturan: semester & tahun ajaran).
+       Tanpa batas ini, nilai SAS/PTS semester lalu ikut terbaca dan bisa mengisi kolom semester ini. */
+    const rs = rentangSemesterRekap();
+    const { rows } = await ambilTingkat(CFG.koleksi.hasil, { batas: 3000, urut: 'waktu', tingkat: [DAFTAR[0].tingkat], rentang: { field: 'waktu', dari: rs.dari, sampai: rs.sampai } });
     if (my !== seq) return;
 
     /* Hasil ujian online: jenis (SAS/PTS) dan mapel dibaca dari dokumen paket lewat paketId.
@@ -650,9 +676,16 @@ async function simpan() {
   if (!DAFTAR.length) return toast('Pilih kelas dan mapel dulu.');
   $('simpan').disabled = true;
   try {
+    /* Cegah menimpa pekerjaan orang lain: bila dokumen sudah diubah sejak dimuat, minta konfirmasi. */
+    const cek = await F.getDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()));
+    if (cek.exists() && (cek.data().diubah || 0) !== versiMuat) {
+      const lanjut = await konfirmasi({ judul: 'Nilai sudah diubah orang lain', pesan: 'Rekap ini disimpan ' + (cek.data().oleh || 'pengguna lain') + ' setelah Anda membukanya. Menyimpan sekarang akan menimpa perubahan itu. Lanjutkan?', ya: 'Timpa', batal: 'Batal', bahaya: true });
+      if (!lanjut) { $('simpan').disabled = false; return; }
+    }
     /* Tiap siswa: masukan mentah (tg, uh, uts, pr, sasm) + hasil hitung saat Simpan
        (sas = SAS yang dipakai, nilaiTugas, nilaiUH, akhir, predikat, ket). Disimpan pada dokumen yang sama, jadi
        edit ulang hanya memperbarui field-field ini, bukan membuat dokumen baru. */
+    const ULANG_DIUBAH = Date.now();
     const siswa = {};
     DAFTAR.forEach(s => {
       const d = ST[kunci(s)], h = hit(s);
@@ -664,9 +697,9 @@ async function simpan() {
     });
     await F.setDoc(F.doc(dbNilai(), CFG.koleksi.nilai, idDok()), {
       kelas: $('fKelas').value, mapel: $('fMapel').value, semester: P.semester || '', tahunAjaran: P.tahunAjaran || '',
-      kkm: kkm(), bobot: Object.fromEntries(KB.map(k => [k, pct(k)])), struktur: { tg: [...STRUK.tg], uh: STRUK.uh }, siswa, diubah: Date.now(), oleh: G.nama || ''
+      kkm: kkm(), bobot: Object.fromEntries(KB.map(k => [k, pct(k)])), struktur: { tg: [...STRUK.tg], uh: STRUK.uh }, siswa, diubah: ULANG_DIUBAH, oleh: G.nama || ''
     });
-    kotor = false; toast('Nilai tersimpan.');
+    versiMuat = ULANG_DIUBAH; kotor = false; toast('Nilai tersimpan.');
   } catch (e) { console.error(e); toast('Gagal menyimpan: ' + (e.code || e.message)); }
   $('simpan').disabled = false;
 }

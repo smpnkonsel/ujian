@@ -36,8 +36,12 @@ const HURUF = 'ABCDE';       // pilihan ganda biasa A–E
 const HURUF2 = 'ABCDEF';     // pilihan ganda kompleks & benar/salah
 const RING = 339.3;
 
-const DETAK_MS = 30000;      // detak sesi tiap 30 detik
-const SINKRON_MS = 5000;     // jeda minimum pembaruan setelah menjawab
+/* HEMAT FIRESTORE: tiap tulis sesi = 1 write untuk siswa DAN 1 read untuk
+   setiap monitor yang terbuka. Detak dilewati bila baru saja menulis
+   (menjawab/pindah tab sudah ikut memperbarui aktifTerakhir). Monitor
+   menganggap siswa offline bila aktifTerakhir > 180 detik. */
+const DETAK_MS = 60000;      // detak sesi tiap 60 detik (dilewati bila baru menulis)
+const SINKRON_MS = 15000;    // jeda minimum pembaruan setelah menjawab
 
 /* Naikkan angka ?v= setiap file diganti. */
 import { F, dbTingkat, dbSiswaGuru, dbBankSoal, KOLEKSI, tingkatDariToken } from './firebase-pusat.js?v=1';
@@ -52,8 +56,8 @@ const $ = id => document.getElementById(id);
 const panel = $('panel');
 const ng = $('ng');
 
-const esc = s => String(s ?? '').replace(/[&<>"]/g,
-  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const show = id => $(id)?.classList.remove('hidden');
 const hide = id => $(id)?.classList.add('hidden');
@@ -88,7 +92,29 @@ let endAt = 0;
 let tick = null;
 let running = false;
 
+/* ---------- Jam server ----------
+   Timer dan jendela jadwal memakai jam server (header Date + Age), bukan
+   jam perangkat, supaya siswa tidak bisa menambah waktu dengan mengubah
+   jam HP/laptop. Bila gagal diambil, selisih = 0 (memakai jam perangkat). */
+let selisihJam = 0;
+const kini = () => Date.now() + selisihJam;
+
+async function selaraskanJam() {
+  try {
+    const t0 = Date.now();
+    const r = await fetch(location.href.split('#')[0], { method: 'HEAD', cache: 'no-store' });
+    const t1 = Date.now();
+    const d = Date.parse(r.headers.get('date') || '');
+    if (Number.isNaN(d)) return;
+    const umur = Number(r.headers.get('age')) || 0;
+    selisihJam = (d + umur * 1000) - (t0 + t1) / 2;
+    if (Math.abs(selisihJam) < 2000) selisihJam = 0;   // selisih kecil: abaikan
+  } catch (_) { selisihJam = 0; }
+}
+
 let pelanggaran = 0; // jumlah pindah tab/jendela selama ujian
+let terakhirTulis = 0;      // waktu penulisan sesi terakhir (untuk melewati detak)
+let tandaPelanggaran = false; // ada pindah tab yang belum dilaporkan
 let detak = null;    // interval detak sesi
 let tunda = null;    // timeout pembaruan sesi (throttle)
 
@@ -110,8 +136,17 @@ const hitungKemajuan = () => ({
 /* Tulis/gabung dokumen sesi. Kegagalan tidak boleh mengganggu siswa. */
 async function tulisSesi(extra = {}) {
   if (!db || !S || !Q.length) return;
+  terakhirTulis = Date.now();
+  if (tandaPelanggaran) {
+    extra = { ...extra, pelanggaranTerakhir: F.serverTimestamp() };
+    tandaPelanggaran = false;
+  }
   try {
+    /* token & nis selalu ikut: bila penulisan pertama gagal (offline), penulisan
+       berikutnya tetap sah di mata Firestore Rules (sesiBaru). */
     await F.setDoc(refSesi(), {
+      token: S.tok,
+      nis: S.nis,
       ...hitungKemajuan(),
       aktifTerakhir: F.serverTimestamp(),
       ...extra
@@ -151,7 +186,9 @@ function sinkron() {
 
 function mulaiDetak() {
   clearInterval(detak);
-  detak = setInterval(() => { if (running) tulisSesi(); }, DETAK_MS);
+  detak = setInterval(() => {
+    if (running && Date.now() - terakhirTulis >= DETAK_MS * 0.8) tulisSesi();
+  }, DETAK_MS);
 }
 
 function hentikanDetak() {
@@ -186,10 +223,31 @@ function fmtT(seconds) {
   return h + ':' + String(m).padStart(2, '0') + ':' + String(c).padStart(2, '0');
 }
 
+const sudahDiingatkan = new Set();
+
+function pengingat(teks) {
+  document.querySelectorAll('.pengingat-waktu').forEach(e => e.remove());
+  const el = document.createElement('div');
+  el.className = 'pengingat-waktu';
+  el.setAttribute('role', 'status');
+  el.textContent = teks;
+  el.style.cssText = 'position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:9999;' +
+    'background:#b45309;color:#fff;padding:10px 18px;border-radius:12px;font:600 14px Poppins,sans-serif;' +
+    'box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:90vw;text-align:center';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
 function tickFn() {
-  const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+  const remaining = Math.max(0, Math.ceil((endAt - kini()) / 1000));
   $('tv').textContent = fmtT(remaining);
   $('tmr').className = 'timer' + (remaining <= 300 ? ' crit' : remaining <= 600 ? ' warn' : '');
+  [[600, 'Sisa waktu 10 menit.'], [300, 'Sisa waktu 5 menit.'], [60, 'Sisa waktu 1 menit! Segera kumpulkan.']].forEach(([batas, teks]) => {
+    if (remaining <= batas && remaining > 0 && !sudahDiingatkan.has(batas)) {
+      sudahDiingatkan.add(batas);
+      if (remaining > batas - 30) pengingat(teks);   // jangan muncul bila baru memulihkan sesi yang sudah lewat
+    }
+  });
   if (remaining <= 0) {
     hide('mo');
     state.otomatis = true;      // dikumpulkan otomatis karena waktu habis
@@ -198,7 +256,10 @@ function tickFn() {
 }
 
 function startTimer(resume) {
-  if (!resume) endAt = Date.now() + S.menit * 60 * 1000;
+  /* Siswa yang pernah mulai (ganti perangkat / data browser terhapus) tidak
+     mendapat waktu baru: batas dari server dipakai (S.batasServer). */
+  const lanjutServer = !resume && !!S.batasServer;
+  if (!resume) endAt = lanjutServer ? S.batasServer : kini() + S.menit * 60 * 1000;
   running = true;
   save();
   clearInterval(tick);
@@ -206,7 +267,7 @@ function startTimer(resume) {
   tickFn();
 
   /* Monitor: sesi dibuat saat mulai, atau dipulihkan setelah refresh. */
-  if (!resume) tulisSesi({ ...identitasSesi(), status: 'mengerjakan' });
+  if (!resume && !lanjutServer) tulisSesi({ ...identitasSesi(), status: 'mengerjakan' });
   else tulisSesi({ status: 'mengerjakan', batas: F.Timestamp.fromDate(new Date(endAt)) });
   mulaiDetak();
 }
@@ -233,8 +294,8 @@ addEventListener('beforeunload', event => {
 document.addEventListener('visibilitychange', () => {
   if (!running || !document.hidden) return;
   pelanggaran++;
-  save();
-  tulisSesi({ pelanggaranTerakhir: F.serverTimestamp() });
+  tandaPelanggaran = true;
+  save();               // save() memanggil sinkron(): ditulis berjeda, bukan tiap pindah tab
 });
 
 addEventListener('keydown', event => {
@@ -386,7 +447,7 @@ function jendelaJadwal(j) {
 /* Pesan galat bila jadwal belum dibuka / sudah ditutup, atau '' bila boleh masuk. */
 function cekWaktu(j) {
   const { mulai, akhir } = jendelaJadwal(j);
-  const sekarang = Date.now();
+  const sekarang = kini();
   if (mulai !== null && sekarang < mulai) return 'Ujian belum dimulai.';
   if (akhir !== null && sekarang > akhir) return 'Waktu ujian sudah berakhir.';
   return '';
@@ -395,12 +456,20 @@ function cekWaktu(j) {
 /* Cari jadwal di Bank Soal untuk token tanpa jadwalId.
    Prioritas: sedang berlangsung > hari ini > terdekat. */
 async function cariJadwal({ tingkat, kelasSiswa, paketId, mapel }) {
-  const snap = await F.getDocs(F.query(
-    F.collection(dbBankSoal, KOLEKSI.jadwal),
-    F.where('tingkat', '==', tingkat)
-  ));
+  /* Bila paket diketahui, baca hanya jadwal untuk paket itu (bukan semua
+     jadwal tingkat) — jauh lebih sedikit pembacaan per siswa. */
+  const refJ = F.collection(dbBankSoal, KOLEKSI.jadwal);
+  let snap = null;
+  if (paketId) {
+    try {
+      snap = await F.getDocs(F.query(refJ, F.where('tingkat', '==', tingkat), F.where('paketId', '==', paketId)));
+    } catch (e) { snap = null; }
+  }
+  if (!snap || snap.empty) {
+    snap = await F.getDocs(F.query(refJ, F.where('tingkat', '==', tingkat)));
+  }
 
-  const sekarang = Date.now();
+  const sekarang = kini();
   const mapelN = String(mapel).trim().toLowerCase();
 
   const calon = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(j => {
@@ -529,9 +598,32 @@ async function masuk() {
       console.warn('Pemeriksaan hasil sebelumnya dilewati:', e);
     }
 
+    /* Sesi di server: siswa yang pernah mulai tidak mendapat waktu baru. */
+    let batasServer = 0;
+    let pelanggaranLama = 0;
+    try {
+      const ss = await F.getDoc(F.doc(dbT, KOLEKSI.sesi, token + '_' + nis));
+      if (ss.exists()) {
+        const sd = ss.data();
+        if (sd.status === 'selesai' || sd.status === 'waktu-habis') {
+          return fail('Sesi ujianmu sudah ditutup, tetapi hasil belum tercatat. Hubungi pengawas.');
+        }
+        const b = keMs(sd.batas);
+        if (b !== null) {
+          if (b <= kini()) return fail('Waktu ujianmu sudah habis. Hubungi pengawas.');
+          batasServer = b;
+        }
+        pelanggaranLama = Number(sd.pelanggaran) || 0;
+      }
+    } catch (e) {
+      console.warn('Pemeriksaan sesi sebelumnya dilewati:', e);
+    }
+
     db = dbT;
+    pelanggaran = pelanggaranLama;
 
     S = {
+      batasServer,
       tok: token,
       tingkat,
       nis,
@@ -722,7 +814,8 @@ async function loadSoal(saved) {
 
     if (Array.isArray(saved.flag) && saved.flag.length === Q.length) state.flag = saved.flag;
 
-    if (saved.done || Date.now() >= endAt) {
+    if (saved.done || kini() >= endAt) {
+      if (!saved.done) state.otomatis = true;   // waktu habis saat siswa tidak membuka halaman
       selesai();
       return null;
     }
@@ -1124,7 +1217,20 @@ function kodeJawaban(q, a) {
   return a === null ? '-' : HURUF2[a];
 }
 
+let mengirim = false;
+let timerUlang = null;
+
+/* Kirim ulang otomatis: tiap 20 detik dan saat internet kembali, sampai berhasil. */
+function jadwalkanUlang() {
+  clearTimeout(timerUlang);
+  timerUlang = setTimeout(() => { if (S && state.done && !state.saved) kirim(); }, 20000);
+}
+addEventListener('online', () => { if (S && state.done && !state.saved) kirim(); });
+
 async function kirim() {
+  if (mengirim) return;
+  mengirim = true;
+  clearTimeout(timerUlang);
   setSv('', 'Menyimpan hasil...');
 
   const h = hitung();
@@ -1132,7 +1238,7 @@ async function kirim() {
   const status = state.otomatis ? 'waktu-habis' : 'selesai';
 
   const lama = Math.max(0, Math.min(S.menit * 60,
-    Math.round((Date.now() - (endAt - S.menit * 60000)) / 1000)));
+    Math.round((kini() - (endAt - S.menit * 60000)) / 1000)));
 
   const pemisah = Q.some(q => q.t === 'pgk' || q.t === 'jd') ? '|' : '';
 
@@ -1188,8 +1294,10 @@ async function kirim() {
 
   } catch (error) {
     console.error('Gagal menyimpan hasil:', error);
-    setSv('err', 'Hasil belum terkirim ke server. Periksa internet lalu coba lagi.', true);
+    setSv('err', 'Hasil belum terkirim ke server. Mencoba lagi otomatis; periksa internet bila masih gagal.', true);
+    jadwalkanUlang();
   }
+  mengirim = false;
 }
 
 /* ---------- Memulai aplikasi ---------- */
@@ -1202,6 +1310,9 @@ const batas = (janji, ms, pesan) => Promise.race([
 
 async function mulai() {
   pasangKotakToken();
+
+  /* Maksimal 3 detik; bila gagal, memakai jam perangkat. */
+  await Promise.race([selaraskanJam(), new Promise(r => setTimeout(r, 3000))]);
 
   let dataSesi = null;
 

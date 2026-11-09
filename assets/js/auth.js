@@ -85,6 +85,8 @@ export function hapusSesiLokal() {
       st.removeItem(K_SESI);
     });
     localStorage.removeItem('kw-peran');
+    /* Cache data master (cache.js) ikut dibersihkan saat keluar. */
+    Object.keys(localStorage).filter(k => k.startsWith('kwc:')).forEach(k => localStorage.removeItem(k));
   } catch (_) { /* abaikan */ }
 }
 
